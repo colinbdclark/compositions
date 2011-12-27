@@ -1,8 +1,8 @@
 // TODO: Smooth mix between loop and playback
-//              Smooth transition between speeds--ramp up/down
-// 	    Variation in speed and pitch for looper.
-//              Increase likelihood of regular-speed playback (possibly vary this likelihood based on volume)
-//              Randomize sampling length and speed each time around
+//       Smooth transition between speeds--ramp up/down
+// 	    Variation in speed and pitch for looper--Randomize sampling length and speed each time around
+//       Increase likelihood of regular-speed playback (possibly vary this likelihood based on volume)
+//       	- more likely to play slowly or silently when volume is higher      
 
 (
 	var makeGroupedSynths, makeOutputController,
@@ -12,7 +12,9 @@
 	       leftSynths, rightSynths,
 	       volTriggerStates,
 	       volumeRoutine, speedRoutine, sustainLevelRoutine, 
-	       dramaResponder;
+	       dramaResponder,
+	       loopVolumeRoutine,
+	       loopPitchRoutine;
 	
 	makeGroupedSynths = {
 		arg defName, buffers, outputBusNum;
@@ -78,20 +80,22 @@
 	};
 	
 	makePeriodicSetter = {
-		arg synths, paramName, waitRandomizer, paramCalculator, runFor  = inf;
+		arg synths, paramName, waitRandomizer, paramCalculator, debug = true, runFor = inf;
 		
 		var setter = Routine.new({
 			runFor.do({
 				var waitDur = waitRandomizer.value(),
 				       synth, paramValue;
 				 
-				 waitDur.wait;
-				 synth = synths.choose;
-				 paramValue = paramCalculator.value(synth, paramName, waitDur);
-				 synth.set(paramName, paramValue);
-				 
-				("After" + waitDur + "seconds, set" + paramName + 
-				 "on syth" + synth.nodeID + "to" + paramValue).postln; 
+				waitDur.wait;
+				synth = synths.choose;
+				paramValue = paramCalculator.value(synth, paramName, waitDur);
+				synth.set(paramName, paramValue);
+				
+				if (debug == true, { 
+					("After" + waitDur + "seconds, set" + paramName + 
+				 		"on syth" + synth.nodeID + "to" + paramValue).postln; 
+				});
 			});
 		}); 
 		setter.play(SystemClock);
@@ -127,22 +131,25 @@
 	
 	// Periodically trigger both synths' volume envelopes randomly.
 	volTriggerStates = trackSynthState.value(rivers);
-	volumeRoutine = makePeriodicSetter.value(rivers, "volTrigger", makeGaussianRandomizer.value(4.0, 3.0), {
+	volumeRoutine = makePeriodicSetter.value(rivers, "volTrigger", makeGaussianRandomizer.value(6.0, 3.0), {
 		arg synth;
 			
 		flipState.value(volTriggerStates, synth);
 	});
 	
-	// Periodically change the playback speed.
-	speedRoutine = makePeriodicSetter.value(rivers, "speed", makeGaussianRandomizer.value(10.0, 3.0), {
-		[0.25, 0.50, 0.50, 1.0, 1.0, 1.0].choose;
-	});
-	
 	// And the sustain level.
 	sustainLevelRoutine = makePeriodicSetter.value(rivers, "volLevel", makeGaussianRandomizer.value(4.0, 3.0), {
+		// Put this on a line so transitions are smooth
 		1.0.rand();
 	});
 	
+	// Periodically change the playback speed.
+	speedRoutine = makePeriodicSetter.value(rivers, "speed", makeGaussianRandomizer.value(10.0, 3.0), {
+		// Put this on a line so transitions are smooth; maybe only on speed up?
+		[0.25, 0.50, 0.50, 1.0, 1.0, 1.0].choose;
+	});
+	
+
 	// Reports volume increases to the output controller.
 	dramaResponder = OSCresponderNode(s.addr, "/tr", {
 		arg time, responder, msg;
@@ -165,10 +172,20 @@
 		 looper = channelSynths.at("looper");
 		 output = channelSynths.at("output");
 		 looper.set("start", frameIdx);
-		 looper.set("end", frameIdx + 22050); // TODO: Dynamically set the loop length.
+		 looper.set("end", frameIdx + [64, 128, 256, 512, 1024, 2048].choose); // TODO: Dynamically set the loop length.
 		 looper.set("speed", [0.25, 0.25, 0.5, 0.5, 0.5, 1.0].choose);
 		 looper.set("trig", 1.0);
-		 output.set("isDramatic", state);
+
+		 if (state === 1, {
+			 output.set("riverTrig", 0.0);
+			 output.set("looperTrig", 1.0);
+		 }, {
+			 output.set("riverTrig", 1.0);
+			 output.set("looperTrig", 0.0);
+		 });
 	});
 	dramaResponder.add;
+	
+	loopVolumeRoutine = makePeriodicSetter.value(loopers, "volLevel", makeGaussianRandomizer.value(0.5, 0.3), makeGaussianRandomizer.value(0.05, 0.05));
+	loopPitchRoutine = makePeriodicSetter.value(loopers, "speed", makeGaussianRandomizer.value(2, 1), makeGaussianRandomizer.value(0.5, 0.3));
 )

@@ -1,6 +1,6 @@
 (
-	~left = Buffer.read(s, "/Users/colin/Desktop/Fisher Brahms/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.L.wav");
-	~right =  Buffer.read(s,  "/Users/colin/Desktop/Fisher Brahms/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.R.wav");
+	~left = Buffer.read(s, "/Users/colin/code/compositions/fisher-brahms-video/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.L.wav");
+	~right =  Buffer.read(s,  "/Users/colin/code/compositions/fisher-brahms-video/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.R.wav");
 )
 
 
@@ -8,9 +8,9 @@
 	SynthDef("River", {
 		arg bufnum, outputBusNum, 
 		       volTrigger = 0.0, 
-		       volAttack = 2.5,  volRelease = 2.5, volLevel = 1.0,
+		       volAttack = 5,  volRelease = 5, volLevel = 1.0,
 		       speed = 1.0,
-		       dramaticVolumeThreshold = 0.1;
+		       dramaticVolumeThreshold = 0.087;
 		       
 		var fadeEnv, speedEnv, rate, driver, player, envelopedPlayer, dramaListener, dramaOnSender, dramaOffSender;
 	
@@ -61,7 +61,8 @@
 		       speed = 0.5,
 		       trig = 0,
 		       start = 0,
-		       end = BufFrames.kr(bufnum);
+		       end = BufFrames.kr(bufnum),
+		       volLevel = 0.2;
 		
 		var looper, player;
 		
@@ -77,23 +78,32 @@
 			bufnum: bufnum,
 			phase: looper,
 			loop: 1
-		) * 0.5; /** EnvGen.ar(fadeEnv, gate: volTrigger)*/ // TODO: Envelope the looper
+		) * volLevel; /** EnvGen.ar(fadeEnv, gate: volTrigger)*/ // TODO: Envelope the looper
 		
 		Out.ar(outputBusNum, player);
 	}).send(s);
 
 
 	SynthDef("OutputController", {
-		arg riverBusNum, looperBusNum, outputBusNum, isDramatic = 0;
+		arg riverBusNum, looperBusNum, 
+		    outputBusNum, 
+		    riverTrig = 1.0, looperTrig = 0.0;
 		
-		var river, looper;
+		var river, looper, fadeEnv;
 		
-		river = In.ar(riverBusNum, 1);
-		looper = In.ar(looperBusNum, 1);
+		fadeEnv = Env.asr(
+			attackTime: 2, 
+			sustainLevel: 0.5, 
+			releaseTime: 2
+		);
+		
+		
+		river = In.ar(riverBusNum, 1) *  EnvGen.ar(fadeEnv, gate: riverTrig);
+		looper = In.ar(looperBusNum, 1) * EnvGen.ar(fadeEnv, gate: looperTrig);
 		
 		Out.ar(
 			bus: outputBusNum,
-			channelsArray: Select.ar(isDramatic, [
+			channelsArray: Mix.new([
 				river, looper
 			])
 		);
