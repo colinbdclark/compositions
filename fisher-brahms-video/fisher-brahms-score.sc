@@ -1,21 +1,22 @@
 // TODO: Smooth mix between loop and playback
-//       Smooth transition between speeds--ramp up/down
-// 	    Variation in speed and pitch for looper--Randomize sampling length and speed each time around
-//       Increase likelihood of regular-speed playback (possibly vary this likelihood based on volume)
-//       	- more likely to play slowly or silently when volume is higher      
+// Relatioship between playback speed and overall volume
+// Unweight the slowest speed slightly
+// Ramp speed up and down more smoothly
+// Increase the length of events
+// Separate the volume sensitivity for the left and right loopers?
 
 (
 	var makeGroupedSynths, makeOutputController,
-	       trackSynthState, flipState,
-	       makePeriodicSetter, makeGaussianRandomizer,
-	       riversBus, rivers, loopersBus, loopers, leftOutput, rightOutput,
-	       leftSynths, rightSynths,
-	       volTriggerStates,
-	       volumeRoutine, speedRoutine, sustainLevelRoutine, 
-	       dramaResponder,
-	       loopVolumeRoutine,
-	       loopPitchRoutine;
-	
+	    trackSynthState, flipState,
+	    makePeriodicSetter, makeGaussianRandomizer,
+	    riversBus, rivers, loopersBus, loopers, leftOutput, rightOutput,
+	    leftSynths, rightSynths,
+	    volTriggerStates,
+	    volumeRoutine, speedRoutine, sustainLevelRoutine, 
+	    dramaResponder,
+	    loopVolumeRoutine,
+	    loopPitchRoutine;
+
 	makeGroupedSynths = {
 		arg defName, buffers, outputBusNum;
 		
@@ -109,8 +110,7 @@
 			centre.gaussian(deviation);
 		}
 	};
-					
-					
+	
 	// Live state.
 	riversBus = Bus.audio(s, 2);
 	rivers = makeGroupedSynths.value("River", [~left, ~right],  riversBus.index);
@@ -146,10 +146,9 @@
 	// Periodically change the playback speed.
 	speedRoutine = makePeriodicSetter.value(rivers, "speed", makeGaussianRandomizer.value(10.0, 3.0), {
 		// Put this on a line so transitions are smooth; maybe only on speed up?
-		[0.25, 0.50, 0.50, 1.0, 1.0, 1.0].choose;
+		[0.25, 0.50, 0.50, 0.75, 0.75, 1.0, 1.0, 1.0, 1.0].choose;
 	});
 	
-
 	// Reports volume increases to the output controller.
 	dramaResponder = OSCresponderNode(s.addr, "/tr", {
 		arg time, responder, msg;
@@ -186,6 +185,19 @@
 	});
 	dramaResponder.add;
 	
-	loopVolumeRoutine = makePeriodicSetter.value(loopers, "volLevel", makeGaussianRandomizer.value(0.5, 0.3), makeGaussianRandomizer.value(0.05, 0.05));
-	loopPitchRoutine = makePeriodicSetter.value(loopers, "speed", makeGaussianRandomizer.value(2, 1), makeGaussianRandomizer.value(0.5, 0.3));
+	loopVolumeRoutine = makePeriodicSetter.value(
+		loopers, 
+		"volLevel", 
+		makeGaussianRandomizer.value(0.5, 0.3), 
+		makeGaussianRandomizer.value(0.05, 0.05),
+		false
+	);
+	
+	loopPitchRoutine = makePeriodicSetter.value(
+		loopers, 
+		"speed", 
+		makeGaussianRandomizer.value(2, 1), 
+		makeGaussianRandomizer.value(0.5, 0.3),
+		false
+	);
 )
