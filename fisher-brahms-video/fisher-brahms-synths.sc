@@ -1,6 +1,6 @@
 (
-	~left = Buffer.read(s, "/Users/colin/code/compositions/fisher-brahms-video/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.L.wav");
-	~right =  Buffer.read(s,  "/Users/colin/code/compositions/fisher-brahms-video/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.R.wav");
+	~left = Buffer.read(s, "/Users/colin/code/compositions/fisher-brahms-video/Violin Solo.L.wav");
+	~right =  Buffer.read(s,  "/Users/colin/code/compositions/fisher-brahms-video/Violin Solo.R.wav");
 )
 
 
@@ -8,9 +8,9 @@
 	SynthDef("River", {
 		arg bufnum, outputBusNum, 
 		       volTrigger = 0.0, 
-		       volAttack = 5,  volRelease = 5, volLevel = 1.0,
+		       volAttack = 1,  volRelease = 2, volLevel = 1.0,
 		       speed = 1.0,
-		       dramaticVolumeThreshold = 0.087;
+		       dramaticVolumeThreshold = 0.0501;
 		       
 		var fadeEnv, speedEnv, rate, driver, player, envelopedPlayer, dramaListener, dramaOnSender, dramaOffSender;
 	
@@ -38,7 +38,6 @@
 		envelopedPlayer = player * EnvGen.ar(fadeEnv, gate: volTrigger);
 		
 		// Listen for swells in ampltude and send a trigger to the language if it crosses the threshold.
-
 		dramaListener = Latch.ar(
 			in: Amplitude.ar(
 				in: player,
@@ -62,7 +61,7 @@
 		       trig = 0,
 		       start = 0,
 		       end = BufFrames.kr(bufnum),
-		       volLevel = 0.2;
+		       volLevel = 0.1;
 		
 		var looper, player;
 		
