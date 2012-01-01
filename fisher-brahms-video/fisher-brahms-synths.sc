@@ -10,7 +10,7 @@
 		       volTrigger = 0.0, 
 		       volAttack = 1,  volRelease = 2, volLevel = 1.0,
 		       speed = 1.0,
-		       dramaticVolumeThreshold = 0.087;
+		       dramaticVolumeThreshold = 0.05;
 		       
 		var fadeEnv, speedEnv, rate, driver, player, envelopedPlayer, dramaListener, dramaOnSender, dramaOffSender;
 	
