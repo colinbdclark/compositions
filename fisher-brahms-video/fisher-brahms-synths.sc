@@ -1,6 +1,6 @@
 (
-	~left = Buffer.read(s, "/Users/colin/code/compositions/fisher-brahms-video/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.L.wav");
-	~right =  Buffer.read(s,  "/Users/colin/code/compositions/fisher-brahms-video/01 Concerto for Violin and Orchestra in D major op.77, I. Allegro non troppo.R.wav");
+	~left = Buffer.read(s, "/Users/colin/code/compositions/fisher-brahms-video/Violin Solo.L.wav");
+	~right =  Buffer.read(s,  "/Users/colin/code/compositions/fisher-brahms-video/Violin Solo.R.wav");
 )
 
 
@@ -8,7 +8,7 @@
 	SynthDef("River", {
 		arg bufnum, outputBusNum, 
 		       volTrigger = 0.0, 
-		       volAttack = 5,  volRelease = 5, volLevel = 1.0,
+		       volAttack = 1,  volRelease = 2, volLevel = 1.0,
 		       speed = 1.0,
 		       dramaticVolumeThreshold = 0.087;
 		       

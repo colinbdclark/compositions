@@ -1,21 +1,15 @@
-// TODO: Smooth mix between loop and playback
-// Relatioship between playback speed and overall volume
-// Unweight the slowest speed slightly
-// Ramp speed up and down more smoothly
-// Increase the length of events
-// Separate the volume sensitivity for the left and right loopers?
-
 (
 	var makeGroupedSynths, makeOutputController,
-	    trackSynthState, flipState,
+	    trackSynthState,
 	    makePeriodicSetter, makeGaussianRandomizer,
+	    onEvent, offEvent, makeEventFirer,
 	    riversBus, rivers, loopersBus, loopers, leftOutput, rightOutput,
 	    leftSynths, rightSynths,
 	    volTriggerStates,
-	    volumeRoutine, speedRoutine, sustainLevelRoutine, 
+	    shortSilentDuration, longSilentDuration, shortSoundDuration, longSoundDuration,
+	    leftEventFirer, rightEventFirer,
 	    dramaResponder,
-	    loopVolumeRoutine,
-	    loopPitchRoutine;
+	    loopVolumeRoutine,loopPitchRoutine;
 
 	makeGroupedSynths = {
 		arg defName, buffers, outputBusNum;
@@ -66,18 +60,13 @@
 		states;
 	};
 	
-	flipState = {
-		arg states, synth;
-		var state = states.at(synth);
 		
-		if (state == 1.0, {
-			state = 0.0;
-		}, {
-			state =1.0;
-		});
-		states.put(synth, state);
+	makeGaussianRandomizer = {
+		arg centre, deviation;
 		
-		state;
+		{
+			centre.gaussian(deviation);
+		}
 	};
 	
 	makePeriodicSetter = {
@@ -103,13 +92,59 @@
 		setter;
 	};
 	
-	makeGaussianRandomizer = {
-		arg centre, deviation;
+	offEvent = {
+		arg states, synth, durationCalculator;
+		var state = 0.0;
 		
-		{
-			centre.gaussian(deviation);
-		}
+		states.put(synth, state);
+		synth.set("volTrigger", 0.0);
+		("Triggered " + synth.nodeID + "off.").postln;
+		
+		durationCalculator.value;
 	};
+	
+	onEvent = {
+		arg states, synth, durationCalculator;
+		var state = 1.0,
+		    vol = 1.0.rand() * 1.5,
+		    volAttack = 1.gaussian(0.75),
+		    volRelease = 1.gaussian(0.5),
+		    speed = [0.25, 0.50, 0.50, 0.75, 0.75, 1.0, 1.0].choose;
+		
+		states.put(synth, state);
+		synth.set("volLevel", vol);
+		synth.set("speed", speed);
+		synth.set("volTrigger", 1.0);
+		("Triggered " + synth.nodeID + "on with volume of" + vol + ", attack of" + volAttack + "release of" + volRelease + "and speed of" + speed).postln;
+		
+		durationCalculator.value;
+	};
+	
+		
+	makeEventFirer = {
+		arg river, states, silentDuration, soundDuration;
+		var eventRoutine = Routine.new({
+			inf.do({
+				var state, dur, vol, speed;
+				
+				// Check its state
+				state = states.at(river);
+				if (state == 1.0, {
+					dur = offEvent.value(states, river, silentDuration);
+				}, {
+					dur = onEvent.value(states, river, soundDuration);
+				});
+				
+				("Waiting" + dur + "seconds.").postln;
+				dur.wait;
+	
+			});
+		});
+		eventRoutine.play(SystemClock);
+		
+		eventRoutine;
+	};
+
 	
 	// Live state.
 	riversBus = Bus.audio(s, 2);
@@ -129,25 +164,15 @@
 	rightSynths.put("looper", loopers[1]);
 	rightSynths.put("output", rightOutput);
 	
-	// Periodically trigger both synths' volume envelopes randomly.
 	volTriggerStates = trackSynthState.value(rivers);
-	volumeRoutine = makePeriodicSetter.value(rivers, "volTrigger", makeGaussianRandomizer.value(6.0, 3.0), {
-		arg synth;
-			
-		flipState.value(volTriggerStates, synth);
-	});
 	
-	// And the sustain level.
-	sustainLevelRoutine = makePeriodicSetter.value(rivers, "volLevel", makeGaussianRandomizer.value(4.0, 3.0), {
-		// Put this on a line so transitions are smooth
-		1.0.rand();
-	});
+	shortSilentDuration = makeGaussianRandomizer.value(5, 4);
+	longSilentDuration = makeGaussianRandomizer.value(60, 15);
+	shortSoundDuration = makeGaussianRandomizer.value(0.8, 0.5);
+	longSoundDuration = makeGaussianRandomizer.value(30, 20);
 	
-	// Periodically change the playback speed.
-	speedRoutine = makePeriodicSetter.value(rivers, "speed", makeGaussianRandomizer.value(10.0, 3.0), {
-		// Put this on a line so transitions are smooth; maybe only on speed up?
-		[0.25, 0.50, 0.50, 0.75, 0.75, 1.0, 1.0, 1.0, 1.0].choose;
-	});
+	leftEventFirer = makeEventFirer.value(rivers[0], volTriggerStates, longSilentDuration, longSoundDuration);
+	rightEventFirer = makeEventFirer.value(rivers[1], volTriggerStates, longSilentDuration, longSoundDuration);
 	
 	// Reports volume increases to the output controller.
 	dramaResponder = OSCresponderNode(s.addr, "/tr", {
