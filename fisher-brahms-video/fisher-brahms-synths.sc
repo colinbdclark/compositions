@@ -10,7 +10,7 @@
 		       volTrigger = 0.0, 
 		       volAttack = 1,  volRelease = 2, volLevel = 1.0,
 		       speed = 1.0,
-		       dramaticVolumeThreshold = 0.5;
+		       dramaticVolumeThreshold = 0.0501;
 		       
 		var fadeEnv, speedEnv, rate, driver, player, envelopedPlayer, dramaListener, dramaOnSender, dramaOffSender;
 	
@@ -38,7 +38,6 @@
 		envelopedPlayer = player * EnvGen.ar(fadeEnv, gate: volTrigger);
 		
 		// Listen for swells in ampltude and send a trigger to the language if it crosses the threshold.
-
 		dramaListener = Latch.ar(
 			in: Amplitude.ar(
 				in: player,
@@ -62,7 +61,7 @@
 		       trig = 0,
 		       start = 0,
 		       end = BufFrames.kr(bufnum),
-		       volLevel = 0.2;
+		       volLevel = 0.1;
 		
 		var looper, player;
 		
