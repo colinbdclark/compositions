@@ -10,7 +10,7 @@
 		       volTrigger = 0.0, 
 		       volAttack = 1,  volRelease = 2, volLevel = 1.0,
 		       speed = 1.0,
-		       dramaticVolumeThreshold = 0.5;
+		       dramaticVolumeThreshold = 0.05;
 		       
 		var fadeEnv, speedEnv, rate, driver, player, envelopedPlayer, dramaListener, dramaOnSender, dramaOffSender;
 	
@@ -62,7 +62,7 @@
 		       trig = 0,
 		       start = 0,
 		       end = BufFrames.kr(bufnum),
-		       volLevel = 0.2;
+		       volLevel = 0.15;
 		
 		var looper, player;
 		

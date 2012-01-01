@@ -66,7 +66,7 @@
 		riverBus = Bus.audio(s, 1);
 		river = makeBufferSynth.value("River", buffer, riverBus.index, group);
 		looperBus = Bus.audio(s, 1);
-		looper = makeBufferSynth.value("Looper", buffer, riverBus.index, group);
+		looper = makeBufferSynth.value("Looper", buffer, looperBus.index, group);
 		output = makeOutputController.value(riverBus.index, looperBus.index, channelIdx);
 		
 		shardBus = Bus.audio(s, 1);
@@ -127,8 +127,8 @@
 		arg states, synth;
 		var state = 1.0,
 		    vol = 1.0.rand() * 1.5,
-		    volAttack = 1.gaussian(0.75),
-		    volRelease = 1.gaussian(0.75),
+		    volAttack = 0.3.gaussian(0.2),
+		    volRelease = 0.3.gaussian(0.2),
 		    speed = [0.25, 0.50, 0.50, 0.75, 0.75, 1.0, 1.0].choose;
 		
 		states.put(synth, state);
@@ -207,8 +207,8 @@
 	dramaResponder.add;
 	
 	// Duration calculators.
-	shortSilentDuration = makeGaussianRandomizer.value(9, 2.5);
-	shortSoundDuration = makeGaussianRandomizer.value(0.2, 0.1);
+	shortSilentDuration = makeGaussianRandomizer.value(8, 2.5);
+	shortSoundDuration = makeGaussianRandomizer.value(0.1, 0.05);
 	longSilentDuration = makeGaussianRandomizer.value(60, 15);
 	longSoundDuration = makeGaussianRandomizer.value(30, 20);
 	
@@ -217,10 +217,8 @@
 	leftSynths = makeSynthsForChannel.value(0, synthGroup, ~left);
 	rightSynths = makeSynthsForChannel.value(1, synthGroup, ~right);
 	loopers = [leftSynths.at("looper"), rightSynths.at("looper")];
-	leftEventFirer = makeEventFirer.value(leftSynths, "river", longSilentDuration, longSoundDuration);
-	leftShardFirer = makeEventFirer.value(leftSynths, "shard", shortSilentDuration, shortSoundDuration);
-	rightEventFirer = makeEventFirer.value(rightSynths, "river", longSilentDuration, longSoundDuration);
-	rightShardFirer = makeEventFirer.value(rightSynths, "shard", shortSilentDuration, shortSoundDuration);
+	leftEventFirer = makeEventFirer.value(leftSynths, "river", shortSilentDuration, shortSoundDuration);
+	rightEventFirer = makeEventFirer.value(rightSynths, "river", shortSilentDuration, shortSoundDuration);
 
 		
 	// Periodic routines to change the volume and speed of the loopers, 
