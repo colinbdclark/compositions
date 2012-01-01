@@ -1,35 +1,19 @@
 (
-	var makeGroupedSynths, makeOutputController,
+	var makeOutputController,
+	    makeBufferSynth,
 	    trackSynthState,
-	    makePeriodicSetter, makeGaussianRandomizer,
-	    onEvent, offEvent, makeEventFirer,
-	    riversBus, rivers, loopersBus, loopers, leftOutput, rightOutput,
-	    leftSynths, rightSynths,
-	    volTriggerStates,
-	    shortSilentDuration, longSilentDuration, shortSoundDuration, longSoundDuration,
-	    leftEventFirer, rightEventFirer,
+	    makeSynthsForChannel,
+	    makeGaussianRandomizer,
+	    makePeriodicSetter,
+	    offEvent, onEvent,
+	    makeEventFirer,
 	    dramaResponder,
-	    loopVolumeRoutine,loopPitchRoutine;
+	    shortSilentDuration, longSilentDuration, shortSoundDuration, longSoundDuration,
+	    synthGroup, leftSynths, rightSynths, loopers,
+	    leftEventFirer, leftShardFirer, rightEventFirer, rightShardFirer,
+	    loopVolumeRoutine,loopPitchRoutine,
+	    scoreTimer;
 
-	makeGroupedSynths = {
-		arg defName, buffers, outputBusNum;
-		
-		var group = Group.new,
-		       synths = List.new;
-		
-		buffers.do({
-			arg buffer, idx;
-			var synth = Synth.new(
-				defName: defName,
-				args: ["bufnum", buffer.bufnum, "outputBusNum", outputBusNum + idx],
-				target: group,
-				addAction: \addToTail
-			);
-			synths.add(synth);
-		});
-		
-		synths;
-	};
 	
 	makeOutputController = {
 		arg riverBusNum, looperBusNum, channelOffset;
@@ -37,14 +21,25 @@
 		Synth.new(
 			defName: "OutputController",
 			args: [
-				"riverBusNum", riverBusNum  + channelOffset,
-				"looperBusNum", looperBusNum  + channelOffset,
+				"riverBusNum", riverBusNum,
+				"looperBusNum", looperBusNum,
 				"outputBusNum", channelOffset
 			],
 			addAction: \addToTail
 		);		
 	};
-	
+		
+	makeBufferSynth = {
+		arg defName, buffer, outputBusNum, group = Group.new;
+		
+		Synth.new(
+			defName: defName,
+			args: ["bufnum", buffer.bufnum, "outputBusNum", outputBusNum],
+			target: group,
+			addAction: \addToTail
+		);
+	};
+	 
 	trackSynthState = {
 		arg synths, stateParam;
 		var states = IdentityDictionary.new;
@@ -60,7 +55,34 @@
 		states;
 	};
 	
+	makeSynthsForChannel = {	
+		arg channelIdx, group, buffer;
+		var riverBus, river, 
+		    looperBus, looper,
+		    output,
+		    shardBus, shard, shardOutput,
+		    synthBundle;
 		
+		riverBus = Bus.audio(s, 1);
+		river = makeBufferSynth.value("River", buffer, riverBus.index, group);
+		looperBus = Bus.audio(s, 1);
+		looper = makeBufferSynth.value("Looper", buffer, riverBus.index, group);
+		output = makeOutputController.value(riverBus.index, looperBus.index, channelIdx);
+		
+		shardBus = Bus.audio(s, 1);
+		shard = makeBufferSynth.value("River", buffer, shardBus.index, group);
+		shardOutput = makeOutputController.value(shardBus.index, looperBus.index, channelIdx);
+		
+		synthBundle = Dictionary.new;
+		synthBundle.put("river", river);
+		synthBundle.put("looper", looper);
+		synthBundle.put("output", output);
+		synthBundle.put("shard", shard);
+		synthBundle.put("state", trackSynthState.value([river], "volTrigger"));
+
+		synthBundle;
+	};
+	
 	makeGaussianRandomizer = {
 		arg centre, deviation;
 		
@@ -93,51 +115,54 @@
 	};
 	
 	offEvent = {
-		arg states, synth, durationCalculator;
+		arg states, synth;
 		var state = 0.0;
 		
 		states.put(synth, state);
 		synth.set("volTrigger", 0.0);
 		("Triggered " + synth.nodeID + "off.").postln;
-		
-		durationCalculator.value;
 	};
 	
 	onEvent = {
-		arg states, synth, durationCalculator;
+		arg states, synth;
 		var state = 1.0,
 		    vol = 1.0.rand() * 1.5,
 		    volAttack = 1.gaussian(0.75),
-		    volRelease = 1.gaussian(0.5),
+		    volRelease = 1.gaussian(0.75),
 		    speed = [0.25, 0.50, 0.50, 0.75, 0.75, 1.0, 1.0].choose;
 		
 		states.put(synth, state);
 		synth.set("volLevel", vol);
 		synth.set("speed", speed);
 		synth.set("volTrigger", 1.0);
-		("Triggered " + synth.nodeID + "on with volume of" + vol + ", attack of" + volAttack + "release of" + volRelease + "and speed of" + speed).postln;
-		
-		durationCalculator.value;
+		("Triggered " + synth.nodeID + "on." +
+		 "Volume:" + vol + ", attack:" + volAttack + "release:" + volRelease + "speed:" + speed).postln;
 	};
-	
 		
 	makeEventFirer = {
-		arg river, states, silentDuration, soundDuration;
-		var eventRoutine = Routine.new({
+		arg synthBundle, synthName, silentDuration, soundDuration;
+		var synth, states, eventRoutine;
+		
+		synth = synthBundle.at(synthName);
+		states = synthBundle.at("state");
+		
+		eventRoutine = Routine.new({
 			inf.do({
-				var state, dur, vol, speed;
+				var state, dur, event;
 				
 				// Check its state
-				state = states.at(river);
+				state = states.at(synth);
 				if (state == 1.0, {
-					dur = offEvent.value(states, river, silentDuration);
+					dur = soundDuration.value;
+					event = offEvent;
 				}, {
-					dur = onEvent.value(states, river, soundDuration);
+					dur = silentDuration.value;
+					event = onEvent;
 				});
 				
 				("Waiting" + dur + "seconds.").postln;
 				dur.wait;
-	
+				event.value(states, synth);
 			});
 		});
 		eventRoutine.play(SystemClock);
@@ -145,34 +170,6 @@
 		eventRoutine;
 	};
 
-	
-	// Live state.
-	riversBus = Bus.audio(s, 2);
-	rivers = makeGroupedSynths.value("River", [~left, ~right],  riversBus.index);
-	loopersBus = Bus.audio(s, 2);
-	loopers = makeGroupedSynths.value("Looper", [~left, ~right], loopersBus.index);
-	leftOutput = makeOutputController.value(riversBus.index, loopersBus.index, 0);
-	rightOutput = makeOutputController.value(riversBus.index, loopersBus.index, 1);
-	
-	leftSynths = Dictionary.new;
-	leftSynths.put("river", rivers[0]);
-	leftSynths.put("looper", loopers[0]);
-	leftSynths.put("output", leftOutput);
-	
-	rightSynths = Dictionary.new;
-	rightSynths.put("river", rivers[1]);
-	rightSynths.put("looper", loopers[1]);
-	rightSynths.put("output", rightOutput);
-	
-	volTriggerStates = trackSynthState.value(rivers);
-	
-	shortSilentDuration = makeGaussianRandomizer.value(5, 4);
-	longSilentDuration = makeGaussianRandomizer.value(60, 15);
-	shortSoundDuration = makeGaussianRandomizer.value(0.8, 0.5);
-	longSoundDuration = makeGaussianRandomizer.value(30, 20);
-	
-	leftEventFirer = makeEventFirer.value(rivers[0], volTriggerStates, longSilentDuration, longSoundDuration);
-	rightEventFirer = makeEventFirer.value(rivers[1], volTriggerStates, longSilentDuration, longSoundDuration);
 	
 	// Reports volume increases to the output controller.
 	dramaResponder = OSCresponderNode(s.addr, "/tr", {
@@ -186,7 +183,6 @@
 		       output;
 		       
 		 ("Recieved message from" + nodeId + ":" + "drama is" + state + ", frameIdx is" + frameIdx).postln;
-		 
 		 if (nodeId == leftSynths.at("river").nodeID, {
 			 channelSynths = leftSynths;
 		 }, {
@@ -210,6 +206,25 @@
 	});
 	dramaResponder.add;
 	
+	// Duration calculators.
+	shortSilentDuration = makeGaussianRandomizer.value(9, 2.5);
+	shortSoundDuration = makeGaussianRandomizer.value(0.2, 0.1);
+	longSilentDuration = makeGaussianRandomizer.value(60, 15);
+	longSoundDuration = makeGaussianRandomizer.value(30, 20);
+	
+	// Live state.
+	synthGroup = Group.new;	
+	leftSynths = makeSynthsForChannel.value(0, synthGroup, ~left);
+	rightSynths = makeSynthsForChannel.value(1, synthGroup, ~right);
+	loopers = [leftSynths.at("looper"), rightSynths.at("looper")];
+	leftEventFirer = makeEventFirer.value(leftSynths, "river", longSilentDuration, longSoundDuration);
+	leftShardFirer = makeEventFirer.value(leftSynths, "shard", shortSilentDuration, shortSoundDuration);
+	rightEventFirer = makeEventFirer.value(rightSynths, "river", longSilentDuration, longSoundDuration);
+	rightShardFirer = makeEventFirer.value(rightSynths, "shard", shortSilentDuration, shortSoundDuration);
+
+		
+	// Periodic routines to change the volume and speed of the loopers, 
+	// which  run all the time but are not necessarily  audible.
 	loopVolumeRoutine = makePeriodicSetter.value(
 		loopers, 
 		"volLevel", 
@@ -225,4 +240,9 @@
 		makeGaussianRandomizer.value(0.5, 0.3),
 		false
 	);
+	
+	scoreTimer = Routine.new({
+		((13 * 60) + 20).wait;
+		synthGroup.freeAll;
+	});
 )
