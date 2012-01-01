@@ -241,6 +241,27 @@
 	
 	scoreTimer = Routine.new({
 		((13 * 60) + 20).wait;
+		
+		// Stop all the routines.
+		leftEventFirer.stop;
+		leftShardFirer.stop;
+		rightEventFirer.stop;
+		rightShardFirer.stop;
+		loopVolumeRoutine.stop;
+		loopPitchRoutine.stop;
+		dramaResponder.remove;
+
+		// Untrigger all the synths so they release to silence, waiting a brief period to make sure they do.
+		leftSynths.at("river").set("volTrigger", 0.0);
+		leftSynths.at("shard").set("volTrigger", 0.0);
+		rightSynths.at("river").set("volTrigger", 0.0);
+		rightSynths.at("shard").set("volTrigger", 0.0);
+		2.wait;
+		
+		// Clean up memory.
 		synthGroup.freeAll;
+		synthGroup.free;
+		("Done!").postln;
 	});
+	scoreTimer.play(SystemClock);
 )
