@@ -127,9 +127,9 @@
 		arg states, synth;
 		var state = 1.0,
 		    vol = 1.0.rand() * 1.5,
-		    volAttack = 1.gaussian(0.75),
-		    volRelease = 1.gaussian(0.75),
-		    speed = [0.25, 0.50, 0.50, 0.75, 0.75, 1.0, 1.0].choose;
+		    volAttack = 0.3.gaussian(0.2),
+		    volRelease = 0.3.gaussian(0.2),
+		    speed = [0.25, 0.50, 0.50, 0.75, 0.75, 1.0].choose;
 		
 		states.put(synth, state);
 		synth.set("volLevel", vol);
@@ -169,47 +169,11 @@
 		
 		eventRoutine;
 	};
-
-	
-	// Reports volume increases to the output controller.
-	dramaResponder = OSCresponderNode(s.addr, "/tr", {
-		arg time, responder, msg;
-		
-		var nodeId = msg[1],
-		       state = msg[2],
-		       frameIdx = msg[3],
-		       channelSynths,
-		       looper,
-		       output;
-		       
-		 ("Recieved message from" + nodeId + ":" + "drama is" + state + ", frameIdx is" + frameIdx).postln;
-		 if (nodeId == leftSynths.at("river").nodeID, {
-			 channelSynths = leftSynths;
-		 }, {
-			 channelSynths = rightSynths;
-		 });
-		 
-		 looper = channelSynths.at("looper");
-		 output = channelSynths.at("output");
-		 looper.set("start", frameIdx);
-		 looper.set("end", frameIdx + [64, 128, 256, 512, 1024, 2048].choose); // TODO: Dynamically set the loop length.
-		 looper.set("speed", [0.25, 0.25, 0.5, 0.5, 0.5, 1.0].choose);
-		 looper.set("trig", 1.0);
-
-		 if (state === 1, {
-			 output.set("riverTrig", 0.0);
-			 output.set("looperTrig", 1.0);
-		 }, {
-			 output.set("riverTrig", 1.0);
-			 output.set("looperTrig", 0.0);
-		 });
-	});
-	dramaResponder.add;
 	
 	// Duration calculators.
-	shortSilentDuration = makeGaussianRandomizer.value(9, 2.5);
-	shortSoundDuration = makeGaussianRandomizer.value(0.2, 0.1);
-	longSilentDuration = makeGaussianRandomizer.value(60, 15);
+	shortSilentDuration = makeGaussianRandomizer.value(12, 2.5);
+	shortSoundDuration = makeGaussianRandomizer.value(0.1, 0.05);
+	longSilentDuration = makeGaussianRandomizer.value(75, 15);
 	longSoundDuration = makeGaussianRandomizer.value(30, 20);
 	
 	// Live state.
