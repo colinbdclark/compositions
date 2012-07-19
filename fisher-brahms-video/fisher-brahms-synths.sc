@@ -37,19 +37,6 @@
 
 		envelopedPlayer = player * EnvGen.ar(fadeEnv, gate: volTrigger);
 		
-		// Listen for swells in ampltude and send a trigger to the language if it crosses the threshold.
-		dramaListener = Latch.ar(
-			in: Amplitude.ar(
-				in: player,
-				attackTime: 0.01,
-				releaseTime: 0.01
-			),
-			trig: Dust.kr(0.2)
-		);
-		
-		dramaOnSender = SendTrig.ar(dramaListener > dramaticVolumeThreshold, 1, driver);	
-		dramaOffSender = SendTrig.ar(dramaListener < dramaticVolumeThreshold, 0, driver);
-		
 		Out.ar(outputBusNum, envelopedPlayer);
 		
 	}).send(s);
