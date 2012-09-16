@@ -28,9 +28,9 @@ var colin = colin || {};
             rate: "audio",
             freq: {
                 ugen: "flock.ugen.xLine",
-                start: freq * (Math.random() * 2.5),
+                start: freq * (Math.random() + 0.5), // Was (Math.random() * 2.5)
                 end: freq,
-                duration: (Math.random() * 10) + 0.1
+                duration: (Math.random() * 20) + 0.1 // Was (Math.random() * 10) + 0.1
             },
             mul: maxAmp / freqScale
         };
@@ -59,7 +59,9 @@ var colin = colin || {};
     };
 
     colin.additiveDrone = function () {
-        var that = {};
+        var that = {
+            intervalCap: 1
+        };
         
         that.synth = flock.synth({
             id: "adder",
@@ -75,24 +77,85 @@ var colin = colin || {};
                 dur = (Math.random() * 60) + 0.1,
                 amp = harm.input("mul");
 
-            freqUGen.input("start", currentFreq);
-            freqUGen.input("end", end);
-            freqUGen.input("duration", dur);
+            harm.input({
+                "freq.start": currentFreq,
+                "freq.end": end,
+                "freq.duration": dur,
+                "mul": amp * flock.choose(intervals)
+            });
 
-            var idx = $.inArray(that.synth.input("adder.sources"), harm);
-            harm.input("mul", amp * flock.choose(intervals));
+            //var idx = $.inArray(that.synth.input("adder.sources"), harm);
         };
-
+        
+        that.changeFundamental = function () {
+            var interval = flock.choose(intervals.slice(0, that.intervalCap)),
+                harmonics = that.synth.input("adder.sources"),
+                fundamental = that.synth.input("adder.sources.0.freq.end"),
+                fundAmp = that.synth.input("adder.sources.0.mul"),
+                intervalScale = fundamental * interval;
+            
+            $.each(harmonics, function (idx, harmonic) {
+                var freqUGen = harmonic.input("freq"),
+                    currentFreq = freqUGen.model.level,
+                    end = intervalScale * (idx + 1),
+                    dur = (Math.random() * 30) + 5;
+                
+                freqUGen.input({
+                    "start": currentFreq,
+                    "end": end,
+                    "duration": dur
+                });
+                //harmonic.input("mul", fundAmp / (idx + 1));
+            });
+            
+            if (that.intervalCap <= intervals.length) {
+                that.intervalCap++;
+            }
+        };
+        
+        that.emphasizeHarmonic = function () {
+            var harmonic = flock.choose(that.synth.input("adder.sources")),
+                tenthAmp = that.synth.input("adder.sources.11.mul"),
+                harmAmp = harmonic.input("mul"),
+                prevHarmAmp;
+            
+            if (that.emphasized) {
+                prevHarmAmp = that.emphasized.input("mul");
+                that.synth.input("adder.sources.0.mul", prevHarmAmp);
+                that.emphasized.input("mul", tenthAmp);
+                tenthAmp = prevHarmAmp;
+            }
+            
+            harmonic.input("mul", tenthAmp);
+            that.synth.input("adder.sources.0.mul", harmAmp);
+            that.emphasized = harmonic;
+        };
+        
         that.play = function () {
-            flock.enviro.shared.conductor.schedulePeriodic(100, that.periodicHarmonicShift);
+            // Every 1/10 of a second, change the pitch of one harmonic.
+            that.clock.repeat(0.1, that.periodicHarmonicShift);
+            
+            // Every half minute or so, change the fundamental pitch of the whole instrument.
+            that.clock.repeat(31, that.changeFundamental);
+            
+            // 45 seconds into the piece, start emphasizing individual harmonics.
+            var emphasizeListener = that.clock.once(45, function () {
+                that.clock.repeat(0.5, that.emphasizeHarmonic);
+            });
+                        
+            // After about two minutes, stop emphasizing the harmonics for a while.
+            that.clock.once(120, function () {
+                that.clock.clear(emphasizeListener);
+            });
             that.synth.play();
         };
         
         that.pause = function () {
-            flock.enviro.shared.conductor.clearPeriodic(100);
+            that.clock.clearAll();
             that.synth.pause();
         };
         
+        that.clock = flock.scheduler.async();
         return that;
     };
     
