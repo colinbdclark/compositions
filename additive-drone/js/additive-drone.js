@@ -6,7 +6,7 @@ var colin = colin || {};
     var harmonics = [1, 2, 3, 5, 6, 7, 9, 11, 13, 14, 15, 17, 19, 21, 24, 29, 44],
         ugenTypes = ["flock.ugen.sin", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
         fundamentalMultiplier = 60,
-        maxFreq = 500,
+        maxFreq = 11025 / 2,
         maxAmp = 0.3,
         intervals = [
             1.0192443785950769, // 33 cents
@@ -124,13 +124,13 @@ var colin = colin || {};
             
             if (that.emphasized) {
                 prevHarmAmp = that.emphasized.input("mul");
-                that.synth.input("adder.sources.0.mul", prevHarmAmp);
+                that.synth.input("adder.sources.11.mul", prevHarmAmp);
                 that.emphasized.input("mul", tenthAmp);
                 tenthAmp = prevHarmAmp;
             }
             
             harmonic.input("mul", tenthAmp);
-            that.synth.input("adder.sources.0.mul", harmAmp);
+            that.synth.input("adder.sources.11.mul", harmAmp);
             that.emphasized = harmonic;
         };
         
@@ -141,15 +141,20 @@ var colin = colin || {};
             // Every half minute or so, change the fundamental pitch of the whole instrument.
             that.clock.repeat(31, that.changeFundamental);
             
+            
             // 45 seconds into the piece, start emphasizing individual harmonics.
-            var emphasizeListener = that.clock.once(45, function () {
-                that.clock.repeat(0.5, that.emphasizeHarmonic);
+            var scheduled = Date.now();
+            var emphasizeListener;
+            that.clock.once(45, function () {
+                emphasizeListener = that.clock.repeat(0.5, that.emphasizeHarmonic);
             });
                         
             // After about two minutes, stop emphasizing the harmonics for a while.
             that.clock.once(120, function () {
                 that.clock.clear(emphasizeListener);
             });
+            
+            
             that.synth.play();
         };
         
