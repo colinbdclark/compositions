@@ -6,7 +6,8 @@ var colin = colin || {};
     var harmonics = [1, 2, 3, 5, 6, 7, 9, 11, 13, 14, 15, 17, 19, 21, 24, 29, 44],
         ugenTypes = ["flock.ugen.sin", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
         fundamentalMultiplier = 60,
-        maxFreq = flock.enviro.shared.audioSettings.rates.audio / 3,
+        maxFreq = 500,
+        maxAmp = 0.3,
         intervals = [
             1.0192443785950769, // 33 cents
             0.9811189749983187, // -33 cents
@@ -21,16 +22,18 @@ var colin = colin || {};
     var makeHarmonic = function (ugenTypes, fundamental, harmonic, octave, maxAmp) {
         var freqScale = (harmonic * octave),
             ugen = flock.choose(ugenTypes),
-            freq = fundamental * freqScale;
-            
+            freq = fundamental * freqScale,
+            startingFreq = freq * (Math.random() + 0.5), // Was (Math.random() * 2.5)
+            rampDuration = (Math.random() * 20) + 0.1; // Was (Math.random() * 10) + 0.1
+        
         return {
             ugen: ugen,
             rate: "audio",
             freq: {
                 ugen: "flock.ugen.xLine",
-                start: freq * (Math.random() + 0.5), // Was (Math.random() * 2.5)
+                start: startingFreq,
                 end: freq,
-                duration: (Math.random() * 20) + 0.1 // Was (Math.random() * 10) + 0.1
+                duration: rampDuration
             },
             mul: maxAmp / freqScale
         };
@@ -45,7 +48,7 @@ var colin = colin || {};
                 octave = 1;
 
             while (freq <= maxFreq) {
-                var ugenDef = makeHarmonic(ugenTypes, fundamental, harmonic, octave, 0.5);
+                var ugenDef = makeHarmonic(ugenTypes, fundamental, harmonic, octave, maxAmp);
                 freq = ugenDef.freq.end;
                 if (freq <= maxFreq && freqs.indexOf(freq) === -1) {
                     freqs.push(freq);
