@@ -6,7 +6,7 @@ var colin = colin || {};
     var harmonics = [1, 2, 3, 5, 6, 7, 9, 11, 13, 14, 15, 17, 19, 21, 24, 29, 44],
         ugenTypes = ["flock.ugen.sin", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
         fundamentalMultiplier = 60,
-        maxFreq = 11025 / 2,
+        maxFreq = 11025,
         maxAmp = 0.3,
         intervals = [
             1.0192443785950769, // 33 cents
@@ -117,6 +117,9 @@ var colin = colin || {};
         };
         
         that.emphasizeHarmonic = function () {
+            // TODO:
+            //  - Choose from a range of the lower harmonics, not just the tenth.
+            //  - Use a weighted distribution to emphasize either lower harmonics or harmonics currently in motion.
             var harmonic = flock.choose(that.synth.input("adder.sources")),
                 tenthAmp = that.synth.input("adder.sources.11.mul"),
                 harmAmp = harmonic.input("mul"),
@@ -154,7 +157,9 @@ var colin = colin || {};
                 that.clock.clear(emphasizeListener);
             });
             
-            
+            // After about 3-4 minutes, start to "interleave" harmonics at wider spacing to bring out chords
+            // At the same time, the interleaving should slowly involve changes to the fundamental
+            // --presumably by dropping portions of the lower harmonics from one synth and introducing those from another
             that.synth.play();
         };
         
