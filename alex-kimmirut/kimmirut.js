@@ -63,9 +63,16 @@ var scsiduck = scsiduck || {};
                     selector: ".fileSelector .fileBrowser"
                 },
                 centerPos: {
-                    ugen: "flock.ugen.loop",
+                    ugen: "flock.ugen.phasor",
                     rate: "control",
-                    step: 0.5 / 44100, // TODO: Rate should be a variable. Need to merge in math ugen.
+                    step: {
+                        id: "posCrawl",
+                        ugen: "flock.ugen.math",
+                        source: {
+                            ugen: "flock.ugen.sampleRate"
+                        },
+                        div: 0.5
+                    },
                     start: 0.01,
                     end: 0.69,
                     reset: 0.01,
@@ -84,7 +91,7 @@ var scsiduck = scsiduck || {};
                 ugen: "flock.ugen.triggerGrains",
                 trigger: {
                     ugen: "flock.ugen.impulse",
-                    rate: "control", // TODO: Why does this not work when impulse this necessary?
+                    rate: "control",
                     freq: {
                         ugen: "flock.ugen.lfNoise",
                         rate: "control",
@@ -101,9 +108,16 @@ var scsiduck = scsiduck || {};
                     selector: ".fileSelector .fileBrowser"
                 },
                 centerPos: {
-                    ugen: "flock.ugen.loop",
+                    ugen: "flock.ugen.phasor",
                     rate: "control",
-                    step: 0.4 / 44100, // TODO: Rate should be a variable. Need to merge in math ugen.
+                    step: {
+                        id: "posCrawl",
+                        ugen: "flock.ugen.math",
+                        source: {
+                            ugen: "flock.ugen.sampleRate"
+                        },
+                        div: 0.4
+                    },
                     start: 0.01,
                     end: 0.69,
                     reset: 0.01,
