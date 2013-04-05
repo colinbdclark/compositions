@@ -100,7 +100,15 @@ var colin = colin || {};
     colin.wind = function () {
         var synth = flock.synth(colin.wind.synthDef);
         synth.play();
-        synth.get("video").video.play();
+        var video = synth.get("video").video;
+        video.addEventListener("play", function (e) {
+            var flash = synth.get("audioInput").mike.domElement;
+            $(flash).css({
+                "height": "1px",
+                "width": "1px"
+            });
+        });
+
     };
     
     colin.wind.cantoI = [
@@ -204,14 +212,15 @@ var colin = colin || {};
                 ugen: "flock.ugen.amplitude",
                 source: {
                     ugen: "flock.ugen.audioIn",
+                    id: "audioInput",
                     options: {
                         mike: {
                             swfPath: "../../flocking/third-party/mike.js/swf/mike.swf"
                         }
                     }
                 },
-                attack: 0.1,
-                release: 0.1,
+                attack: 0.5,
+                release: 0.5,
                 mul: 10
             }
         },
