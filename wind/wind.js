@@ -221,7 +221,7 @@ var colin = colin || {};
                 },
                 attack: 0.5,
                 release: 0.5,
-                mul: 10
+                mul: 20
             }
         },
         loop: 1.0
