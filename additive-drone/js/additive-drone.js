@@ -66,11 +66,14 @@ var colin = colin || {};
             intervalCap: 1
         };
         
-        that.synth = flock.synth({
+        that.synth = flock.synth([{
+            ugen: "flock.ugen.sum",
+            sources: makeHarmonics(fundamentalMultiplier)
+        },{
             id: "adder",
             ugen: "flock.ugen.sum",
             sources: makeHarmonics(fundamentalMultiplier)
-        });
+        }]);
         
         that.periodicHarmonicShift = function () {
             var harm = flock.choose(that.synth.input("adder.sources")),

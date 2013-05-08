@@ -130,7 +130,7 @@ var scsiduck = scsiduck || {};
                 dur: 0.25,
                 amp: 0.1,
                 speed: 0.7,
-                mul: 1.0
+                mul: 3.0
             }
         ]);
         
