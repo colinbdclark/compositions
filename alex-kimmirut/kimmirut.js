@@ -41,13 +41,13 @@ var scsiduck = scsiduck || {};
          
         that.synth = flock.synth([
             {
-                id: "granulator",
+                id: "left-granulator",
                 ugen: "flock.ugen.triggerGrains",
                 trigger: {
                     ugen: "flock.ugen.impulse",
                     rate: "control", // TODO: Why does this not work when impulse is audio rate?
                     freq: {
-                        id: "trate",
+                        id: "left-trate",
                         ugen: "flock.ugen.lfNoise",
                         rate: "control",
                         options: {
@@ -66,7 +66,7 @@ var scsiduck = scsiduck || {};
                     ugen: "flock.ugen.phasor",
                     rate: "control",
                     step: {
-                        id: "posCrawl",
+                        id: "left-posCrawl",
                         ugen: "flock.ugen.math",
                         source: {
                             ugen: "flock.ugen.sampleRate"
@@ -88,11 +88,13 @@ var scsiduck = scsiduck || {};
                 mul: 3.0
             },
             {
+                id: "right-granulator",
                 ugen: "flock.ugen.triggerGrains",
                 trigger: {
                     ugen: "flock.ugen.impulse",
                     rate: "control",
                     freq: {
+                        id: "right-trate",
                         ugen: "flock.ugen.lfNoise",
                         rate: "control",
                         options: {
@@ -111,7 +113,7 @@ var scsiduck = scsiduck || {};
                     ugen: "flock.ugen.phasor",
                     rate: "control",
                     step: {
-                        id: "posCrawl",
+                        id: "right-posCrawl",
                         ugen: "flock.ugen.math",
                         source: {
                             ugen: "flock.ugen.sampleRate"
@@ -132,10 +134,11 @@ var scsiduck = scsiduck || {};
                 speed: 0.7,
                 mul: 3.0
             }
+
         ]);
         
         that.fileSelector = demo.fileSelectorView(that.synth, {
-            playerId: "granulator",
+            playerId: ["left-granulator", "right-granulator"],
             selectors: {
                 input: ".fileSelector .fileBrowser",
                 button: ".fileSelector .browse",
