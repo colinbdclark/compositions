@@ -2,11 +2,15 @@ var colin = colin || {};
 
 (function () {
     
+    flock.init({
+        bufferSize: 4096
+    });
+    
     // A bank of oscillators added together.
     var harmonics = [1, 2, 3, 5, 6, 7, 9, 11, 13, 14, 15, 17, 19, 21, 24, 29, 44],
         ugenTypes = ["flock.ugen.sin", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
         fundamentalMultiplier = 60,
-        maxFreq = 4000,
+        maxFreq = 11025,
         maxAmp = 0.3,
         intervals = [
             1.0192443785950769, // 33 cents
@@ -66,14 +70,16 @@ var colin = colin || {};
             intervalCap: 1
         };
         
-        that.synth = flock.synth([{
-            ugen: "flock.ugen.sum",
-            sources: makeHarmonics(fundamentalMultiplier)
-        },{
-            id: "adder",
-            ugen: "flock.ugen.sum",
-            sources: makeHarmonics(fundamentalMultiplier)
-        }]);
+        that.synth = flock.synth({
+            synthDef: [{
+                ugen: "flock.ugen.sum",
+                sources: makeHarmonics(fundamentalMultiplier)
+            },{
+                id: "adder",
+                ugen: "flock.ugen.sum",
+                sources: makeHarmonics(fundamentalMultiplier)
+            }]
+        });
         
         that.periodicHarmonicShift = function () {
             var harm = flock.choose(that.synth.input("adder.sources")),

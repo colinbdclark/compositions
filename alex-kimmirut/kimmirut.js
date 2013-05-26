@@ -39,103 +39,104 @@ var scsiduck = scsiduck || {};
          * Flocking Version *
          ********************/
          
-        that.synth = flock.synth([
-            {
-                id: "left-granulator",
-                ugen: "flock.ugen.triggerGrains",
-                trigger: {
-                    ugen: "flock.ugen.impulse",
-                    rate: "control", // TODO: Why does this not work when impulse is audio rate?
-                    freq: {
-                        id: "left-trate",
-                        ugen: "flock.ugen.lfNoise",
-                        rate: "control",
-                        options: {
-                            interpolation: "linear"
-                        },
-                        freq: 0.2,
-                        mul: 10,
-                        add: 40
-                    }
-                },
-                buffer: {
-                    id: "grainBuffer",
-                    selector: ".fileSelector .fileBrowser"
-                },
-                centerPos: {
-                    ugen: "flock.ugen.phasor",
-                    rate: "control",
-                    step: {
-                        id: "left-posCrawl",
-                        ugen: "flock.ugen.math",
-                        source: {
-                            ugen: "flock.ugen.sampleRate"
-                        },
-                        div: 0.5
+        that.synth = flock.synth({
+            synthDef: [
+                {
+                    id: "left-granulator",
+                    ugen: "flock.ugen.triggerGrains",
+                    trigger: {
+                        ugen: "flock.ugen.impulse",
+                        rate: "control", // TODO: Why does this not work when impulse is audio rate?
+                        freq: {
+                            id: "left-trate",
+                            ugen: "flock.ugen.lfNoise",
+                            rate: "control",
+                            options: {
+                                interpolation: "linear"
+                            },
+                            freq: 0.2,
+                            mul: 10,
+                            add: 40
+                        }
                     },
-                    start: 0.01,
-                    end: 0.69,
-                    reset: 0.01,
-                    mul: {
-                        ugen: "flock.ugen.bufferDuration",
-                        rate: "constant",
-                        buffer: "grainBuffer"
-                    }
-                },
-                dur: 0.25,
-                amp: 0.1,
-                speed: 1.0,
-                mul: 3.0
-            },
-            {
-                id: "right-granulator",
-                ugen: "flock.ugen.triggerGrains",
-                trigger: {
-                    ugen: "flock.ugen.impulse",
-                    rate: "control",
-                    freq: {
-                        id: "right-trate",
-                        ugen: "flock.ugen.lfNoise",
-                        rate: "control",
-                        options: {
-                            interpolation: "linear"
-                        },
-                        freq: 0.2,
-                        mul: 10,
-                        add: 40
-                    }
-                },
-                buffer: {
-                    id: "grainBuffer",
-                    selector: ".fileSelector .fileBrowser"
-                },
-                centerPos: {
-                    ugen: "flock.ugen.phasor",
-                    rate: "control",
-                    step: {
-                        id: "right-posCrawl",
-                        ugen: "flock.ugen.math",
-                        source: {
-                            ugen: "flock.ugen.sampleRate"
-                        },
-                        div: 0.4
+                    buffer: {
+                        id: "grainBuffer",
+                        selector: ".fileSelector .fileBrowser"
                     },
-                    start: 0.01,
-                    end: 0.69,
-                    reset: 0.01,
-                    mul: {
-                        ugen: "flock.ugen.bufferDuration",
-                        rate: "constant",
-                        buffer: "grainBuffer"
-                    }
+                    centerPos: {
+                        ugen: "flock.ugen.phasor",
+                        rate: "control",
+                        step: {
+                            id: "left-posCrawl",
+                            ugen: "flock.ugen.math",
+                            source: {
+                                ugen: "flock.ugen.sampleRate"
+                            },
+                            div: 0.5
+                        },
+                        start: 0.01,
+                        end: 0.69,
+                        reset: 0.01,
+                        mul: {
+                            ugen: "flock.ugen.bufferDuration",
+                            rate: "constant",
+                            buffer: "grainBuffer"
+                        }
+                    },
+                    dur: 0.25,
+                    amp: 0.1,
+                    speed: 1.0,
+                    mul: 3.0
                 },
-                dur: 0.25,
-                amp: 0.1,
-                speed: 0.7,
-                mul: 3.0
-            }
-
-        ]);
+                {
+                    id: "right-granulator",
+                    ugen: "flock.ugen.triggerGrains",
+                    trigger: {
+                        ugen: "flock.ugen.impulse",
+                        rate: "control",
+                        freq: {
+                            id: "right-trate",
+                            ugen: "flock.ugen.lfNoise",
+                            rate: "control",
+                            options: {
+                                interpolation: "linear"
+                            },
+                            freq: 0.2,
+                            mul: 10,
+                            add: 40
+                        }
+                    },
+                    buffer: {
+                        id: "grainBuffer",
+                        selector: ".fileSelector .fileBrowser"
+                    },
+                    centerPos: {
+                        ugen: "flock.ugen.phasor",
+                        rate: "control",
+                        step: {
+                            id: "right-posCrawl",
+                            ugen: "flock.ugen.math",
+                            source: {
+                                ugen: "flock.ugen.sampleRate"
+                            },
+                            div: 0.4
+                        },
+                        start: 0.01,
+                        end: 0.69,
+                        reset: 0.01,
+                        mul: {
+                            ugen: "flock.ugen.bufferDuration",
+                            rate: "constant",
+                            buffer: "grainBuffer"
+                        }
+                    },
+                    dur: 0.25,
+                    amp: 0.1,
+                    speed: 0.7,
+                    mul: 3.0
+                }
+            ]
+        });
         
         that.fileSelector = demo.fileSelectorView(that.synth, {
             playerId: ["left-granulator", "right-granulator"],

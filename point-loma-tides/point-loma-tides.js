@@ -102,30 +102,32 @@ var colin = colin || {};
         bufView.refreshView();
         
         return flock.synth({
-            ugen: "flock.ugen.scope",
-            source: {
-                ugen: "flock.ugen.osc",
-                table: tideVals,
-                freq: {
+            synthDef: {
+                ugen: "flock.ugen.scope",
+                source: {
                     ugen: "flock.ugen.osc",
-                    rate: "control",
                     table: tideVals,
-                    freq: 0.0001,
-                    add: 3,
-                    mul: 2.5,
+                    freq: {
+                        ugen: "flock.ugen.osc",
+                        rate: "control",
+                        table: tideVals,
+                        freq: 0.0001,
+                        add: 3,
+                        mul: 2.5,
+                        options: {
+                            interpolation: "linear"
+                        }
+                    },
                     options: {
-                        interpolation: "linear"
+                        interpolation: "none"
                     }
                 },
                 options: {
-                    interpolation: "none"
-                }
-            },
-            options: {
-                canvas: "#waveform",
-                styles: {
-                    strokeColor: "#888",
-                    strokeWidth: 1
+                    canvas: "#waveform",
+                    styles: {
+                        strokeColor: "#888",
+                        strokeWidth: 1
+                    }
                 }
             }
         });

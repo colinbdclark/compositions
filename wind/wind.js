@@ -98,7 +98,9 @@ var colin = colin || {};
     
     
     colin.wind = function () {
-        var synth = flock.synth(colin.wind.synthDef);
+        var synth = flock.synth({
+            synthDef: colin.wind.synthDef
+        });
         synth.play();
         var video = synth.get("video").video;
         video.addEventListener("play", function (e) {
@@ -215,7 +217,7 @@ var colin = colin || {};
                     id: "audioInput",
                     options: {
                         mike: {
-                            swfPath: "../../flocking/third-party/mike.js/swf/mike.swf"
+                            swfPath: "../../flocking/third-party/mikejs/swf/mike.swf"
                         }
                     }
                 },
