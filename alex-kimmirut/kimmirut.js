@@ -61,7 +61,7 @@ var scsiduck = scsiduck || {};
                     },
                     buffer: {
                         id: "grainBuffer",
-                        selector: ".fileSelector .fileBrowser"
+                        url: "andante.aif"
                     },
                     centerPos: {
                         ugen: "flock.ugen.phasor",
@@ -107,8 +107,7 @@ var scsiduck = scsiduck || {};
                         }
                     },
                     buffer: {
-                        id: "grainBuffer",
-                        selector: ".fileSelector .fileBrowser"
+                        id: "grainBuffer"
                     },
                     centerPos: {
                         ugen: "flock.ugen.phasor",
@@ -136,15 +135,6 @@ var scsiduck = scsiduck || {};
                     mul: 3.0
                 }
             ]
-        });
-        
-        that.fileSelector = demo.fileSelectorView(that.synth, {
-            playerId: ["left-granulator", "right-granulator"],
-            selectors: {
-                input: ".fileSelector .fileBrowser",
-                button: ".fileSelector .browse",
-                fileName: ".fileSelector .filePath"
-            }
         });
         
         that.play = function () {

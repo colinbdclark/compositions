@@ -27,7 +27,7 @@ var colin = colin || {};
                     },   
                     buffer: {
                         id: "grainBuffer",
-                        selector: ".fileSelector .fileBrowser"
+                        url: "shell-seaweed-soundtrack-raw.wav"
                     },
                     centerPos: {
                         ugen: "flock.ugen.phasor",
@@ -57,8 +57,7 @@ var colin = colin || {};
                         source: {
                             ugen: "flock.ugen.playBuffer",
                             buffer: {
-                                id: "grainBuffer",
-                                selector: ".fileSelector .fileBrowser"
+                                id: "grainBuffer"
                             },
                             speed: 1.0,
                             loop: 1.0
@@ -75,23 +74,13 @@ var colin = colin || {};
                     source:  {
                         ugen: "flock.ugen.playBuffer",
                         buffer: {
-                            id: "grainBuffer",
-                            selector: ".fileSelector .fileBrowser"
+                            id: "grainBuffer"
                         },
                         speed: 1.0,
                         loop: 1.0
                     }
                 }
             ]
-        });
-        
-        that.fileSelector = demo.fileSelectorView(that.synth, {
-            playerId: "granulator",
-            selectors: {
-                input: ".fileSelector .fileBrowser",
-                button: ".fileSelector .browse",
-                fileName: ".fileSelector .filePath"
-            }
         });
         
         that.play = function () {
