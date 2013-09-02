@@ -82,42 +82,42 @@ var colin = colin || {};
         });
         
         that.periodicHarmonicShift = function () {
-            var harm = flock.choose(that.synth.input("adder.sources")),
-                freqUGen = harm.input("freq"),
+            var harm = flock.choose(that.synth.get("adder.sources")),
+                freqUGen = harm.get("freq"),
                 currentFreq = freqUGen.model.level,
-                end = freqUGen.input("end") * flock.choose(intervals),
+                end = freqUGen.get("end") * flock.choose(intervals),
                 dur = (Math.random() * 60) + 0.1,
-                amp = harm.input("mul");
+                amp = harm.get("mul");
 
-            harm.input({
+            harm.set({
                 "freq.start": currentFreq,
                 "freq.end": end,
                 "freq.duration": dur,
                 "mul": amp * flock.choose(intervals)
             });
 
-            //var idx = $.inArray(that.synth.input("adder.sources"), harm);
+            //var idx = $.inArray(that.synth.get("adder.sources"), harm);
         };
         
         that.changeFundamental = function () {
             var interval = flock.choose(intervals.slice(0, that.intervalCap)),
-                harmonics = that.synth.input("adder.sources"),
-                fundamental = that.synth.input("adder.sources.0.freq.end"),
-                fundAmp = that.synth.input("adder.sources.0.mul"),
+                harmonics = that.synth.get("adder.sources"),
+                fundamental = that.synth.get("adder.sources.0.freq.end"),
+                fundAmp = that.synth.get("adder.sources.0.mul"),
                 intervalScale = fundamental * interval;
             
             $.each(harmonics, function (idx, harmonic) {
-                var freqUGen = harmonic.input("freq"),
+                var freqUGen = harmonic.get("freq"),
                     currentFreq = freqUGen.model.level,
                     end = intervalScale * (idx + 1),
                     dur = (Math.random() * 30) + 5;
                 
-                freqUGen.input({
+                freqUGen.set({
                     "start": currentFreq,
                     "end": end,
                     "duration": dur
                 });
-                //harmonic.input("mul", fundAmp / (idx + 1));
+                //harmonic.set("mul", fundAmp / (idx + 1));
             });
             
             if (that.intervalCap <= intervals.length) {
@@ -129,20 +129,20 @@ var colin = colin || {};
             // TODO:
             //  - Choose from a range of the lower harmonics, not just the tenth.
             //  - Use a weighted distribution to emphasize either lower harmonics or harmonics currently in motion.
-            var harmonic = flock.choose(that.synth.input("adder.sources")),
-                tenthAmp = that.synth.input("adder.sources.11.mul"),
-                harmAmp = harmonic.input("mul"),
+            var harmonic = flock.choose(that.synth.get("adder.sources")),
+                tenthAmp = that.synth.get("adder.sources.11.mul"),
+                harmAmp = harmonic.get("mul"),
                 prevHarmAmp;
             
             if (that.emphasized) {
-                prevHarmAmp = that.emphasized.input("mul");
-                that.synth.input("adder.sources.11.mul", prevHarmAmp);
-                that.emphasized.input("mul", tenthAmp);
+                prevHarmAmp = that.emphasized.get("mul");
+                that.synth.set("adder.sources.11.mul", prevHarmAmp);
+                that.emphasized.set("mul", tenthAmp);
                 tenthAmp = prevHarmAmp;
             }
             
-            harmonic.input("mul", tenthAmp);
-            that.synth.input("adder.sources.11.mul", harmAmp);
+            harmonic.set("mul", tenthAmp);
+            that.synth.set("adder.sources.11.mul", harmAmp);
             that.emphasized = harmonic;
         };
         
