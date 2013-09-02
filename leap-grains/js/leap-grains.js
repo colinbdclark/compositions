@@ -4,7 +4,6 @@
     
     fluid.registerNamespace("flock");
     
-    // TODO: Modelize this component. Whenever a pointable changes, it should fire a ChangeApplier event.
     fluid.defaults("flock.leapMotion", {
         gradeNames: ["fluid.eventedComponent", "fluid.modelComponent", "autoInit"],
         
@@ -64,7 +63,8 @@
     };
     
     flock.leapMotion.pointableToModel = function (frame, p) {
-        var normPos = frame.interactionBox.normalizePoint(p.stabilizedTipPosition);
+        var normPos = frame.interactionBox.normalizePoint(p.stabilizedTipPosition),
+            normVel = frame.interactionBox.normalizePoint(p.tipVelocity);
         
         return {
             id: p.id,
@@ -78,10 +78,9 @@
                 z: normPos[2]
             },
             velocity: {
-                // TODO: Normalize?
-                x: p.tipVelocity[0],
-                y: p.tipVelocity[1],
-                z: p.tipVelocity[2]
+                x: normVel[0],
+                y: normVel[1],
+                z: normVel[2]
             },
             direction: {
                 // TODO: Normalize?
@@ -108,8 +107,13 @@
                 options: {
                     listeners: {
                         onPointablesChanged: {
-                            funcName: "colin.leapGrains.renderFingerTips",
-                            args: ["{arguments}.0.pointables", "{leapGrains}.dom.fingerRegion", "{leapGrains}.activeTips", "{leapGrains}.options"]
+                            funcName: "colin.leapGrains.renderTips",
+                            args: [
+                                "{arguments}.0.pointables", 
+                                "{leapGrains}.dom.fingerRegion", 
+                                "{leapGrains}.activeTips", 
+                                "{leapGrains}.options"
+                            ]
                         }
                     }
                 }
@@ -132,7 +136,7 @@
         maxTipSize: 75
     });
     
-    colin.leapGrains.renderFingerTips = function (pointables, fingerRegion, activeTips, options) {
+    colin.leapGrains.renderTips = function (pointables, fingerRegion, activeTips, options) {
         var drawingRegion = $("body"),
             height = drawingRegion.height(),
             width = drawingRegion.width(),
@@ -147,14 +151,14 @@
             pointable = pointables[id];
             tip = activeTips[id];
             if (!tip) {
-                tip = activeTips[id] = colin.leapGrains.renderFingerTip(id, options.markup, options.classes);
+                tip = activeTips[id] = colin.leapGrains.renderTip(id, options.markup, options.classes);
                 fingerRegion.append(tip);
             }
             colin.leapGrains.updateTipPosition(tip, pointable.position, options.maxTipSize, height, width);
         }
     };
     
-    colin.leapGrains.renderFingerTip = function (id, markup, classes) {
+    colin.leapGrains.renderTip = function (id, markup, classes) {
         var tip = $(markup.finger);
         tip.addClass(classes.finger);
         tip.attr("id", id);
