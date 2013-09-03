@@ -15,7 +15,11 @@ html, body {
 .finger {
     position: fixed;
     border-radius: 50%;
+    background-image: radial-gradient(center center, circle cover, #ffeda3, #ff9800);
     background-image: -moz-radial-gradient(center center, circle cover, #ffeda3, #ff9800);
+    background-image: -webkit-radial-gradient(center center, circle cover, #ffeda3, #ff9800);
+    background-image: -ms-radial-gradient(center center, circle cover, #ffeda3, #ff9800);
+    background-image: -o-radial-gradient(center center, circle cover, #ffeda3, #ff9800);
     text-align: center;
     color: #024;
 }
