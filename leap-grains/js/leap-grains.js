@@ -154,34 +154,59 @@
                 options: {
                     source: "{arguments}.0",
                     synthDef: {
-                        id: "carrier",
-                        ugen: "flock.ugen.sinOsc",
-                        freq: {
-                            id: "freqPos",
+                        ugen: "flock.ugen.triggerGrains",
+                        options: {
+                            interpolation: "none"
+                        },
+                        buffer: {
+                            expander: {
+                                funcName: "flock.choose",
+                                args: [["andante", "lento"]]
+                            }
+                        },
+                        dur: 0.5,
+                        centerPos: {
+                            id: "grainCenterPos",
                             ugen: "flock.ugen.leap.position",
                             pointable: "{arguments}.0.id",
-                            mul: 540,
-                            add: {
-                               ugen: "flock.ugen.sinOsc",
-                               freq: {
-                                   id: "modPos",
-                                   ugen: "flock.ugen.leap.position",
-                                   pointable: "{arguments}.0.id",
-                                   options: {
-                                       axis: "y"
-                                   },
-                                   mul: 540,
-                                   add: 270
-                               }
+                            mul: {
+                                ugen: "flock.ugen.bufferDuration",
+                                rate: "constant",
+                                buffer: {
+                                    expander: {
+                                        funcName: "flock.choose",
+                                        args: [["andante", "lento"]]
+                                    }
+                                }
                             },
+                            lag: 2.0,
+                            add: 0.01,
                             options: {
                                 axis: "x"
                             }
                         },
-                        mul: {
-                            id: "volumePos",
+                        trigger: {
+                            ugen: "flock.ugen.impulse",
+                            rate: "control",
+                            freq: {
+                                id: "grainSpeed",
+                                ugen: "flock.ugen.leap.position",
+                                pointable: "{arguments}.0.id",
+                                lag: 2.0,
+                                add: 10,
+                                mul: 60,
+                                options: {
+                                    axis: "y"
+                                }
+                            }
+                        },
+                        amp: {
+                            id: "grainAmp",
                             ugen: "flock.ugen.leap.position",
                             pointable: "{arguments}.0.id",
+                            lag: 2.0,
+                            mul: 2.0,
+                            add: 0.1,
                             options: {
                                 axis: "z"
                             }
@@ -208,6 +233,28 @@
                 },
                 {
                     funcName: "flock.enviro.shared.play"
+                },
+                {
+                    // TODO: Replace this when Flocking's buffer loading process isn't completely broken.
+                    funcName: "flock.audio.decode",
+                    args: [{
+                        src: "../../alex-kimmirut/andante.aif",
+                        success: function (buffer) {
+                            buffer.id = "andante";
+                            flock.enviro.shared.registerBuffer(buffer);
+                        }
+                    }]
+                },
+                {
+                    // TODO: Replace this when Flocking's buffer loading process isn't completely broken.
+                    funcName: "flock.audio.decode",
+                    args: [{
+                        src: "../../alex-kimmirut/lento-long.aif",
+                        success: function (buffer) {
+                            buffer.id = "lento";
+                            flock.enviro.shared.registerBuffer(buffer);
+                        }
+                    }]
                 }
             ]
         },
@@ -295,6 +342,7 @@
         var synth = synthMap[id];
         if (synth) {
             delete synthMap[id];
+            synth.enviro.remove(synth);
             synth.destroy();
         }
     };
