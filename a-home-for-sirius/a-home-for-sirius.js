@@ -135,7 +135,7 @@
         gl.uniform1i(shaderProgram.lightSampler, 1);
         
         // Set the threshold.
-        gl.uniform1f(shaderProgram.threshold, 0.1);
+        gl.uniform1f(shaderProgram.threshold, 0.015);
         
         // Do this thingy.
         gl.vertexAttribPointer(shaderProgram.aVertexPosition, 2, gl.FLOAT, false, 0, 0); 
