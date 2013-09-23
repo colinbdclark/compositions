@@ -12,73 +12,55 @@
         
         components: {
             glManager: {
-                type: "aconite.glComponent",
-                container: "{that}.dom.stage",
-                options: {
-                    shaders: {
-                        fragment: "shaders/fragmentShader.frag",
-                        vertex: "shaders/vertexShader.vert"
-                    },
-        
-                    shaderVariables: {
-                        aVertexPosition: {
-                            storage: "attribute",
-                            type: "vertexAttribArray"
-                        },
+                type: "colin.siriusHome.glManager",
+                container: "{that}.dom.stage"
+            },
             
-                        siriusSampler: {
-                            storage: "uniform"
-                        },
-            
-                        lightSampler: {
-                            storage: "uniform"
-                        },
-            
-                        threshold: {
-                            storage: "uniform"
-                        }
-                    },
-                    
-                    listeners: {
-                        afterShaderProgramCompiled: [
-                            {
-                                funcName: "colin.siriusHome.makeStageVertex",
-                                args: ["{glManager}.gl"]
-                            },
-                            {
-                                // TODO: Boil! This needs to be sequenced after both videos load.
-                                funcName: "colin.siriusHome.scheduleAnimation",
-                                args: [
-                                    "{glManager}",
-                                    "{siriusHome}.sirius",
-                                    "{siriusHome}.light"
-                                ]
-                            }
-                        ]
-                    }
-                }
+            clock: {
+                type: "flock.scheduler.async"
             },
             
             sirius: {
-                type: "aconite.compositableVideo",
-                options: {
-                    url: "{siriusHome}.options.videoURLs.sirius",
-                    
-                    members: {
-                        gl: "{glComponent}.gl"
-                    }
-                }
+                type: "colin.siriusHome.siriusLayer"
             },
             
             light: {
-                type: "aconite.compositableVideo",
-                options: {
-                    url: "{siriusHome}.options.videoURLs.light",
-                    
-                    members: {
-                        gl: "{glComponent}.gl"
-                    }
-                }
+                type: "colin.siriusHome.lightLayer",
+            }
+        },
+        
+        invokers: {
+            loadOtherSirius: {
+                funcName: "colin.siriusHome.loadOtherSirius",
+                args: ["{that}.sirius.source", "{that}.options.videoURLs.otherSirius"]
+            }
+        },
+        
+        events: {
+            onVideosReady: {
+                events: {
+                    siriusLoaded: "{that}.sirius.source.events.onVideoLoaded",
+                    lightLoaded: "{that}.light.source.events.onVideoLoaded"
+                },
+                args: ["{arguments}.siriusLoaded.0", "{arguments}.lightLoaded.0"]
+            },
+            onStart: null
+        },
+        
+        listeners: {
+            onVideosReady: {
+                funcName: "colin.siriusHome.scheduleAnimation",
+                args: [
+                    "{glManager}",
+                    "{siriusHome}.sirius",
+                    "{siriusHome}.light",
+                    "{siriusHome}.events.onStart"
+                ]
+            },
+            
+            onStart: {
+                funcName: "{clock}.schedule",
+                args: ["{that}.options.score"]
             }
         },
         
@@ -88,9 +70,95 @@
         
         videoURLs: {
             sirius: "videos/sirius-720p.m4v",
+            otherSirius: "videos/sirius-chair.m4v",
             light: "videos/light-720p.m4v"
+        },
+        
+        score: [
+            {
+                interval: "once",
+                time: 52,
+                change: "{that}.loadOtherSirius"
+            }
+        ]
+    });
+    
+    fluid.defaults("colin.siriusHome.glManager", {
+        gradeNames: ["aconite.glComponent", "autoInit"],
+        
+        shaders: {
+            fragment: "shaders/fragmentShader.frag",
+            vertex: "shaders/vertexShader.vert"
+        },
+
+        shaderVariables: {
+            aVertexPosition: {
+                storage: "attribute",
+                type: "vertexAttribArray"
+            },
+
+            siriusSampler: {
+                storage: "uniform"
+            },
+
+            lightSampler: {
+                storage: "uniform"
+            },
+
+            threshold: {
+                storage: "uniform"
+            }
+        },
+        
+        listeners: {
+            afterShaderProgramCompiled: [
+                {
+                    funcName: "colin.siriusHome.makeStageVertex",
+                    args: ["{glManager}.gl"]
+                }
+            ]
         }
     });
+    
+    fluid.defaults("colin.siriusHome.siriusLayer", {
+        gradeNames: ["aconite.compositableVideo", "autoInit"],
+        members: {
+            gl: "{glManager}.gl"
+        },
+        
+        components: {
+            source: {
+                options: {
+                    url: "{siriusHome}.options.videoURLs.sirius"
+                }
+            }
+        },
+        
+        bindToTextureUnit: "TEXTURE0"
+    });
+    
+    fluid.defaults("colin.siriusHome.lightLayer", {
+        gradeNames: ["aconite.compositableVideo", "autoInit"],
+        
+        members: {
+            gl: "{glManager}.gl"
+        },
+        
+        components: {
+            source: {
+                options: {
+                    url: "{siriusHome}.options.videoURLs.light"
+                }
+            }
+        },
+        
+        bindToTextureUnit: "TEXTURE1"
+    });
+    
+    // TODO: Refactor this.
+    colin.siriusHome.loadOtherSirius = function (source, url) {
+        source.setURL(url);
+    };
     
     colin.siriusHome.makeStageVertex = function (gl) {
         // Initialize to black
@@ -102,30 +170,16 @@
     };
     
     colin.siriusHome.drawFrame = function (glManager, sirius, light) {
-        if (!sirius.texture || !light.texture) {
-            return;
-        }
-        
-        var gl = glManager.gl,
-            shaderProgram = glManager.shaderProgram;
-                
-        // Update the textures.
-        // TODO: cut and pastage.        
-        gl.activeTexture(gl.TEXTURE0);        
-        gl.bindTexture(gl.TEXTURE_2D, sirius.texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sirius.video);
-        
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, light.texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, light.video);
+        var gl = glManager.gl;
+                        
+        sirius.refresh();
+        light.refresh();
         
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
     
     // TODO: Componentize.
-    colin.siriusHome.scheduleAnimation = function (glManager, sirius, light) {
+    colin.siriusHome.scheduleAnimation = function (glManager, sirius, light, onStart) {
         // TODO: Refactor
         var gl = glManager.gl,
             shaderProgram = glManager.shaderProgram;
@@ -137,7 +191,7 @@
         gl.uniform1i(shaderProgram.lightSampler, 1);
         
         // Set the threshold.
-        gl.uniform1f(shaderProgram.threshold, 0.015);
+        gl.uniform1f(shaderProgram.threshold, 0.01);
         
         // TODO: Move this into aconite's square vertex function.
         gl.vertexAttribPointer(shaderProgram.aVertexPosition, 2, gl.FLOAT, false, 0, 0); 
@@ -146,6 +200,8 @@
         var animator = aconite.animator(function () {
             colin.siriusHome.drawFrame(glManager, sirius, light);
         });
+        
+        onStart.fire();
     };
     
 }());
