@@ -46,7 +46,7 @@
                                 args: ["{glManager}.gl"]
                             },
                             {
-                                // TODO: This needs to be sequenced after both videos load.
+                                // TODO: Boil! This needs to be sequenced after both videos load.
                                 funcName: "colin.siriusHome.scheduleAnimation",
                                 args: [
                                     "{glManager}",
@@ -130,6 +130,8 @@
         var gl = glManager.gl,
             shaderProgram = glManager.shaderProgram;
 
+        // TODO: Modelize all these variables.
+        
         // Setup the texture samplers for each video.
         gl.uniform1i(shaderProgram.siriusSampler, 0);
         gl.uniform1i(shaderProgram.lightSampler, 1);
@@ -137,7 +139,7 @@
         // Set the threshold.
         gl.uniform1f(shaderProgram.threshold, 0.015);
         
-        // Do this thingy.
+        // TODO: Move this into aconite's square vertex function.
         gl.vertexAttribPointer(shaderProgram.aVertexPosition, 2, gl.FLOAT, false, 0, 0); 
         
         // TODO: Hold onto a reference to the animator.

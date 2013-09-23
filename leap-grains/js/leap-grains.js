@@ -161,7 +161,16 @@
                         buffer: {
                             expander: {
                                 funcName: "flock.choose",
-                                args: [["andante", "lento"]]
+                                args: [[
+                                    {
+                                        id: "andante",
+                                        src: "../../alex-kimmirut/andante.aif"
+                                    }, 
+                                    {
+                                        id: "lento",
+                                        src: "../../alex-kimmirut/lento-long.aif"
+                                    }
+                                ]]
                             }
                         },
                         dur: 0.5,
@@ -205,7 +214,7 @@
                             ugen: "flock.ugen.leap.position",
                             pointable: "{arguments}.0.id",
                             lag: 2.0,
-                            mul: 2.0,
+                            mul: 0.2,
                             add: 0.1,
                             options: {
                                 axis: "z"
@@ -233,28 +242,6 @@
                 },
                 {
                     funcName: "flock.enviro.shared.play"
-                },
-                {
-                    // TODO: Replace this when Flocking's buffer loading process isn't completely broken.
-                    funcName: "flock.audio.decode",
-                    args: [{
-                        src: "../../alex-kimmirut/andante.aif",
-                        success: function (buffer) {
-                            buffer.id = "andante";
-                            flock.enviro.shared.registerBuffer(buffer);
-                        }
-                    }]
-                },
-                {
-                    // TODO: Replace this when Flocking's buffer loading process isn't completely broken.
-                    funcName: "flock.audio.decode",
-                    args: [{
-                        src: "../../alex-kimmirut/lento-long.aif",
-                        success: function (buffer) {
-                            buffer.id = "lento";
-                            flock.enviro.shared.registerBuffer(buffer);
-                        }
-                    }]
                 }
             ]
         },
