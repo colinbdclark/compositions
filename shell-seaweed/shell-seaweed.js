@@ -49,16 +49,16 @@ var colin = colin || {};
                     dur: 0.25,
                     amp: 0.1,
                     mul: 3.0
-                }, 
+                },
+                // TODO: This instrument has regressed. 
+                // Looks like it might have something to do with the bandpass filter.
                 {
                     ugen: "flock.ugen.filter.biquad.bp",
                     freq: {
                         ugen: "flock.ugen.amplitude",
                         source: {
                             ugen: "flock.ugen.playBuffer",
-                            buffer: {
-                                id: "grainBuffer"
-                            },
+                            buffer: "grainBuffer",
                             speed: 1.0,
                             loop: 1.0
                         },
@@ -73,9 +73,7 @@ var colin = colin || {};
                     q: 20,
                     source:  {
                         ugen: "flock.ugen.playBuffer",
-                        buffer: {
-                            id: "grainBuffer"
-                        },
+                        buffer: "grainBuffer",
                         speed: 1.0,
                         loop: 1.0
                     }

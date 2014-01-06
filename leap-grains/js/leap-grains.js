@@ -181,6 +181,7 @@
                             mul: {
                                 ugen: "flock.ugen.bufferDuration",
                                 rate: "constant",
+                                mul: 0.25,
                                 buffer: {
                                     expander: {
                                         funcName: "flock.choose",
