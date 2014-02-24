@@ -1,20 +1,107 @@
 (function () {
     fluid.registerNamespace("colin");
     
+    // TODO: This is nonesense that should be removed when flock.synth.group works properly.
+    fluid.defaults("flock.band", {
+        gradeNames: ["fluid.eventedComponent", "autoInit"],
+        
+        invokers: {
+            play: {
+                funcName: "flock.band.play",
+                args: ["{that}"]
+            },
+            
+            pause: {
+                funcName: "flock.band.pause",
+                args: ["{that}"]
+            }
+        }
+    });
+    
+    flock.band.collectComponents = function (that, componentsOption) {
+        var componentNames = Object.keys(componentsOption),
+            components = fluid.transform(componentNames, function (componentName) {
+            return that[componentName];
+        });
+        
+        return components;
+    };
+    
+    flock.band.invokeOnEach = function (fnName, collection) {
+        fluid.each(collection, function (item) {
+            var fn = item[fnName];
+            if (fn && typeof fn === "function") {
+                item[fnName].apply(item);
+            }
+        });
+    };
+    
+    flock.band.play = function (that) {
+        var components = flock.band.collectComponents(that, that.options.components);
+        flock.band.invokeOnEach("play", components);
+    };
+    
+    flock.band.pause = function (that) {
+        var components = flock.band.collectComponents(that, that.options.components);
+        flock.band.invokeOnEach("pause", components);
+    };
+    
+    
     fluid.defaults("colin.whiteout", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
         
         components: {
-            stereo: {
-                type: "colin.whiteout.stereo"
+            band: {
+                type: "colin.whiteout.band"
             },
             
-            clock: {
+            /*clock: {
                 type: "colin.whiteout.conductor"
-            },
+            },*/
             
             random: {
                 type: "colin.whiteout.random"
+            }
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.band", {
+        gradeNames: ["flock.band", "autoInit"],
+        
+        components: {
+            mandolin: {
+                type: "colin.whiteout.mandolin",
+                options: {
+                    gradeNames: ["colin.whiteout.stereo"]
+                }
+            },
+            
+            highGuitar: {
+                type: "colin.whiteout.guitarGranulator",
+                options: {
+                    gradeNames: ["colin.whiteout.left"]
+                }
+            },
+            
+            lowGuitar: {
+                type: "colin.whiteout.lowGuitarGranulator",
+                options: {
+                    gradeNames: ["colin.whiteout.right"]
+                }
+            },
+            
+            highImpulse: {
+                type: "colin.whiteout.impulseGranulator",
+                options: {
+                    gradeNames: ["colin.whiteout.right"]
+                }
+            },
+            
+            lowImpulse: {
+                type: "colin.whiteout.lowImpulseGranulator",
+                options: {
+                    gradeNames: ["colin.whiteout.left"]
+                }
             }
         }
     });
@@ -24,28 +111,44 @@
         
         bpm: 60,
         
-        score: {
-            interval: "repeat",
-            time: 2,
-            change: {
-                synth: "stereo",
-                values: {
-                    "left.dur": {
-                        synthDef: "{random}.options.synthDef"
-                    },
-                    "right.grainDur": {
-                        synthDef: "{random}.options.synthDef"
+        score: [
+            {
+                interval: "repeat",
+                time: 5,
+                change: {
+                    synth: "guitarGranulator",
+                    values: {
+                        "granulator.dur": {
+                            synthDef: "{random}.options.synthDef"
+                        }
+                    }
+                }
+            },
+            {
+                interval: "repeat",
+                time: 3,
+                change: {
+                    synth: "impulseGranulator",
+                    values: {
+                        "granulator.grainDur": {
+                            synthDef: "{random}.options.synthDef"
+                        }
+                    }
+                }
+            },
+            {
+                interval: "repeat",
+                time: 4,
+                change: {
+                    synth: "lowImpulseGranulator",
+                    values: {
+                        "granulator.grainDur": {
+                            synthDef: "{random}.options.synthDef"
+                        }
                     }
                 }
             }
-        }// ,
-//         
-//         listeners: {
-//             onCreate: {
-//                 funcName: "colin.whiteout.conductor.schedule",
-//                 args: ["{that}", "{that}.options.score"]
-//             }
-//         }
+        ]
     });
     
     // TODO: Confirm that this exists only because the scheduler is an archaic styled component.
@@ -61,41 +164,108 @@
         }
     });
     
-    fluid.defaults("colin.whiteout.stereo", {
+    fluid.defaults("colin.whiteout.output", {
         gradeNames: ["flock.synth", "autoInit"],
         
-        synthDef: [
-            {
-                id: "left",
+        synthDef: {
+            ugen: "flock.ugen.out"
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.left", {
+        gradeNames: ["colin.whiteout.output", "autoInit"],
+        
+        synthDef: {
+            bus: 0,
+            expand: 1
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.right", {
+        gradeNames: ["colin.whiteout.output", "autoInit"],
+        
+        synthDef: {
+            bus: 1,
+            expand: 1
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.stereo", {
+        gradeNames: ["colin.whiteout.output", "autoInit"],
+        
+        synthDef: {
+            bus: {
+                ugen: "flock.ugen.sequence",
+                rate: "audio",
+                list: [0, 1],
+                loop: 1,
+                freq: {
+                    ugen: "flock.ugen.lfNoise",
+                    freq: 1/2,
+                    mul: 1,
+                    add: 1
+                }
+            },
+            expand: 1
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.guitarGranulator", {
+        gradeNames: ["colin.whiteout.output", "autoInit"],
+        
+        synthDef: {
+            sources: {
+                id: "granulator",
                 ugen: "flock.ugen.triggerGrains",
-                dur: 0.0002,
+                dur: 1,
                 centerPos: {
                     ugen: "flock.ugen.lfNoise",
                     rate: "control",
+                    freq: 1/2,
                     options: {
                         interpolation: "linear"
                     }
                 },
                 trigger: {
                     ugen: "flock.ugen.impulse",
-                    freq: {
-                        ugen: "flock.ugen.lfNoise",
-                        freq: 0.5,
-                        mul: 100,
-                        add: 105,
-                        options: {
-                            interpolation: "linear"
-                        }
-                    }
+                    freq: 10
                  },
                 buffer: {
-                    id: "mandolin",
-                    url: "audio/mandolin.wav"
+                    id: "high-guitar",
+                    url: "audio/high-bowed-guitar.wav"
                 },
-                mul: 0.5
-            },
-            {
-                id: "right",
+                mul: {
+                    ugen: "flock.ugen.line",
+                    start: 0,
+                    end: 2,
+                    duration: 10
+                }
+            }
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.lowGuitarGranulator", {
+        gradeNames: ["colin.whiteout.guitarGranulator", "autoInit"],
+        
+        synthDef: {
+            sources: {
+                buffer: {
+                    id: "low-guitar",
+                    url: "audio/low-bowed-guitar.wav"
+                },
+                mul: {
+                    end: 1
+                }
+            }
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.impulseGranulator", {
+        gradeNames: ["colin.whiteout.output", "autoInit"],
+        
+        synthDef: {
+            sources: {
+                id: "granulator",
                 ugen: "flock.ugen.granulator",
                 grainDur: 0.001,
                 numGrains: {
@@ -111,9 +281,42 @@
                     ugen: "flock.ugen.impulse",
                     freq: 123
                 },
-                mul: 0.9
+                mul: 2
             }
-        ]
+        }
     });
+    
+    fluid.defaults("colin.whiteout.lowImpulseGranulator", {
+        gradeNames: ["colin.whiteout.impulseGranulator", "autoInit"],
         
+        synthDef: {
+            sources: {
+                grainDur: 0.002,
+                numGrains: {
+                    freq: 5,
+                    mul: 100,
+                    add: 105
+                },
+                source: {
+                    freq: 60
+                }
+            }
+        }
+    });
+
+    fluid.defaults("colin.whiteout.mandolin", {
+        gradeNames: ["colin.whiteout.output", "autoInit"],
+
+        synthDef: {
+            sources: {
+                ugen: "flock.ugen.playBuffer",
+                buffer: {
+                    id: "chord",
+                    url: "audio/mandolin.wav"
+                },
+                mul: 0.25
+            }
+        }
+    });
+
 }());
