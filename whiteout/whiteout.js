@@ -55,9 +55,9 @@
                 type: "colin.whiteout.band"
             },
             
-            clock: {
-                type: "colin.whiteout.conductor"
-            },
+            // clock: {
+            //     type: "colin.whiteout.conductor"
+            // },
             
             random: {
                 type: "colin.whiteout.random"
@@ -226,10 +226,13 @@
                     url: "audio/high-bowed-guitar.wav"
                 },
                 mul: {
-                    ugen: "flock.ugen.line",
-                    start: 0,
-                    end: 2,
-                    duration: 10
+                    ugen: "flock.ugen.sinOsc",
+                    freq: 1/30,
+                    mul: 0.5,
+                    add: 0.5,
+                    options: {
+                        interpolation: "linear"
+                    }
                 }
             }
         }
@@ -347,9 +350,14 @@
                     ugen: "flock.ugen.dust",
                     rate: "control",
                     density: {
-                        ugen: "flock.ugen.lfNoise",
+                        ugen: "flock.ugen.sinOsc",
                         rate: "control",
-                        freq: 1/3,
+                        freq: {
+                            ugen: "flock.ugen.lfNoise",
+                            rate: "control",
+                            mul: 1/45,
+                            add: 1/45
+                        },
                         mul: 2,
                         add: 2,
                         options: {
