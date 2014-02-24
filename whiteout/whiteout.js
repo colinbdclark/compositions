@@ -276,8 +276,14 @@
                     freq: 123
                 },
                 mul: {
-                    ugen: "flock.ugen.sinOsc",
-                    freq: 1/5,
+                    ugen: "flock.ugen.lfPulse",
+                    freq: {
+                        ugen: "flock.ugen.lfNoise",
+                        rate: "control",
+                        freq: 1/10,
+                        mul: 0.25,
+                        add: 0.25
+                    },
                     mul: 0.5,
                     add: 0.5,
                     options: {
