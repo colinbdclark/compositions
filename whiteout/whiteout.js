@@ -55,9 +55,9 @@
                 type: "colin.whiteout.band"
             },
             
-            /*clock: {
+            clock: {
                 type: "colin.whiteout.conductor"
-            },*/
+            },
             
             random: {
                 type: "colin.whiteout.random"
@@ -112,18 +112,6 @@
         bpm: 60,
         
         score: [
-            {
-                interval: "repeat",
-                time: 5,
-                change: {
-                    synth: "guitarGranulator",
-                    values: {
-                        "granulator.dur": {
-                            synthDef: "{random}.options.synthDef"
-                        }
-                    }
-                }
-            },
             {
                 interval: "repeat",
                 time: 3,
@@ -201,9 +189,12 @@
                 loop: 1,
                 freq: {
                     ugen: "flock.ugen.lfNoise",
-                    freq: 1/2,
+                    freq: 1/3,
                     mul: 1,
-                    add: 1
+                    add: 1,
+                    options: {
+                        interpolate: "linear"
+                    }
                 }
             },
             expand: 1
@@ -229,7 +220,7 @@
                 trigger: {
                     ugen: "flock.ugen.impulse",
                     freq: 10
-                 },
+                },
                 buffer: {
                     id: "high-guitar",
                     url: "audio/high-bowed-guitar.wav"
@@ -281,7 +272,15 @@
                     ugen: "flock.ugen.impulse",
                     freq: 123
                 },
-                mul: 2
+                mul: {
+                    ugen: "flock.ugen.sinOsc",
+                    freq: 1/10,
+                    mul: 0.5,
+                    add: 0.5,
+                    options: {
+                        interpolation: "linear"
+                    }
+                }
             }
         }
     });
@@ -309,12 +308,56 @@
 
         synthDef: {
             sources: {
-                ugen: "flock.ugen.playBuffer",
+                ugen: "flock.ugen.triggerGrains",
                 buffer: {
-                    id: "chord",
+                    id: "mandolin",
                     url: "audio/mandolin.wav"
                 },
-                mul: 0.25
+                dur: {
+                    ugen: "flock.ugen.lfNoise",
+                    freq: 1/10,
+                    mul: 1,
+                    add: 1.075
+                },
+                centerPos: {
+                    ugen: "flock.ugen.lfNoise",
+                    rate: "control",
+                    freq: 1/2,
+                    mul: {
+                        ugen: "flock.ugen.math",
+                        source: {
+                            ugen: "flock.ugen.bufferLength",
+                            buffer: "mandolin",
+                        },
+                        div: 2
+                    },
+                    add: {
+                        ugen: "flock.ugen.math",
+                        source: {
+                            ugen: "flock.ugen.bufferLength",
+                            buffer: "mandolin"
+                        },
+                        div: 2
+                    },
+                    options: {
+                        interpolation: "linear"
+                    }
+                },
+                trigger: {
+                    ugen: "flock.ugen.dust",
+                    rate: "control",
+                    density: {
+                        ugen: "flock.ugen.lfNoise",
+                        rate: "control",
+                        freq: 1/3,
+                        mul: 2,
+                        add: 2,
+                        options: {
+                            interpolation: "linear"
+                        }
+                    }
+                },
+                mul: 0.1
             }
         }
     });
