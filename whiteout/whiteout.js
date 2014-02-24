@@ -277,7 +277,7 @@
                 },
                 mul: {
                     ugen: "flock.ugen.sinOsc",
-                    freq: 1/10,
+                    freq: 1/5,
                     mul: 0.5,
                     add: 0.5,
                     options: {
