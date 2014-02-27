@@ -1,51 +1,40 @@
 (function () {
     fluid.registerNamespace("colin");
     
-    // TODO: This is nonesense that should be removed when flock.synth.group works properly.
     fluid.defaults("flock.band", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
         
         invokers: {
             play: {
-                funcName: "flock.band.play",
-                args: ["{that}"]
+                func: "{that}.events.onPlay.fire"
             },
             
             pause: {
-                funcName: "flock.band.pause",
-                args: ["{that}"]
+                func: "{that}.events.onPause.fire"
+            }
+        },
+        
+        events: {
+            onPlay: null,
+            onPause: null
+        },
+        
+        distributeOptions: {
+            source: "{that}.options.synthListeners",
+            removeSource: true,
+            target: "{that flock.synth}.options.listeners"
+        },
+        
+        synthListeners: {
+            "{band}.events.onPlay": {
+                func: "{that}.play"
+            },
+            
+            "{band}.events.onPause": {
+                func: "{that}.pause"
             }
         }
     });
-    
-    flock.band.collectComponents = function (that, componentsOption) {
-        var componentNames = Object.keys(componentsOption),
-            components = fluid.transform(componentNames, function (componentName) {
-            return that[componentName];
-        });
-        
-        return components;
-    };
-    
-    flock.band.invokeOnEach = function (fnName, collection) {
-        fluid.each(collection, function (item) {
-            var fn = item[fnName];
-            if (fn && typeof fn === "function") {
-                item[fnName].apply(item);
-            }
-        });
-    };
-    
-    flock.band.play = function (that) {
-        var components = flock.band.collectComponents(that, that.options.components);
-        flock.band.invokeOnEach("play", components);
-    };
-    
-    flock.band.pause = function (that) {
-        var components = flock.band.collectComponents(that, that.options.components);
-        flock.band.invokeOnEach("pause", components);
-    };
-    
     
     fluid.defaults("colin.whiteout", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
@@ -55,9 +44,9 @@
                 type: "colin.whiteout.band"
             },
             
-            // clock: {
-            //     type: "colin.whiteout.conductor"
-            // },
+            clock: {
+                type: "colin.whiteout.conductor"
+            },
             
             random: {
                 type: "colin.whiteout.random"
@@ -139,11 +128,6 @@
         ]
     });
     
-    // TODO: Confirm that this exists only because the scheduler is an archaic styled component.
-    colin.whiteout.conductor.schedule = function (clock, score) {
-        clock.schedule(score);
-    };
-    
     fluid.defaults("colin.whiteout.random", {
         gradeNames: ["fluid.littleComponent", "autoInit"],
         
@@ -213,6 +197,7 @@
                     ugen: "flock.ugen.lfNoise",
                     rate: "control",
                     freq: 1/2,
+                    mul: 1.2,
                     options: {
                         interpolation: "linear"
                     }
