@@ -44,10 +44,6 @@
                 type: "colin.whiteout.band"
             },
             
-            clock: {
-                type: "colin.whiteout.conductor"
-            },
-            
             random: {
                 type: "colin.whiteout.random"
             }
@@ -61,30 +57,39 @@
             mandolin: {
                 type: "colin.whiteout.mandolin",
                 options: {
-                    gradeNames: ["colin.whiteout.stereo"]
+                    gradeNames: ["colin.whiteout.panning"]
                 }
             },
             
             highGuitar: {
                 type: "colin.whiteout.guitarGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.left"]
+                    gradeNames: ["colin.whiteout.right"]
                 }
             },
             
+            /*
             lowGuitar: {
                 type: "colin.whiteout.lowGuitarGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.right"]
+                    gradeNames: ["colin.whiteout.left"]
                 }
             },
             
             highImpulse: {
                 type: "colin.whiteout.impulseGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.right"]
+                    gradeNames: ["colin.whiteout.stereo"],
+                    synthDef: {
+                        sources: {
+                            pan: {
+                                freq: 1/120
+                            }
+                        }
+                    }
                 }
-            },
+            }
+            */
             
             lowImpulse: {
                 type: "colin.whiteout.lowImpulseGranulator",
@@ -93,39 +98,6 @@
                 }
             }
         }
-    });
-    
-    fluid.defaults("colin.whiteout.conductor", {
-        gradeNames: ["flock.scheduler.async.tempo", "autoInit"],
-        
-        bpm: 60,
-        
-        score: [
-            {
-                interval: "repeat",
-                time: 3,
-                change: {
-                    synth: "impulseGranulator",
-                    values: {
-                        "granulator.grainDur": {
-                            synthDef: "{random}.options.synthDef"
-                        }
-                    }
-                }
-            },
-            {
-                interval: "repeat",
-                time: 4,
-                change: {
-                    synth: "lowImpulseGranulator",
-                    values: {
-                        "granulator.grainDur": {
-                            synthDef: "{random}.options.synthDef"
-                        }
-                    }
-                }
-            }
-        ]
     });
     
     fluid.defaults("colin.whiteout.random", {
@@ -166,16 +138,21 @@
         gradeNames: ["colin.whiteout.output", "autoInit"],
         
         synthDef: {
-            bus: {
-                ugen: "flock.ugen.sequence",
-                rate: "audio",
-                list: [0, 1],
-                loop: 1,
-                freq: {
-                    ugen: "flock.ugen.lfNoise",
-                    freq: 1/3,
-                    mul: 1,
-                    add: 1,
+            bus: 0,
+            expand: 1
+        }
+    });
+    
+    fluid.defaults("colin.whiteout.panning", {
+        gradeNames: ["colin.whiteout.stereo", "autoInit"],
+        
+        synthDef: {
+            sources: {
+                ugen: "flock.ugen.pan2",
+                pan: {
+                    ugen: "flock.ugen.triOsc",
+                    rate: "audio",
+                    freq: 1/20,
                     options: {
                         interpolate: "linear"
                     }
@@ -197,7 +174,7 @@
                     ugen: "flock.ugen.lfNoise",
                     rate: "control",
                     freq: 1/2,
-                    mul: 1.2,
+                    mul: 1000,
                     options: {
                         interpolation: "linear"
                     }
@@ -211,10 +188,10 @@
                     url: "audio/high-bowed-guitar.wav"
                 },
                 mul: {
-                    ugen: "flock.ugen.sinOsc",
-                    freq: 1/30,
-                    mul: 0.5,
-                    add: 0.5,
+                    ugen: "flock.ugen.triOsc",
+                    freq: 1/5,
+                    mul: 0.025,
+                    add: 0.03,
                     options: {
                         interpolation: "linear"
                     }
@@ -261,13 +238,13 @@
                     freq: 123
                 },
                 mul: {
-                    ugen: "flock.ugen.lfPulse",
+                    ugen: "flock.ugen.triOsc",
                     freq: {
                         ugen: "flock.ugen.lfNoise",
                         rate: "control",
-                        freq: 1/10,
-                        mul: 0.25,
-                        add: 0.25
+                        freq: 1/2,
+                        mul: 1/5,
+                        add: 1/5
                     },
                     mul: 0.5,
                     add: 0.5,
@@ -302,61 +279,63 @@
 
         synthDef: {
             sources: {
-                ugen: "flock.ugen.triggerGrains",
-                buffer: {
-                    id: "mandolin",
-                    url: "audio/mandolin.wav"
-                },
-                dur: {
-                    ugen: "flock.ugen.lfNoise",
-                    freq: 1/10,
-                    mul: 1,
-                    add: 1.075
-                },
-                centerPos: {
-                    ugen: "flock.ugen.lfNoise",
-                    rate: "control",
-                    freq: 1/2,
-                    mul: {
-                        ugen: "flock.ugen.math",
-                        source: {
-                            ugen: "flock.ugen.bufferLength",
-                            buffer: "mandolin",
-                        },
-                        div: 2
+                source: {
+                    ugen: "flock.ugen.triggerGrains",
+                    buffer: {
+                        id: "mandolin",
+                        url: "audio/mandolin.wav"
                     },
-                    add: {
-                        ugen: "flock.ugen.math",
-                        source: {
-                            ugen: "flock.ugen.bufferLength",
-                            buffer: "mandolin"
-                        },
-                        div: 2
+                    dur: {
+                        ugen: "flock.ugen.lfNoise",
+                        freq: 1/10,
+                        mul: 1,
+                        add: 1.075
                     },
-                    options: {
-                        interpolation: "linear"
-                    }
-                },
-                trigger: {
-                    ugen: "flock.ugen.dust",
-                    rate: "control",
-                    density: {
-                        ugen: "flock.ugen.sinOsc",
+                    centerPos: {
+                        ugen: "flock.ugen.lfNoise",
                         rate: "control",
-                        freq: {
-                            ugen: "flock.ugen.lfNoise",
-                            rate: "control",
-                            mul: 1/45,
-                            add: 1/45
+                        freq: 1/2,
+                        mul: {
+                            ugen: "flock.ugen.math",
+                            source: {
+                                ugen: "flock.ugen.bufferLength",
+                                buffer: "mandolin",
+                            },
+                            div: 2
                         },
-                        mul: 2,
-                        add: 2,
+                        add: {
+                            ugen: "flock.ugen.math",
+                            source: {
+                                ugen: "flock.ugen.bufferLength",
+                                buffer: "mandolin"
+                            },
+                            div: 2
+                        },
                         options: {
                             interpolation: "linear"
                         }
-                    }
-                },
-                mul: 0.1
+                    },
+                    trigger: {
+                        ugen: "flock.ugen.dust",
+                        rate: "control",
+                        density: {
+                            ugen: "flock.ugen.sinOsc",
+                            rate: "control",
+                            freq: {
+                                ugen: "flock.ugen.lfNoise",
+                                rate: "control",
+                                mul: 1/45,
+                                add: 1/45
+                            },
+                            mul: 2,
+                            add: 2,
+                            options: {
+                                interpolation: "linear"
+                            }
+                        }
+                    },
+                    mul: 0.1
+                }
             }
         }
     });
