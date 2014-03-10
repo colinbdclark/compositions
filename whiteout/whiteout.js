@@ -47,7 +47,18 @@
             random: {
                 type: "colin.whiteout.random"
             }
-        }
+        },
+        
+        // In seconds.
+        landmarks: [
+            6,      // cut from black
+            95,     // section 1-2 crossfade
+            138,    // section 2-3 crossfade
+            379,    // section 3-4 crossfade
+            577,    // section 4-cat cut
+            587,    // cat-section 5 cut
+            619     // end
+        ]
     });
     
     fluid.defaults("colin.whiteout.band", {
