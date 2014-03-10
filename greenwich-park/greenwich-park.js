@@ -5,14 +5,85 @@
 
     flock.init();
 
+    flock.urlsForFileSequence = function (filenameTemplate, start, end, digits) {
+        if (digits === undefined) {
+            digits = end.toString().length;
+        }
+
+        var urls = [],
+            i,
+            url;
+
+        for (i = start; i <= end; i++) {
+            url = fluid.stringTemplate(filenameTemplate, {
+                n: flock.urlsForFileSequence.zeroPad(i, digits)
+            });
+
+            urls.push(url);
+        }
+
+        return urls;
+    };
+
+    // Based on code from:
+    // http://stackoverflow.com/questions/1267283/how-can-i-create-a-zerofilled-value-using-javascript
+    flock.urlsForFileSequence.zeroPad = function (num, numDigits) {
+        var n = Math.abs(num),
+            digitsInN = Math.floor(n).toString().length,
+            zeros = Math.max(0, numDigits - digitsInN),
+            zeroString = Math.pow(10, zeros).toString().substr(1);
+
+        if (num < 0) {
+            zeroString = "-" + zeroString;
+        }
+
+        return zeroString + n;
+    };
+
     fluid.defaults("colin.greenwichPark", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
+
+        members: {
+            bufferUrls: {
+                uke: {
+                    expander: {
+                        funcName: "flock.urlsForFileSequence",
+                        args: ["audio/uke/ukulele-%n.wav", 1, 37]
+                    }
+                },
+
+                kick: {
+                    expander: {
+                        funcName: "flock.urlsForFileSequence",
+                        args: ["audio/kick/kick-%n.wav", 1, 23]
+                    }
+                },
+
+                snare: {
+                    expander: {
+                        funcName: "flock.urlsForFileSequence",
+                        args: ["audio/snare/snare-%n.wav", 1, 2, 2]
+                    }
+                }
+            }
+        },
 
         components: {
             synth: {
                 createOnEvent: "onBuffersReady",
                 type: "colin.greenwichPark.synth",
                 options: {
+                    ukeBranch: {
+                        options: {
+                            bufferIDs: {
+                                expander: {
+                                    funcName: "flock.bufferLoader.idsFromURLs",
+                                    args: "{greenwichPark}.bufferUrls.uke"
+                                }
+                            }
+                        }
+                    },
+
                     listeners: {
                         onCreate: {
                             funcName: "demo.toggleButtonView",
@@ -22,25 +93,52 @@
                 }
             },
 
-            bufferLoader: {
+            ukeLoader: {
                 type: "flock.bufferLoader",
                 options: {
-                    bufferDefs: [
-                        {
-                            id: "cat",
-                            url: "audio/kick/kick-01.wav"
-                        },
-                        {
-                            id: "hamster",
-                            url: "audio/uke/ukulele-01.wav"
+                    bufferDefs: {
+                        expander: {
+                            funcName: "flock.bufferLoader.expandFileSequence",
+                            args: ["{greenwichPark}.bufferUrls.uke"]
                         }
-                    ]
+                    }
+                }
+            },
+
+            kickLoader: {
+                type: "flock.bufferLoader",
+                options: {
+                    bufferDefs: {
+                        expander: {
+                            funcName: "flock.bufferLoader.expandFileSequence",
+                            args: ["{greenwichPark}.bufferUrls.kick"]
+                        }
+                    }
+                }
+            },
+
+            snareLoader: {
+                type: "flock.bufferLoader",
+                options: {
+                    bufferDefs: {
+                        expander: {
+                            funcName: "flock.bufferLoader.expandFileSequence",
+                            args: ["{greenwichPark}.bufferUrls.snare"]
+                        }
+                    }
                 }
             }
+
         },
 
         events: {
-            onBuffersReady: "{bufferLoader}.events.afterBuffersLoaded"
+            onBuffersReady: {
+                events: {
+                    afterUkesLoaded: "{ukeLoader}.events.afterBuffersLoaded",
+                    afterKicksLoaded: "{kickLoader}.events.afterBuffersLoaded",
+                    afterSnaresLoaded: "{snareLoader}.events.afterBuffersLoaded"
+                }
+            }
         }
     });
 
@@ -65,6 +163,43 @@
         }
     });
 
+    flock.bufferLoader.idFromURL = function (url) {
+        var lastSlash = url.lastIndexOf("/"),
+            idStart = lastSlash > -1 ? lastSlash + 1 : 0,
+            ext = url.lastIndexOf("."),
+            idEnd = ext > -1 ? ext : url.length;
+
+        return url.substring(idStart, idEnd);
+    };
+
+    flock.bufferLoader.idsFromURLs = function (urls) {
+        return fluid.transform(urls, flock.bufferLoader.idFromURL);
+    };
+
+    flock.bufferLoader.expandFileSequence = function (fileURLs) {
+        fileURLs = fileURLs || [];
+
+        var bufDefs = [],
+            i,
+            url,
+            lastSlash,
+            idStart,
+            ext,
+            idEnd,
+            id;
+
+        for (i = 0; i < fileURLs.length; i++) {
+            url = fileURLs[i];
+            id = flock.bufferLoader.idFromURL(url);
+            bufDefs.push({
+                id: id,
+                url: url
+            });
+        }
+
+        return bufDefs;
+    };
+
     flock.bufferLoader.loadBuffers = function (bufferDefs, decodedBuffers, afterBuffersLoaded) {
         // TODO: This is a sign that the flock.parse.bufferForDef is still terribly broken.
         var stupidFakeUGen = {
@@ -87,19 +222,86 @@
     fluid.defaults("colin.greenwichPark.synth", {
         gradeNames: ["flock.synth", "autoInit"],
 
-        synthDef: {
+        ukeBranch: {
             ugen: "flock.ugen.bufferBank",
             trigger: {
                 ugen: "flock.ugen.dust",
-                density: 100
+                density: {
+                    ugen: "flock.ugen.amplitude",
+                    mul: 50,
+                    source: {
+                        ugen: "flock.ugen.playBuffer",
+                        buffer: {
+                            id: "camera-audio",
+                            url: "audio/camera/in-camera-audio.wav"
+                        },
+                        mul: 1.3
+                    }
+                }
             },
+
             bufferIndex: {
                 ugen: "flock.ugen.whiteNoise"
-            },
-            options: {
-                bufferIDs: ["cat", "hamster"]
             }
+        },
 
+        synthDef: {
+            ugen: "flock.ugen.sum",
+            sources: [
+                // Uke.
+                "{that}.options.ukeBranch",
+
+                {
+                    ugen: "flock.ugen.sum",
+                    sources: [
+                        // In-camera audio.
+                        "{that}.options.ukeBranch.trigger.density.source",
+
+                        // The snares
+                        {
+                            ugen: "flock.ugen.bufferBank",
+                            trigger: {
+                                ugen: "flock.ugen.impulse",
+                                phase: 0,
+                                freq: 1/4
+                            },
+                            bufferIndex: {
+                                ugen: "flock.ugen.whiteNoise"
+                            },
+                            options: {
+                                bufferIDs: {
+                                    expander: {
+                                        funcName: "flock.bufferLoader.idsFromURLs",
+                                        args: "{greenwichPark}.bufferUrls.snare"
+                                    }
+                                }
+                            }
+                        },
+
+                        // The kicks.
+                        {
+                            ugen: "flock.ugen.bufferBank",
+                            mul: 3,
+                            trigger: {
+                                ugen: "flock.ugen.impulse",
+                                phase: 0.5,
+                                freq: 1/2
+                            },
+                            bufferIndex: {
+                                ugen: "flock.ugen.whiteNoise"
+                            },
+                            options: {
+                                bufferIDs: {
+                                    expander: {
+                                        funcName: "flock.bufferLoader.idsFromURLs",
+                                        args: "{greenwichPark}.bufferUrls.kick"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     });
 
@@ -195,6 +397,7 @@
             }
 
             m.prevTrigger = prevTrigger;
+            that.mulAdd(numSamps);
         };
 
         that.init = function () {
