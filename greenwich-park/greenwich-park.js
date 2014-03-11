@@ -40,6 +40,17 @@
         return zeroString + n;
     };
 
+    flock.mergeURLsForMultipleFileSequences = function (filenameTemplates, starts, ends) {
+        var urls = [],
+            i;
+
+        for (i = 0; i < filenameTemplates.length; i++) {
+            urls = urls.concat(flock.urlsForFileSequence(filenameTemplates[i], starts[i], ends[i]));
+        }
+
+        return urls;
+    };
+
     fluid.defaults("colin.greenwichPark", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
 
@@ -52,17 +63,14 @@
                     }
                 },
 
-                kick: {
+                drums: {
                     expander: {
-                        funcName: "flock.urlsForFileSequence",
-                        args: ["audio/kick/kick-%n.wav", 1, 23]
-                    }
-                },
-
-                snare: {
-                    expander: {
-                        funcName: "flock.urlsForFileSequence",
-                        args: ["audio/snare/snare-%n.wav", 1, 2, 2]
+                        funcName: "flock.mergeURLsForMultipleFileSequences",
+                        args: [
+                            ["audio/kick/kick-%n.wav", "audio/snare/snare-%n.wav"],
+                            [1, 1],
+                            [23, 34]
+                        ]
                     }
                 }
             }
@@ -105,38 +113,24 @@
                 }
             },
 
-            kickLoader: {
+            drumLoader: {
                 type: "flock.bufferLoader",
                 options: {
                     bufferDefs: {
                         expander: {
                             funcName: "flock.bufferLoader.expandFileSequence",
-                            args: ["{greenwichPark}.bufferUrls.kick"]
-                        }
-                    }
-                }
-            },
-
-            snareLoader: {
-                type: "flock.bufferLoader",
-                options: {
-                    bufferDefs: {
-                        expander: {
-                            funcName: "flock.bufferLoader.expandFileSequence",
-                            args: ["{greenwichPark}.bufferUrls.snare"]
+                            args: ["{greenwichPark}.bufferUrls.drums"]
                         }
                     }
                 }
             }
-
         },
 
         events: {
             onBuffersReady: {
                 events: {
                     afterUkesLoaded: "{ukeLoader}.events.afterBuffersLoaded",
-                    afterKicksLoaded: "{kickLoader}.events.afterBuffersLoaded",
-                    afterSnaresLoaded: "{snareLoader}.events.afterBuffersLoaded"
+                    afterDrumsLoaded: "{drumLoader}.events.afterBuffersLoaded"
                 }
             }
         }
@@ -263,38 +257,23 @@
                             trigger: {
                                 ugen: "flock.ugen.impulse",
                                 phase: 0,
-                                freq: 1/4
+                                freq: 1
                             },
                             bufferIndex: {
-                                ugen: "flock.ugen.whiteNoise"
-                            },
-                            options: {
-                                bufferIDs: {
-                                    expander: {
-                                        funcName: "flock.bufferLoader.idsFromURLs",
-                                        args: "{greenwichPark}.bufferUrls.snare"
-                                    }
+                                ugen: "flock.ugen.amplitude",
+                                source: {
+                                    ugen: "flock.ugen.playBuffer",
+                                    buffer: {
+                                        id: "camera-audio",
+                                    },
+                                    mul: 5
                                 }
-                            }
-                        },
-
-                        // The kicks.
-                        {
-                            ugen: "flock.ugen.bufferBank",
-                            mul: 3,
-                            trigger: {
-                                ugen: "flock.ugen.impulse",
-                                phase: 0.5,
-                                freq: 1/2
-                            },
-                            bufferIndex: {
-                                ugen: "flock.ugen.whiteNoise"
                             },
                             options: {
                                 bufferIDs: {
                                     expander: {
                                         funcName: "flock.bufferLoader.idsFromURLs",
-                                        args: "{greenwichPark}.bufferUrls.kick"
+                                        args: "{greenwichPark}.bufferUrls.drums"
                                     }
                                 }
                             }
@@ -356,6 +335,7 @@
                     voice.currentIdx = 0;
                     voice.writePos = i;
                     bufIdx = Math.round(bufferIndex[bufferIndexIdx] * numBuffers);
+                    bufIdx = Math.min(bufIdx, buffers.length - 1);
                     bufDesc = buffers[bufIdx];
                     voice.buffer = bufDesc.data.channels[chan];
                     //voice.sampleRate = bufDesc.format.sampRate;
