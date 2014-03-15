@@ -222,7 +222,10 @@
                 ugen: "flock.ugen.dust",
                 density: {
                     ugen: "flock.ugen.amplitude",
-                    mul: 50,
+                    attack: 0.0001,
+                    release: 0.0001,
+                    mul: 10,
+                    add: 0.2,
                     source: {
                         ugen: "flock.ugen.playBuffer",
                         buffer: {
@@ -235,7 +238,30 @@
             },
 
             bufferIndex: {
-                ugen: "flock.ugen.whiteNoise"
+                ugen: "flock.ugen.lfNoise",
+                freq: 1/10,
+                mul: {
+                    ugen: "flock.ugen.math",
+                    rate: "audio",
+                    source: 1.0,
+                    sub: {
+                        ugen: "flock.ugen.amplitude",
+                        source: {
+                            ugen: "flock.ugen.playBuffer",
+                            buffer: {
+                                id: "camera-audio"
+                            },
+                            mul: 0.5
+                        }
+                    }
+                },
+                add: {
+                    ugen: "flock.ugen.whiteNoise",
+                    mul: 0.1
+                },
+                options: {
+                    interpolation: "linear"
+                }
             }
         },
 
@@ -251,7 +277,7 @@
                         // In-camera audio.
                         "{that}.options.ukeBranch.trigger.density.source",
 
-                        // The snares
+                        // The drums
                         {
                             ugen: "flock.ugen.bufferBank",
                             trigger: {
@@ -266,7 +292,15 @@
                                     buffer: {
                                         id: "camera-audio",
                                     },
-                                    mul: 5
+                                    mul: { // 7.5
+                                        ugen: "flock.ugen.lfNoise",
+                                        freq: 1/10,
+                                        mul: 3.75,
+                                        add: 3.75,
+                                        options: {
+                                            interpolation: "linear"
+                                        }
+                                    }
                                 }
                             },
                             options: {
