@@ -21,6 +21,7 @@
 
                 drums: {
                     expander: {
+                        // TODO: this API is confusing!
                         funcName: "flock.mergeURLsForMultipleFileSequences",
                         args: [
                             ["audio/kick/kick-%n.wav", "audio/snare/snare-%n.wav"],
@@ -73,13 +74,6 @@
                             funcName: "flock.bufferLoader.expandFileSequence",
                             args: ["{greenwichPark}.bufferUrls.drums"]
                         }
-                    },
-                    listeners: {
-                        afterBuffersLoaded: {
-                            "this": "console",
-                            method: "log",
-                            args: ["Drums loaded."]
-                        }
                     }
                 }
             },
@@ -129,15 +123,15 @@
                 ugen: "flock.ugen.amplitude",
                 source: {
                     ugen: "flock.ugen.in",
-                    bus: 15,
-                    mul: { // 7.5
-                        ugen: "flock.ugen.lfNoise",
-                        freq: 1/10,
-                        mul: 3.75,
-                        add: 3.75,
-                        options: {
-                            interpolation: "linear"
-                        }
+                    bus: 15
+                },
+                mul: { // 7.5
+                    ugen: "flock.ugen.lfNoise",
+                    freq: 1/10,
+                    mul: 3.75,
+                    add: 3.75,
+                    options: {
+                        interpolation: "linear"
                     }
                 }
             },
@@ -149,9 +143,7 @@
                     }
                 }
             }
-        },
-
-        addToEnvironment: "tail"
+        }
     });
 
     fluid.defaults("colin.greenwichPark.ukuleleAeolianHarp", {
@@ -206,9 +198,7 @@
                     }
                 }
             }
-        },
-
-        addToEnvironment: "tail"
+        }
     });
 
     fluid.defaults("colin.greenwichPark.inCameraAudio", {
@@ -225,15 +215,20 @@
                     url: "audio/camera/in-camera-audio.wav"
                 }
             }
-        },
-
-        addToEnvironment: "head"
+        }
     });
 
     fluid.defaults("colin.greenwichPark.firstBand", {
         gradeNames: ["flock.band", "autoInit"],
 
         components: {
+            inCameraAudioWriter: {
+                type: "colin.greenwichPark.inCameraAudio",
+                options: {
+                    addToEnvironment: "head"
+                }
+            },
+
             inCameraAudioPlayer: {
                 type: "flock.synth",
                 options: {
@@ -261,13 +256,6 @@
                 type: "colin.greenwichPark.drumClock",
                 options: {
                     addToEnvironment: "tail"
-                }
-            },
-
-            inCameraAudioWriter: {
-                type: "colin.greenwichPark.inCameraAudio",
-                options: {
-                    addToEnvironment: "head"
                 }
             }
         }
