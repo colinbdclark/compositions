@@ -3,7 +3,9 @@
 
     fluid.registerNamespace("colin");
 
-    flock.init();
+    flock.init({
+        numBuses: 16
+    });
 
     fluid.defaults("colin.greenwichPark", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
@@ -31,9 +33,9 @@
         },
 
         components: {
-            synth: {
+            band: {
                 createOnEvent: "onBuffersReady",
-                type: "colin.greenwichPark.synth",
+                type: "colin.greenwichPark.firstBand",
                 options: {
                     listeners: {
                         onCreate: {
@@ -52,6 +54,13 @@
                             funcName: "flock.bufferLoader.expandFileSequence",
                             args: ["{greenwichPark}.bufferUrls.uke"]
                         }
+                    },
+                    listeners: {
+                        afterBuffersLoaded: {
+                            "this": "console",
+                            method: "log",
+                            args: ["Ukes loaded."]
+                        }
                     }
                 }
             },
@@ -64,6 +73,32 @@
                             funcName: "flock.bufferLoader.expandFileSequence",
                             args: ["{greenwichPark}.bufferUrls.drums"]
                         }
+                    },
+                    listeners: {
+                        afterBuffersLoaded: {
+                            "this": "console",
+                            method: "log",
+                            args: ["Drums loaded."]
+                        }
+                    }
+                }
+            },
+
+            cameraLoader: {
+                type: "flock.bufferLoader",
+                options: {
+                    bufferDefs: [
+                        {
+                            id: "camera-audio",
+                            url: "audio/camera/in-camera-audio.wav"
+                        }
+                    ],
+                    listeners: {
+                        afterBuffersLoaded: {
+                            "this": "console",
+                            method: "log",
+                            args: ["Camera audio loaded."]
+                        }
                     }
                 }
             }
@@ -73,54 +108,56 @@
             onBuffersReady: {
                 events: {
                     afterUkesLoaded: "{ukeLoader}.events.afterBuffersLoaded",
-                    afterDrumsLoaded: "{drumLoader}.events.afterBuffersLoaded"
+                    afterDrumsLoaded: "{drumLoader}.events.afterBuffersLoaded",
+                    afterCameraLoaded: "{cameraLoader}.events.afterBuffersLoaded"
                 }
             }
         }
     });
 
-    fluid.defaults("colin.greenwichPark.inCameraAudioPlayer", {
-        gradeNames: ["fluid.littleComponent", "autoInit"],
+    fluid.defaults("colin.greenwichPark.drumClock", {
+        gradeNames: ["flock.synth", "autoInit"],
 
-        ugenDef: {
-            ugen: "flock.ugen.playBuffer",
-            buffer: {
-                id: "camera-audio",
-                url: "audio/camera/in-camera-audio.wav"
-            }
-        }
-    });
-
-    fluid.defaults("colin.greenwichPark.aeolianHarpTriggerPlayer", {
-        gradeNames: ["colin.greenwichPark.inCameraAudioPlayer", "autoInit"],
-
-        ugenDef: {
-            mul: 1.3
-        }
-    });
-
-    fluid.defaults("colin.greenwichPark.aeolianHarpBufferScannerPlayer", {
-        gradeNames: ["colin.greenwichPark.inCameraAudioPlayer", "autoInit"],
-
-        ugenDef: {
-            mul: 0.5
-        }
-    });
-
-    fluid.defaults("colin.greenwichPark.ukuleleAeolianHarp", {
-        gradeNames: ["fluid.littleComponent", "autoInit"],
-
-        components: {
-            aeolianHarpTriggerPlayer: {
-                type: "colin.greenwichPark.aeolianHarpTriggerPlayer"
+        synthDef: {
+            ugen: "flock.ugen.triggerBuffers",
+            trigger: {
+                ugen: "flock.ugen.impulse",
+                phase: 0,
+                freq: 1
             },
-
-            aeolianHarpBufferScannerPlayer: {
-                type: "colin.greenwichPark.aeolianHarpBufferScannerPlayer"
+            bufferIndex: {
+                ugen: "flock.ugen.amplitude",
+                source: {
+                    ugen: "flock.ugen.in",
+                    bus: 15,
+                    mul: { // 7.5
+                        ugen: "flock.ugen.lfNoise",
+                        freq: 1/10,
+                        mul: 3.75,
+                        add: 3.75,
+                        options: {
+                            interpolation: "linear"
+                        }
+                    }
+                }
+            },
+            options: {
+                bufferIDs: {
+                    expander: {
+                        funcName: "flock.bufferLoader.idsFromURLs",
+                        args: "{greenwichPark}.bufferUrls.drums"
+                    }
+                }
             }
         },
 
-        ugenDef: {
+        addToEnvironment: "tail"
+    });
+
+    fluid.defaults("colin.greenwichPark.ukuleleAeolianHarp", {
+        gradeNames: ["flock.synth", "autoInit"],
+
+        synthDef: {
             ugen: "flock.ugen.triggerBuffers",
             trigger: {
                 ugen: "flock.ugen.dust",
@@ -130,7 +167,11 @@
                     release: 0.0001,
                     mul: 10,
                     add: 0.2,
-                    source: "{aeolianHarpTriggerPlayer}.options.ugenDef"
+                    source: {
+                        ugen: "flock.ugen.in",
+                        bus: 15,
+                        mul: 1.3
+                    }
                 }
             },
 
@@ -141,7 +182,11 @@
                     ugen: "flock.ugen.math",
                     rate: "audio",
                     source: 1.0,
-                    sub: "{aeolianHarpBufferScannerPlayer}.options.ugenDef"
+                    sub: {
+                        ugen: "flock.ugen.in",
+                        bus: 15,
+                        mul: 0.5
+                    }
                 },
                 add: {
                     ugen: "flock.ugen.whiteNoise",
@@ -161,81 +206,70 @@
                     }
                 }
             }
-        }
+        },
+
+        addToEnvironment: "tail"
     });
 
-    fluid.defaults("colin.greenwichPark.clockBufferScannerPlayer", {
-        gradeNames: ["colin.greenwichPark.inCameraAudioPlayer", "autoInit"],
+    fluid.defaults("colin.greenwichPark.inCameraAudio", {
+        gradeNames: ["flock.synth", "autoInit"],
 
-        ugenDef: {
-            mul: { // 7.5
-                ugen: "flock.ugen.lfNoise",
-                freq: 1/10,
-                mul: 3.75,
-                add: 3.75,
-                options: {
-                    interpolation: "linear"
+        synthDef: {
+            ugen: "flock.ugen.out",
+            bus: 15,
+            expand: 1,
+            sources: {
+                ugen: "flock.ugen.playBuffer",
+                buffer: {
+                    id: "camera-audio",
+                    url: "audio/camera/in-camera-audio.wav"
                 }
-            }
-        }
-    });
-
-    fluid.defaults("colin.greenwichPark.drumClock", {
-        gradeNames: ["fluid.littleComponent", "autoInit"],
-
-        components: {
-            clockBufferScannerPlayer: {
-                type: "colin.greenwichPark.clockBufferScannerPlayer"
             }
         },
 
-        ugenDef: {
-            ugen: "flock.ugen.triggerBuffers",
-            trigger: {
-                ugen: "flock.ugen.impulse",
-                phase: 0,
-                freq: 1
-            },
-            bufferIndex: {
-                ugen: "flock.ugen.amplitude",
-                source: "{clockBufferScannerPlayer}.options.ugenDef"
-            },
-            options: {
-                bufferIDs: {
-                    expander: {
-                        funcName: "flock.bufferLoader.idsFromURLs",
-                        args: "{greenwichPark}.bufferUrls.drums"
-                    }
-                }
-            }
-        }
+        addToEnvironment: "head"
     });
 
-    fluid.defaults("colin.greenwichPark.synth", {
-        gradeNames: ["flock.synth", "autoInit"],
+    fluid.defaults("colin.greenwichPark.firstBand", {
+        gradeNames: ["flock.band", "autoInit"],
 
         components: {
-            ukuleleAeolianHarp: {
-                type: "colin.greenwichPark.ukuleleAeolianHarp"
+            inCameraAudioPlayer: {
+                type: "flock.synth",
+                options: {
+                    synthDef: {
+                        ugen: "flock.ugen.out",
+                        bus: 0,
+                        expand: 2,
+                        sources: {
+                            ugen: "flock.ugen.in",
+                            bus: 15
+                        }
+                    },
+                    addToEnvironment: "tail"
+                }
             },
 
-            inCameraAudioPlayer: {
-                type: "colin.greenwichPark.inCameraAudioPlayer"
+            ukuleleAeolianHarp: {
+                type: "colin.greenwichPark.ukuleleAeolianHarp",
+                options: {
+                    addToEnvironment: "tail"
+                }
             },
 
             drumClock: {
-                type: "colin.greenwichPark.drumClock"
-            }
-        },
+                type: "colin.greenwichPark.drumClock",
+                options: {
+                    addToEnvironment: "tail"
+                }
+            },
 
-        synthDef: {
-            ugen: "flock.ugen.sum",
-            sources: [
-                "{ukuleleAeolianHarp}.options.ugenDef",
-                "{inCameraAudioPlayer}.options.ugenDef",
-                "{drumClock}.options.ugenDef"
-            ]
+            inCameraAudioWriter: {
+                type: "colin.greenwichPark.inCameraAudio",
+                options: {
+                    addToEnvironment: "head"
+                }
+            }
         }
     });
-
 }());

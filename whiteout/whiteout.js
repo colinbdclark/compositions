@@ -1,54 +1,19 @@
 (function () {
     fluid.registerNamespace("colin");
-    
-    fluid.defaults("flock.band", {
-        gradeNames: ["fluid.eventedComponent", "autoInit"],
-        
-        invokers: {
-            play: {
-                func: "{that}.events.onPlay.fire"
-            },
-            
-            pause: {
-                func: "{that}.events.onPause.fire"
-            }
-        },
-        
-        events: {
-            onPlay: null,
-            onPause: null
-        },
-        
-        distributeOptions: {
-            source: "{that}.options.synthListeners",
-            removeSource: true,
-            target: "{that flock.synth}.options.listeners"
-        },
-        
-        synthListeners: {
-            "{band}.events.onPlay": {
-                func: "{that}.play"
-            },
-            
-            "{band}.events.onPause": {
-                func: "{that}.pause"
-            }
-        }
-    });
-    
+
     fluid.defaults("colin.whiteout", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
-        
+
         components: {
             band: {
                 type: "colin.whiteout.band"
             },
-            
+
             random: {
                 type: "colin.whiteout.random"
             }
         },
-        
+
         // In seconds.
         landmarks: [
             6,      // cut from black
@@ -60,10 +25,10 @@
             619     // end
         ]
     });
-    
+
     fluid.defaults("colin.whiteout.band", {
         gradeNames: ["flock.band", "autoInit"],
-        
+
         components: {
             mandolin: {
                 type: "colin.whiteout.mandolin",
@@ -71,14 +36,14 @@
                     gradeNames: ["colin.whiteout.panning"]
                 }
             },
-            
+
             highGuitar: {
                 type: "colin.whiteout.guitarGranulator",
                 options: {
                     gradeNames: ["colin.whiteout.right"]
                 }
             },
-            
+
             /*
             lowGuitar: {
                 type: "colin.whiteout.lowGuitarGranulator",
@@ -86,7 +51,7 @@
                     gradeNames: ["colin.whiteout.left"]
                 }
             },
-            
+
             highImpulse: {
                 type: "colin.whiteout.impulseGranulator",
                 options: {
@@ -101,7 +66,7 @@
                 }
             }
             */
-            
+
             lowImpulse: {
                 type: "colin.whiteout.lowImpulseGranulator",
                 options: {
@@ -110,53 +75,53 @@
             }
         }
     });
-    
+
     fluid.defaults("colin.whiteout.random", {
         gradeNames: ["fluid.littleComponent", "autoInit"],
-        
+
         synthDef: {
             ugen: "flock.ugen.whiteNoise"
         }
     });
-    
+
     fluid.defaults("colin.whiteout.output", {
         gradeNames: ["flock.synth", "autoInit"],
-        
+
         synthDef: {
             ugen: "flock.ugen.out"
         }
     });
-    
+
     fluid.defaults("colin.whiteout.left", {
         gradeNames: ["colin.whiteout.output", "autoInit"],
-        
+
         synthDef: {
             bus: 0,
             expand: 1
         }
     });
-    
+
     fluid.defaults("colin.whiteout.right", {
         gradeNames: ["colin.whiteout.output", "autoInit"],
-        
+
         synthDef: {
             bus: 1,
             expand: 1
         }
     });
-    
+
     fluid.defaults("colin.whiteout.stereo", {
         gradeNames: ["colin.whiteout.output", "autoInit"],
-        
+
         synthDef: {
             bus: 0,
             expand: 1
         }
     });
-    
+
     fluid.defaults("colin.whiteout.panning", {
         gradeNames: ["colin.whiteout.stereo", "autoInit"],
-        
+
         synthDef: {
             sources: {
                 ugen: "flock.ugen.pan2",
@@ -172,10 +137,10 @@
             expand: 1
         }
     });
-    
+
     fluid.defaults("colin.whiteout.guitarGranulator", {
         gradeNames: ["colin.whiteout.output", "autoInit"],
-        
+
         synthDef: {
             sources: {
                 id: "granulator",
@@ -210,10 +175,10 @@
             }
         }
     });
-    
+
     fluid.defaults("colin.whiteout.lowGuitarGranulator", {
         gradeNames: ["colin.whiteout.guitarGranulator", "autoInit"],
-        
+
         synthDef: {
             sources: {
                 buffer: {
@@ -226,10 +191,10 @@
             }
         }
     });
-    
+
     fluid.defaults("colin.whiteout.impulseGranulator", {
         gradeNames: ["colin.whiteout.output", "autoInit"],
-        
+
         synthDef: {
             sources: {
                 id: "granulator",
@@ -266,10 +231,10 @@
             }
         }
     });
-    
+
     fluid.defaults("colin.whiteout.lowImpulseGranulator", {
         gradeNames: ["colin.whiteout.impulseGranulator", "autoInit"],
-        
+
         synthDef: {
             sources: {
                 grainDur: 0.002,
