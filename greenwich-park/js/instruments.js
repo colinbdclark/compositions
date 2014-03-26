@@ -109,6 +109,39 @@
         gradeNames: ["colin.greenwichPark.aeolianHarp", "autoInit"],
 
         synthDef: {
+            trigger: {
+                ugen: "flock.ugen.impulse",
+                freq: {
+                    ugen: "flock.ugen.amplitude",
+                    attack: 0.0001,
+                    release: 0.0001,
+                    mul: 20,
+                    add: {  // More sparse and wobbly, but hopefully only noticeable when the volume is low.
+                        ugen: "flock.ugen.lfNoise",
+                        freq: 1,
+                        mul: 0.2,
+                        add: 0.01,
+                        options: {
+                            interpolation: "linear"
+                        }
+                    },
+                    source: {
+                        ugen: "flock.ugen.in",
+                        bus: 15,
+                        mul: 1.3
+                    }
+                },
+                density: null
+            },
+
+            bufferIndex: {
+                mul: {
+                    sub: {
+                        mul: 0.3
+                    }
+                }
+            },
+
             options: {
                 // TODO: Factor URL/ID management more cleanly in the bufferLoaderComponent
                 bufferIDs: {
