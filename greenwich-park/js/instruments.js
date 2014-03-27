@@ -71,7 +71,7 @@
                     ugen: "flock.ugen.amplitude",
                     attack: 0.0001,
                     release: 0.0001,
-                    mul: 10,
+                    mul: 20,
                     add: 0.2,
                     source: {
                         ugen: "flock.ugen.in",
