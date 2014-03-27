@@ -34,6 +34,20 @@
         gradeNames: ["colin.greenwichPark.clock", "autoInit"],
 
         synthDef: {
+            mul: {
+                ugen: "flock.ugen.amplitude",
+                source: {
+                    ugen: "flock.ugen.in",
+                    bus: 15,
+                },
+                mul: 2,
+                add: 0.4
+            },
+            bufferIndex: {
+                mul: {
+                    freq: 1
+                }
+            },
             options: {
                 bufferIDs: {
                     expander: {
@@ -119,7 +133,7 @@
                     add: {  // More sparse and wobbly, but hopefully only noticeable when the volume is low.
                         ugen: "flock.ugen.lfNoise",
                         freq: 1,
-                        mul: 0.2,
+                        mul: 0.1,
                         add: 0.01,
                         options: {
                             interpolation: "linear"

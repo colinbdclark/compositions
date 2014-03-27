@@ -4,8 +4,7 @@
     fluid.defaults("colin.greenwichPark.unmutedSynth", {
         gradeNames: ["flock.synth", "autoInit"],
         synthDef: {
-            id: "main",
-            mul: 1
+            id: "main"
         }
     });
 
