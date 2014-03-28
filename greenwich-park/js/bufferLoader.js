@@ -36,18 +36,20 @@
         return zeroString + n;
     };
 
-    flock.mergeURLsForMultipleFileSequences = function (filenameTemplates, starts, ends) {
+    flock.mergeURLsForMultipleFileSequences = function (filenameTemplates, starts, ends, digits) {
         var urls = [],
-            i;
+            i,
+            digit;
 
         for (i = 0; i < filenameTemplates.length; i++) {
-            urls = urls.concat(flock.urlsForFileSequence(filenameTemplates[i], starts[i], ends[i]));
+            digit = digits ? digits[i] : undefined;
+            urls = urls.concat(flock.urlsForFileSequence(filenameTemplates[i], starts[i], ends[i], digit));
         }
 
         return urls;
     };
 
-    
+
     fluid.defaults("flock.bufferLoader", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
 
@@ -108,6 +110,8 @@
 
     flock.bufferLoader.loadBuffers = function (bufferDefs, decodedBuffers, afterBuffersLoaded) {
         // TODO: This is a sign that the flock.parse.bufferForDef is still terribly broken.
+        bufferDefs = fluid.makeArray(bufferDefs);
+        
         var stupidFakeUGen = {
             setBuffer: function (decoded) {
                 decodedBuffers.push(decoded);
