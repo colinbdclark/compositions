@@ -172,6 +172,7 @@
         gradeNames: ["colin.greenwichPark.aeolianHarp", "autoInit"],
 
         synthDef: {
+            mul: 0.75,
             options: {
                 // TODO: Factor URL/ID management more cleanly in the bufferLoaderComponent
                 bufferIDs: {
@@ -211,7 +212,7 @@
             sources: {
                 ugen: "flock.ugen.in",
                 bus: 15,
-                mul: 0.2
+                mul: 0.25
             }
         }
     });

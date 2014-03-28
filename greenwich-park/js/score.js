@@ -5,6 +5,7 @@
         gradeNames: ["flock.scheduler.async", "autoInit"],
 
         cutTime: (60 * 5) + 19, // 5'19"
+        endTime: (60 * 8) + 3, // 8'03"
         fadeDuration: 0.01,
 
         fadeInChange: {
@@ -32,6 +33,7 @@
         //         "drumClock": {...}
         //     }
         score: [
+            // Instrumental changes at cut.
             {
                 interval: "once",
                 time: "{that}.options.cutTime",
@@ -61,6 +63,24 @@
                 time: "{that}.options.cutTime",
                 change: {
                     synth: "ukuleleAeolianHarp",
+                    values: "{that}.options.fadeOutChange"
+                }
+            },
+
+            // Ending.
+            {
+                interval: "once",
+                time: "{that}.options.endTime",
+                change: {
+                    synth: "ukeClock",
+                    values: "{that}.options.fadeOutChange"
+                }
+            },
+            {
+                interval: "once",
+                time: "{that}.options.endTime",
+                change: {
+                    synth: "drumAeolianHarp",
                     values: "{that}.options.fadeOutChange"
                 }
             }
