@@ -29,8 +29,8 @@ fluid.defaults("colin.motors.triggeredBufferSynth", {
                 mul: 0.5,
                 add: 1.25
             },
-            list: [0.4, 0.4, 1.0, 0.4, 0.4, 0.4, 1.0, 0.4],
-            loop: 0
+            list: [0.4, 0.4, 0.4, 0.8, 0.4, 0.4, 0.8, 0.4],
+            loop: 1
         }
     }
 });
@@ -59,7 +59,7 @@ fluid.defaults("colin.motors.kick", {
                 id: "kick",
                 url: "audio/kick-20.wav"
             },
-            mul: 0.5
+            mul: 0.25
         }
     }
 });
@@ -89,7 +89,13 @@ fluid.defaults("colin.motors.snare", {
             url: "audio/snare-07.wav"
         },
         trigger: {
-            freq: 1/5
+            freq: {
+                ugen: "flock.ugen.lfNoise",
+                rate: "control",
+                freq: 10,
+                mul: 1/3.5,
+                add: 1/7
+            }
         },
         mul: {
             ugen: "flock.ugen.whiteNoise",
@@ -155,7 +161,7 @@ fluid.defaults("colin.motors.app", {
                         ugen: "flock.ugen.lfSaw",
                         freq: {
                             ugen: "flock.ugen.sequence",
-                            list: [60, 0, 0, 76, 60, 0, 88, 79, 54, 0],
+                            list: [60, 0, 0, 76, 60, 0, 88, 92, 54, 0],
                             loop: 1,
                             freq: {
                                 ugen: "flock.ugen.lfNoise",
