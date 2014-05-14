@@ -136,7 +136,7 @@ fluid.defaults("colin.whiteout.lowGuitarGranulator", {
 });
 
 fluid.defaults("colin.motors.app", {
-    gradeNames: ["fluid.eventedComponent", "fluid.modelComponent", "autoInit"],
+    gradeNames: ["flock.band", "fluid.modelComponent", "autoInit"],
 
     components: {
         kick: {
@@ -171,8 +171,8 @@ fluid.defaults("colin.motors.app", {
                     cutoff: {
                         ugen: "flock.ugen.lfNoise",
                         freq: 2,
-                        mul: 5000,
-                        add: 7000,
+                        mul: 1200,
+                        add: 20,
                         options: {
                             interpolation: "linear"
                         }
@@ -182,11 +182,18 @@ fluid.defaults("colin.motors.app", {
                         ugen: "flock.ugen.lfSaw",
                         freq: {
                             ugen: "flock.ugen.sequence",
-                            list: [90, 105, 60, 120, 90, 60],
+                            list: [60, 0, 76, 60, 0, 88, 72, 54, 0],
                             loop: 1,
                             freq: {
                                 ugen: "flock.ugen.lfNoise",
                                 freq: 1,
+                                mul: {
+                                    ugen: "flock.ugen.triOsc",
+                                    phase: 0.5,
+                                    freq: 1/60,
+                                    mul: 1/2,
+                                    add: 1/2
+                                },
                                 options: {
                                     interpolate: "linear"
                                 }
@@ -197,11 +204,17 @@ fluid.defaults("colin.motors.app", {
                         ugen: "flock.ugen.env.simpleASR",
                         gate: {
                             ugen: "flock.ugen.lfPulse",
-                            freq: 1
+                            freq: {
+                                ugen: "flock.ugen.triOsc",
+                                phase: 0.5,
+                                freq: 1/60,
+                                mul: 1/2,
+                                add: 1/2
+                            }
                         },
-                        attack: 0.001,
-                        sustain: 0.25,
-                        release: 0.001
+                        attack: 0.01,
+                        sustain: 0.4,
+                        release: 0.1
                     }
                 }
             }

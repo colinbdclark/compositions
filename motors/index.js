@@ -11,4 +11,4 @@ var colin = fluid.registerNamespace("colin");
 flock.init();
 
 var motors = colin.motors.app();
-motors.kick.play();
+motors.play();
