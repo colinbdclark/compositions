@@ -20,6 +20,17 @@ fluid.defaults("colin.motors.triggeredBufferSynth", {
                 mul: 0.5,
                 add: 1.25
             }
+        },
+        mul: {
+            ugen: "flock.ugen.sequence",
+            freq: {
+                ugen: "flock.ugen.triOsc",
+                freq: 1/10,
+                mul: 0.5,
+                add: 1.25
+            },
+            list: [0.4, 0.4, 1.0, 0.4, 0.4, 0.4, 1.0, 0.4],
+            loop: 0
         }
     }
 });
@@ -28,10 +39,27 @@ fluid.defaults("colin.motors.kick", {
     gradeNames: ["colin.motors.triggeredBufferSynth", "autoInit"],
 
     synthDef: {
-        id: "kick",
-        buffer: {
+        ugen: "flock.ugen.filter.biquad.rlp",
+        freq: 66,
+        q: 20,
+        source: {
+            ugen: "flock.ugen.playBuffer",
+            loop: 0,
+            trigger: {
+                ugen: "flock.ugen.impulse",
+                freq: {
+                    ugen: "flock.ugen.triOsc",
+                    freq: 1/10,
+                    mul: 0.5,
+                    add: 1.25
+                }
+            },
             id: "kick",
-            url: "audio/kick-20.wav"
+            buffer: {
+                id: "kick",
+                url: "audio/kick-20.wav"
+            },
+            mul: 0.5
         }
     }
 });
@@ -61,79 +89,15 @@ fluid.defaults("colin.motors.snare", {
             url: "audio/snare-07.wav"
         },
         trigger: {
-            freq: 1/2.25
-        },
-        mul: 0.5
-    }
-});
-
-fluid.defaults("colin.whiteout.output", {
-    gradeNames: ["flock.synth", "autoInit"],
-
-    synthDef: {
-        ugen: "flock.ugen.out"
-    }
-});
-
-fluid.defaults("colin.whiteout.guitarGranulator", {
-    gradeNames: ["colin.whiteout.output", "autoInit"],
-
-    synthDef: {
-        sources: {
-            id: "granulator",
-            ugen: "flock.ugen.triggerGrains",
-            dur: 1,
-            centerPos: {
-                ugen: "flock.ugen.lfNoise",
-                rate: "control",
-                freq: 1/2,
-                mul: 1000,
-                options: {
-                    interpolation: "linear"
-                }
-            },
-            trigger: {
-                ugen: "flock.ugen.impulse",
-                freq: 10
-            },
-            buffer: {
-                id: "high-guitar",
-                url: "audio/high-bowed-guitar.wav"
-            },
-            mul: {
-                ugen: "flock.ugen.triOsc",
-                freq: 1/5,
-                mul: 0.025,
-                add: 0.03,
-                options: {
-                    interpolation: "linear"
-                }
-            }
-        }
-    }
-});
-
-fluid.defaults("colin.whiteout.lowGuitarGranulator", {
-    gradeNames: ["colin.whiteout.guitarGranulator", "autoInit"],
-
-    synthDef: {
-        sources: {
-            buffer: {
-                id: "low-guitar",
-                url: "../whiteout/audio/low-bowed-guitar.wav"
-            }
+            freq: 1/5
         },
         mul: {
-            ugen: "flock.ugen.env.simpleASR",
-            attack: 0.1,
-            release: 0.1,
-            gate: {
-                ugen: "flock.ugen.lfPulse",
-                freq: 0.5
-            }
+            ugen: "flock.ugen.whiteNoise",
+            mul: 0.5
         }
     }
 });
+
 
 fluid.defaults("colin.motors.app", {
     gradeNames: ["flock.band", "fluid.modelComponent", "autoInit"],
@@ -147,13 +111,22 @@ fluid.defaults("colin.motors.app", {
             type: "colin.motors.kick",
             options: {
                 synthDef: {
-                    trigger: {
-                        freq: 1/2
+                    freq: {
+                        ugen: "flock.ugen.lfNoise",
+                        freq: 1/5,
+                        add: 60,
+                        mul: 60
+                    },
+                    q: 10,
+                    source: {
+                        trigger: {
+                            freq: 1/2
+                        },
+                        mul: 0.25
                     }
                 }
             }
         },
-
 
         rimshot: {
             type: "colin.motors.rimshot"
@@ -182,7 +155,7 @@ fluid.defaults("colin.motors.app", {
                         ugen: "flock.ugen.lfSaw",
                         freq: {
                             ugen: "flock.ugen.sequence",
-                            list: [60, 0, 76, 60, 0, 88, 72, 54, 0],
+                            list: [60, 0, 0, 76, 60, 0, 88, 79, 54, 0],
                             loop: 1,
                             freq: {
                                 ugen: "flock.ugen.lfNoise",
@@ -198,23 +171,23 @@ fluid.defaults("colin.motors.app", {
                                     interpolate: "linear"
                                 }
                             }
-                        }
-                    },
-                    mul: {
-                        ugen: "flock.ugen.env.simpleASR",
-                        gate: {
-                            ugen: "flock.ugen.lfPulse",
-                            freq: {
-                                ugen: "flock.ugen.triOsc",
-                                phase: 0.5,
-                                freq: 1/60,
-                                mul: 1/2,
-                                add: 1/2
-                            }
                         },
-                        attack: 0.01,
-                        sustain: 0.4,
-                        release: 0.1
+                        mul: {
+                            ugen: "flock.ugen.env.simpleASR",
+                            gate: {
+                                ugen: "flock.ugen.lfPulse",
+                                freq: {
+                                    ugen: "flock.ugen.triOsc",
+                                    phase: 0.5,
+                                    freq: 1/60,
+                                    mul: 1/2,
+                                    add: 1/2
+                                }
+                            },
+                            attack: 0.01,
+                            sustain: 0.4,
+                            release: 0.1
+                        }
                     }
                 }
             }
