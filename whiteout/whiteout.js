@@ -16,12 +16,19 @@
 
         // In seconds.
         landmarks: [
-            6,      // cut from black
-            95,     // section 1-2 crossfade
-            138,    // section 2-3 crossfade
-            379,    // section 3-4 crossfade
+            6,      // cut from black.
+                // This is more of a forward/backward effect, though focus does move left/right subtly
+                // Start with clattering mandolins and some noise, more fading in and out than panning?
+            95,     // section 1-2 crossfade.
+                // This section is somehow more austere. It feels pretty clearly like just focus in/out.
+            138,    // section 2-3 crossfade.
+                // This is where the prominent left-right effect is most visible
+            379,    // section 3-4 crossfade.
+                // Hand held. Lots of prominent left-right focus effects, as well as general movement, shake.
             577,    // section 4-cat cut
+                // Silent.
             587,    // cat-section 5 cut
+                // Also hand-held. Everything here.
             619     // end
         ]
     });
