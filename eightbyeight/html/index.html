@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>eight by eight</title>
+
+        <link rel="stylesheet" href="../third-party/css/normalize.css" />
+        <link rel="stylesheet" href="../third-party/css/codemirror.css" />
+        <link rel="stylesheet" href="../third-party/css/flockingcm.css" />
+
+        <link rel="stylesheet" href="../css/eightbyeight.css" />
+
+        <script src="../third-party/js/flocking-all.js"></script>
+        <script src="../third-party/js/midi-controller.js"></script>
+        <script src="../third-party/js/codemirror-compressed.js"></script>
+        <script src="../third-party/js/editor.js"></script>
+
+        <script src="../js/synth.js"></script>
+        <script src="../js/expression-parser.js"></script>
+        <script src="../js/live-editor.js"></script>
+        <script src="../js/eightbyeight.js"></script>
+
+    </head>
+
+    <body>
+        <div class="everything">
+            <!-- Placeholder for the interactive editor -->
+            <div id="source-view"></div>
+            <div id="status">more flock, less talk</div>
+        </div>
+
+        <script>
+            window.eightByEight = colin.eightByEight();
+        </script>
+    </body>
+</html>

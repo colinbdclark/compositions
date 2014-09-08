@@ -1,0 +1,29 @@
+html, body {
+    height: 100%;
+}
+
+.everything {
+    width: 100%;
+    height: 100%;
+    background-color: #272822;
+}
+
+#source-view {
+    height: 93%;
+    width: 100%;
+    font-size: 12pt;
+}
+
+#status {
+    color: #fff;
+    padding: 1em;
+    font-family: monospace;
+}
+
+.CodeMirror {
+    height: 100%;
+}
+
+.CodeMirror-scroll {
+    overflow: auto;
+}
