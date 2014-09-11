@@ -2,14 +2,14 @@
     "use strict";
 
     fluid.defaults("colin.greenwichPark.unmutedSynth", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: ["fluid.littleComponent", "autoInit"],
         synthDef: {
             id: "main"
         }
     });
 
     fluid.defaults("colin.greenwichPark.mutedSynth", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: ["fluid.littleComponent", "autoInit"],
         synthDef: {
             id: "main",
             mul: 0
