@@ -1,6 +1,10 @@
 (function () {
     fluid.registerNamespace("colin");
 
+    flock.init({
+        bufferSize: 2048
+    });
+
     fluid.defaults("colin.whiteout", {
         gradeNames: ["fluid.eventedComponent", "autoInit"],
 
@@ -182,18 +186,19 @@
             sources: {
                 id: "granulator",
                 ugen: "flock.ugen.triggerGrains",
-                dur: 1,
+                dur: 1 * 1.08843537414966,
                 centerPos: {
                     ugen: "flock.ugen.lfNoise",
                     rate: "control",
                     freq: 1/2,
-                    mul: 1000,
+                    mul: 1000 * 1.08843537414966,
                     options: {
                         interpolation: "linear"
                     }
                 },
                 trigger: {
                     ugen: "flock.ugen.impulse",
+                    rate: "control",
                     freq: 10
                 },
                 buffer: {
@@ -202,6 +207,7 @@
                 },
                 mul: {
                     ugen: "flock.ugen.triOsc",
+                    rate: "control",
                     freq: 1/5,
                     mul: 0.025,
                     add: 0.03,
@@ -221,8 +227,9 @@
                 centerPos: {
                     mul: {
                         ugen: "flock.ugen.line",
-                        start: 50,
-                        end: 800,
+                        rate: "control",
+                        start: 50 * 1.08843537414966,
+                        end: 800 * 1.08843537414966,
                         duration: 60
                     }
                 },
@@ -248,6 +255,7 @@
                 grainDur: 0.001,
                 numGrains: {
                     ugen: "flock.ugen.lfNoise",
+                    rate: "control",
                     freq: 20,
                     mul: 250,
                     add: 255,
@@ -261,6 +269,7 @@
                 },
                 mul: {
                     ugen: "flock.ugen.triOsc",
+                    rate: "control",
                     freq: {
                         ugen: "flock.ugen.lfNoise",
                         rate: "control",
@@ -310,9 +319,10 @@
                     dur: {
                         id: "grainDur",
                         ugen: "flock.ugen.lfNoise",
+                        rate: "control",
                         freq: 1/10,
-                        mul: 1,
-                        add: 1.075
+                        mul: 1 * 1.08843537414966,
+                        add: 1.075 * 1.08843537414966
                     },
                     centerPos: {
                         id: "grainCentre",
@@ -321,6 +331,7 @@
                         freq: 1/2,
                         mul: {
                             ugen: "flock.ugen.math",
+                            rate: "constant",
                             source: {
                                 ugen: "flock.ugen.bufferLength",
                                 buffer: "mandolin",
@@ -329,6 +340,7 @@
                         },
                         add: {
                             ugen: "flock.ugen.math",
+                            rate: "constant",
                             source: {
                                 ugen: "flock.ugen.bufferLength",
                                 buffer: "mandolin"
@@ -373,7 +385,7 @@
                     freq: 1/30
                 },
                 source: {
-                    dur: 3.1,
+                    dur: 3.1 * 1.08843537414966,
                     centerPos: {
                         freq: 10,
                         mul: {
@@ -383,11 +395,12 @@
                                 interpolation: "linear"
                             },
                             freq: 1/2,
-                            mul: 5,
-                            add: 10
+                            mul: 5 * 1.08843537414966,
+                            add: 10 * 1.08843537414966
                         },
                         add: {
                             ugen: "flock.ugen.math",
+                            rate: "constant",
                             source: {
                                 ugen: "flock.ugen.bufferLength",
                                 buffer: "mandolin"
@@ -400,8 +413,10 @@
                     },
                     trigger: {
                         ugen: "flock.ugen.impulse",
+                        rate: "control",
                         freq: {
                             ugen: "flock.ugen.lfNoise",
+                            rate: "control",
                             freq: 2,
                             mul: 0.15,
                             add: 0.25
@@ -426,8 +441,8 @@
                         ugen: "flock.ugen.lfNoise",
                         rate: "control",
                         freq: 1/2,
-                        mul: 4,
-                        add: 6
+                        mul: 4 * 1.08843537414966,
+                        add: 6 * 1.08843537414966
                     },
                     centerPos: {
                         ugen: "flock.ugen.lfNoise",
@@ -436,8 +451,8 @@
                             interpolation: "linear"
                         },
                         freq: 10,
-                        mul: 2,
-                        add: 51
+                        mul: 2 * 1.08843537414966,
+                        add: 51 * 1.08843537414966
                     },
                     trigger: {
                         freq: {

@@ -4,11 +4,11 @@ var scsiduck = scsiduck || {};
 
     scsiduck.kimmirut = function () {
         var that = {};
-        
+
         /*************************************
          * Original SuperCollider Instrument *
          *************************************/
-        
+
         /*
         SynthDef("quadgrain", {
         	arg bufNum = 0, pan = -1.0, pos = 0.5, trate = 40, motuFirstOut = 0, posCrawl = 0.5,
@@ -33,12 +33,12 @@ var scsiduck = scsiduck || {};
 
         w = Synth.new("quadgrain",[\bufNum,b[0].bufnum,\outPan,-1.0,\motuFirstOut,0,\posCrawl,0.5,\rate,0.7]);
         */
-        
-        
+
+
         /********************
          * Flocking Version *
          ********************/
-         
+
         that.synth = flock.synth({
             synthDef: [
                 {
@@ -46,7 +46,7 @@ var scsiduck = scsiduck || {};
                     ugen: "flock.ugen.triggerGrains",
                     trigger: {
                         ugen: "flock.ugen.impulse",
-                        rate: "control", // TODO: Why does this not work when impulse is audio rate?
+                        rate: "control",
                         freq: {
                             id: "left-trate",
                             ugen: "flock.ugen.lfNoise",
@@ -69,10 +69,10 @@ var scsiduck = scsiduck || {};
                         step: {
                             id: "left-posCrawl",
                             ugen: "flock.ugen.math",
-                            source: {
+                            source: 0.5,
+                            div: {
                                 ugen: "flock.ugen.sampleRate"
-                            },
-                            div: 0.5
+                            }
                         },
                         start: 0.01,
                         end: 0.69,
@@ -86,7 +86,7 @@ var scsiduck = scsiduck || {};
                     dur: 0.25,
                     amp: 0.1,
                     speed: 1.0,
-                    mul: 3.0
+                    mul: 2.0
                 },
                 {
                     id: "right-granulator",
@@ -115,10 +115,10 @@ var scsiduck = scsiduck || {};
                         step: {
                             id: "right-posCrawl",
                             ugen: "flock.ugen.math",
-                            source: {
+                            source: 0.4,
+                            div: {
                                 ugen: "flock.ugen.sampleRate"
-                            },
-                            div: 0.4
+                            }
                         },
                         start: 0.01,
                         end: 0.69,
@@ -132,22 +132,22 @@ var scsiduck = scsiduck || {};
                     dur: 0.25,
                     amp: 0.1,
                     speed: 0.7,
-                    mul: 3.0
+                    mul: 2.0
                 }
             ]
         });
-        
+
         that.play = function () {
             that.synth.play();
         };
-        
+
         that.pause = function () {
             that.clock.clearAll();
             that.synth.pause();
         };
-        
+
         that.clock = flock.scheduler.async();
         return that;
     };
-    
+
 }());
