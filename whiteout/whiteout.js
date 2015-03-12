@@ -2,7 +2,10 @@
     fluid.registerNamespace("colin");
 
     flock.init({
-        bufferSize: 2048
+        chans: 2,
+        numBuses: 4,
+        numInputBuses: 1,
+        bufferSize: 8192 * 2
     });
 
     fluid.defaults("colin.whiteout", {

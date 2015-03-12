@@ -1,3 +1,6 @@
+/*jslint node: true*/
+
+/*global require*/
 
 "use strict";
 

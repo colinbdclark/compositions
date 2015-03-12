@@ -1,7 +1,7 @@
-/*! Flocking 0.1.0 (August 17, 2014), Copyright 2014 Colin Clark | flockingjs.org */
+/*! Flocking 0.1.1 (March 11, 2015), Copyright 2015 Colin Clark | flockingjs.org */
 
 /*!
- * jQuery JavaScript Library v2.1.1
+ * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -11,19 +11,19 @@
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-05-01T17:11Z
+ * Date: 2014-12-18T15:11Z
  */
 
 (function( global, factory ) {
 
 	if ( typeof module === "object" && typeof module.exports === "object" ) {
-		// For CommonJS and CommonJS-like environments where a proper window is present,
-		// execute the factory and get jQuery
-		// For environments that do not inherently posses a window with a document
-		// (such as Node.js), expose a jQuery-making factory as module.exports
-		// This accentuates the need for the creation of a real window
+		// For CommonJS and CommonJS-like environments where a proper `window`
+		// is present, execute the factory and get jQuery.
+		// For environments that do not have a `window` with a `document`
+		// (such as Node.js), expose a factory as module.exports.
+		// This accentuates the need for the creation of a real `window`.
 		// e.g. var jQuery = require("jquery")(window);
-		// See ticket #14549 for more info
+		// See ticket #14549 for more info.
 		module.exports = global.document ?
 			factory( global, true ) :
 			function( w ) {
@@ -39,10 +39,10 @@
 // Pass this if window is not defined yet
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
-// Can't do this because several apps including ASP.NET trace
+// Support: Firefox 18+
+// Can't be in strict mode, several libs including ASP.NET trace
 // the stack via arguments.caller.callee and Firefox dies if
 // you try to trace through "use strict" call chains. (#13335)
-// Support: Firefox 18+
 //
 
 var arr = [];
@@ -69,7 +69,7 @@ var
 	// Use the correct document accordingly with window argument (sandbox)
 	document = window.document,
 
-	version = "2.1.1",
+	version = "2.1.3",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -187,7 +187,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 	if ( typeof target === "boolean" ) {
 		deep = target;
 
-		// skip the boolean and the target
+		// Skip the boolean and the target
 		target = arguments[ i ] || {};
 		i++;
 	}
@@ -197,7 +197,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 		target = {};
 	}
 
-	// extend jQuery itself if only one argument is passed
+	// Extend jQuery itself if only one argument is passed
 	if ( i === length ) {
 		target = this;
 		i--;
@@ -254,9 +254,6 @@ jQuery.extend({
 
 	noop: function() {},
 
-	// See test/unit/core.js for details concerning isFunction.
-	// Since version 1.3, DOM methods and functions like alert
-	// aren't supported. They return false on IE (#2968).
 	isFunction: function( obj ) {
 		return jQuery.type(obj) === "function";
 	},
@@ -271,7 +268,8 @@ jQuery.extend({
 		// parseFloat NaNs numeric-cast false positives (null|true|false|"")
 		// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
 		// subtraction forces infinities to NaN
-		return !jQuery.isArray( obj ) && obj - parseFloat( obj ) >= 0;
+		// adding 1 corrects loss of precision from parseFloat (#15100)
+		return !jQuery.isArray( obj ) && (obj - parseFloat( obj ) + 1) >= 0;
 	},
 
 	isPlainObject: function( obj ) {
@@ -305,7 +303,7 @@ jQuery.extend({
 		if ( obj == null ) {
 			return obj + "";
 		}
-		// Support: Android < 4.0, iOS < 6 (functionish RegExp)
+		// Support: Android<4.0, iOS<6 (functionish RegExp)
 		return typeof obj === "object" || typeof obj === "function" ?
 			class2type[ toString.call(obj) ] || "object" :
 			typeof obj;
@@ -335,6 +333,7 @@ jQuery.extend({
 	},
 
 	// Convert dashed to camelCase; used by the css and data modules
+	// Support: IE9-11+
 	// Microsoft forgot to hump their vendor prefix (#9572)
 	camelCase: function( string ) {
 		return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
@@ -550,14 +549,14 @@ function isArraylike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v1.10.19
+ * Sizzle CSS Selector Engine v2.2.0-pre
  * http://sizzlejs.com/
  *
- * Copyright 2013 jQuery Foundation, Inc. and other contributors
+ * Copyright 2008, 2014 jQuery Foundation, Inc. and other contributors
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-04-18
+ * Date: 2014-12-16
  */
 (function( window ) {
 
@@ -584,7 +583,7 @@ var i,
 	contains,
 
 	// Instance-specific data
-	expando = "sizzle" + -(new Date()),
+	expando = "sizzle" + 1 * new Date(),
 	preferredDoc = window.document,
 	dirruns = 0,
 	done = 0,
@@ -599,7 +598,6 @@ var i,
 	},
 
 	// General-purpose constants
-	strundefined = typeof undefined,
 	MAX_NEGATIVE = 1 << 31,
 
 	// Instance methods
@@ -609,12 +607,13 @@ var i,
 	push_native = arr.push,
 	push = arr.push,
 	slice = arr.slice,
-	// Use a stripped-down indexOf if we can't use a native one
-	indexOf = arr.indexOf || function( elem ) {
+	// Use a stripped-down indexOf as it's faster than native
+	// http://jsperf.com/thor-indexof-vs-for/5
+	indexOf = function( list, elem ) {
 		var i = 0,
-			len = this.length;
+			len = list.length;
 		for ( ; i < len; i++ ) {
-			if ( this[i] === elem ) {
+			if ( list[i] === elem ) {
 				return i;
 			}
 		}
@@ -654,6 +653,7 @@ var i,
 		")\\)|)",
 
 	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	rwhitespace = new RegExp( whitespace + "+", "g" ),
 	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
 
 	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
@@ -705,6 +705,14 @@ var i,
 				String.fromCharCode( high + 0x10000 ) :
 				// Supplemental Plane codepoint (surrogate pair)
 				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
+	},
+
+	// Used for iframes
+	// See setDocument()
+	// Removing the function wrapper causes a "Permission Denied"
+	// error in IE
+	unloadHandler = function() {
+		setDocument();
 	};
 
 // Optimize for push.apply( _, NodeList )
@@ -747,19 +755,18 @@ function Sizzle( selector, context, results, seed ) {
 
 	context = context || document;
 	results = results || [];
+	nodeType = context.nodeType;
 
-	if ( !selector || typeof selector !== "string" ) {
+	if ( typeof selector !== "string" || !selector ||
+		nodeType !== 1 && nodeType !== 9 && nodeType !== 11 ) {
+
 		return results;
 	}
 
-	if ( (nodeType = context.nodeType) !== 1 && nodeType !== 9 ) {
-		return [];
-	}
+	if ( !seed && documentIsHTML ) {
 
-	if ( documentIsHTML && !seed ) {
-
-		// Shortcuts
-		if ( (match = rquickExpr.exec( selector )) ) {
+		// Try to shortcut find operations when possible (e.g., not under DocumentFragment)
+		if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
@@ -791,7 +798,7 @@ function Sizzle( selector, context, results, seed ) {
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && support.getElementsByClassName && context.getElementsByClassName ) {
+			} else if ( (m = match[3]) && support.getElementsByClassName ) {
 				push.apply( results, context.getElementsByClassName( m ) );
 				return results;
 			}
@@ -801,7 +808,7 @@ function Sizzle( selector, context, results, seed ) {
 		if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
 			nid = old = expando;
 			newContext = context;
-			newSelector = nodeType === 9 && selector;
+			newSelector = nodeType !== 1 && selector;
 
 			// qSA works strangely on Element-rooted queries
 			// We can work around this by specifying an extra ID on the root
@@ -988,7 +995,7 @@ function createPositionalPseudo( fn ) {
  * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
  */
 function testContext( context ) {
-	return context && typeof context.getElementsByTagName !== strundefined && context;
+	return context && typeof context.getElementsByTagName !== "undefined" && context;
 }
 
 // Expose support vars for convenience
@@ -1012,9 +1019,8 @@ isXML = Sizzle.isXML = function( elem ) {
  * @returns {Object} Returns the current document
  */
 setDocument = Sizzle.setDocument = function( node ) {
-	var hasCompare,
-		doc = node ? node.ownerDocument || node : preferredDoc,
-		parent = doc.defaultView;
+	var hasCompare, parent,
+		doc = node ? node.ownerDocument || node : preferredDoc;
 
 	// If no document and documentElement is available, return
 	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
@@ -1024,9 +1030,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// Set our document
 	document = doc;
 	docElem = doc.documentElement;
-
-	// Support tests
-	documentIsHTML = !isXML( doc );
+	parent = doc.defaultView;
 
 	// Support: IE>8
 	// If iframe document is assigned to "document" variable and if iframe has been reloaded,
@@ -1035,21 +1039,22 @@ setDocument = Sizzle.setDocument = function( node ) {
 	if ( parent && parent !== parent.top ) {
 		// IE11 does not have attachEvent, so all must suffer
 		if ( parent.addEventListener ) {
-			parent.addEventListener( "unload", function() {
-				setDocument();
-			}, false );
+			parent.addEventListener( "unload", unloadHandler, false );
 		} else if ( parent.attachEvent ) {
-			parent.attachEvent( "onunload", function() {
-				setDocument();
-			});
+			parent.attachEvent( "onunload", unloadHandler );
 		}
 	}
+
+	/* Support tests
+	---------------------------------------------------------------------- */
+	documentIsHTML = !isXML( doc );
 
 	/* Attributes
 	---------------------------------------------------------------------- */
 
 	// Support: IE<8
-	// Verify that getAttribute really returns attributes and not properties (excepting IE8 booleans)
+	// Verify that getAttribute really returns attributes and not properties
+	// (excepting IE8 booleans)
 	support.attributes = assert(function( div ) {
 		div.className = "i";
 		return !div.getAttribute("className");
@@ -1064,17 +1069,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 		return !div.getElementsByTagName("*").length;
 	});
 
-	// Check if getElementsByClassName can be trusted
-	support.getElementsByClassName = rnative.test( doc.getElementsByClassName ) && assert(function( div ) {
-		div.innerHTML = "<div class='a'></div><div class='a i'></div>";
-
-		// Support: Safari<4
-		// Catch class over-caching
-		div.firstChild.className = "i";
-		// Support: Opera<10
-		// Catch gEBCN failure to find non-leading classes
-		return div.getElementsByClassName("i").length === 2;
-	});
+	// Support: IE<9
+	support.getElementsByClassName = rnative.test( doc.getElementsByClassName );
 
 	// Support: IE<10
 	// Check if getElementById returns elements by name
@@ -1088,7 +1084,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// ID find and filter
 	if ( support.getById ) {
 		Expr.find["ID"] = function( id, context ) {
-			if ( typeof context.getElementById !== strundefined && documentIsHTML ) {
+			if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
 				var m = context.getElementById( id );
 				// Check parentNode to catch when Blackberry 4.6 returns
 				// nodes that are no longer in the document #6963
@@ -1109,7 +1105,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 		Expr.filter["ID"] =  function( id ) {
 			var attrId = id.replace( runescape, funescape );
 			return function( elem ) {
-				var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+				var node = typeof elem.getAttributeNode !== "undefined" && elem.getAttributeNode("id");
 				return node && node.value === attrId;
 			};
 		};
@@ -1118,14 +1114,20 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// Tag
 	Expr.find["TAG"] = support.getElementsByTagName ?
 		function( tag, context ) {
-			if ( typeof context.getElementsByTagName !== strundefined ) {
+			if ( typeof context.getElementsByTagName !== "undefined" ) {
 				return context.getElementsByTagName( tag );
+
+			// DocumentFragment nodes don't have gEBTN
+			} else if ( support.qsa ) {
+				return context.querySelectorAll( tag );
 			}
 		} :
+
 		function( tag, context ) {
 			var elem,
 				tmp = [],
 				i = 0,
+				// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
 				results = context.getElementsByTagName( tag );
 
 			// Filter out possible comments
@@ -1143,7 +1145,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 	// Class
 	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
-		if ( typeof context.getElementsByClassName !== strundefined && documentIsHTML ) {
+		if ( documentIsHTML ) {
 			return context.getElementsByClassName( className );
 		}
 	};
@@ -1172,13 +1174,15 @@ setDocument = Sizzle.setDocument = function( node ) {
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// http://bugs.jquery.com/ticket/12359
-			div.innerHTML = "<select msallowclip=''><option selected=''></option></select>";
+			docElem.appendChild( div ).innerHTML = "<a id='" + expando + "'></a>" +
+				"<select id='" + expando + "-\f]' msallowcapture=''>" +
+				"<option selected=''></option></select>";
 
 			// Support: IE8, Opera 11-12.16
 			// Nothing should be selected when empty strings follow ^= or $= or *=
 			// The test attribute must be unknown in Opera but "safe" for WinRT
 			// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
-			if ( div.querySelectorAll("[msallowclip^='']").length ) {
+			if ( div.querySelectorAll("[msallowcapture^='']").length ) {
 				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
 			}
 
@@ -1188,11 +1192,23 @@ setDocument = Sizzle.setDocument = function( node ) {
 				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
 			}
 
+			// Support: Chrome<29, Android<4.2+, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.7+
+			if ( !div.querySelectorAll( "[id~=" + expando + "-]" ).length ) {
+				rbuggyQSA.push("~=");
+			}
+
 			// Webkit/Opera - :checked should return selected option elements
 			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
 			// IE8 throws error here and will not see later tests
 			if ( !div.querySelectorAll(":checked").length ) {
 				rbuggyQSA.push(":checked");
+			}
+
+			// Support: Safari 8+, iOS 8+
+			// https://bugs.webkit.org/show_bug.cgi?id=136851
+			// In-page `selector#id sibing-combinator selector` fails
+			if ( !div.querySelectorAll( "a#" + expando + "+*" ).length ) {
+				rbuggyQSA.push(".#.+[+~]");
 			}
 		});
 
@@ -1310,7 +1326,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 			// Maintain original order
 			return sortInput ?
-				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
 				0;
 		}
 
@@ -1337,7 +1353,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 				aup ? -1 :
 				bup ? 1 :
 				sortInput ?
-				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
 				0;
 
 		// If the nodes are siblings, we can do a quick check
@@ -1400,7 +1416,7 @@ Sizzle.matchesSelector = function( elem, expr ) {
 					elem.document && elem.document.nodeType !== 11 ) {
 				return ret;
 			}
-		} catch(e) {}
+		} catch (e) {}
 	}
 
 	return Sizzle( expr, document, null, [ elem ] ).length > 0;
@@ -1619,7 +1635,7 @@ Expr = Sizzle.selectors = {
 			return pattern ||
 				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
 				classCache( className, function( elem ) {
-					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== strundefined && elem.getAttribute("class") || "" );
+					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "" );
 				});
 		},
 
@@ -1641,7 +1657,7 @@ Expr = Sizzle.selectors = {
 					operator === "^=" ? check && result.indexOf( check ) === 0 :
 					operator === "*=" ? check && result.indexOf( check ) > -1 :
 					operator === "$=" ? check && result.slice( -check.length ) === check :
-					operator === "~=" ? ( " " + result + " " ).indexOf( check ) > -1 :
+					operator === "~=" ? ( " " + result.replace( rwhitespace, " " ) + " " ).indexOf( check ) > -1 :
 					operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
 					false;
 			};
@@ -1761,7 +1777,7 @@ Expr = Sizzle.selectors = {
 							matched = fn( seed, argument ),
 							i = matched.length;
 						while ( i-- ) {
-							idx = indexOf.call( seed, matched[i] );
+							idx = indexOf( seed, matched[i] );
 							seed[ idx ] = !( matches[ idx ] = matched[i] );
 						}
 					}) :
@@ -1800,6 +1816,8 @@ Expr = Sizzle.selectors = {
 				function( elem, context, xml ) {
 					input[0] = elem;
 					matcher( input, null, xml, results );
+					// Don't keep the element (issue #299)
+					input[0] = null;
 					return !results.pop();
 				};
 		}),
@@ -1811,6 +1829,7 @@ Expr = Sizzle.selectors = {
 		}),
 
 		"contains": markFunction(function( text ) {
+			text = text.replace( runescape, funescape );
 			return function( elem ) {
 				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
 			};
@@ -2232,7 +2251,7 @@ function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postS
 				i = matcherOut.length;
 				while ( i-- ) {
 					if ( (elem = matcherOut[i]) &&
-						(temp = postFinder ? indexOf.call( seed, elem ) : preMap[i]) > -1 ) {
+						(temp = postFinder ? indexOf( seed, elem ) : preMap[i]) > -1 ) {
 
 						seed[temp] = !(results[temp] = elem);
 					}
@@ -2267,13 +2286,16 @@ function matcherFromTokens( tokens ) {
 			return elem === checkContext;
 		}, implicitRelative, true ),
 		matchAnyContext = addCombinator( function( elem ) {
-			return indexOf.call( checkContext, elem ) > -1;
+			return indexOf( checkContext, elem ) > -1;
 		}, implicitRelative, true ),
 		matchers = [ function( elem, context, xml ) {
-			return ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+			var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
 				(checkContext = context).nodeType ?
 					matchContext( elem, context, xml ) :
 					matchAnyContext( elem, context, xml ) );
+			// Avoid hanging onto element (issue #299)
+			checkContext = null;
+			return ret;
 		} ];
 
 	for ( ; i < len; i++ ) {
@@ -2523,7 +2545,7 @@ select = Sizzle.select = function( selector, context, results, seed ) {
 // Sort stability
 support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
 
-// Support: Chrome<14
+// Support: Chrome 14-35+
 // Always assume duplicates if they aren't passed to the comparison function
 support.detectDuplicates = !!hasDuplicate;
 
@@ -2732,7 +2754,7 @@ var rootjQuery,
 				if ( match[1] ) {
 					context = context instanceof jQuery ? context[0] : context;
 
-					// scripts is true for back-compat
+					// Option to run scripts is true for back-compat
 					// Intentionally let the error be thrown if parseHTML is not present
 					jQuery.merge( this, jQuery.parseHTML(
 						match[1],
@@ -2760,8 +2782,8 @@ var rootjQuery,
 				} else {
 					elem = document.getElementById( match[2] );
 
-					// Check parentNode to catch when Blackberry 4.6 returns
-					// nodes that are no longer in the document #6963
+					// Support: Blackberry 4.6
+					// gEBID returns nodes no longer in the document (#6963)
 					if ( elem && elem.parentNode ) {
 						// Inject the element directly into the jQuery object
 						this.length = 1;
@@ -2814,7 +2836,7 @@ rootjQuery = jQuery( document );
 
 
 var rparentsprev = /^(?:parents|prev(?:Until|All))/,
-	// methods guaranteed to produce a unique set when starting from a unique set
+	// Methods guaranteed to produce a unique set when starting from a unique set
 	guaranteedUnique = {
 		children: true,
 		contents: true,
@@ -2894,8 +2916,7 @@ jQuery.fn.extend({
 		return this.pushStack( matched.length > 1 ? jQuery.unique( matched ) : matched );
 	},
 
-	// Determine the position of an element within
-	// the matched set of elements
+	// Determine the position of an element within the set
 	index: function( elem ) {
 
 		// No argument, return index in parent
@@ -2903,7 +2924,7 @@ jQuery.fn.extend({
 			return ( this[ 0 ] && this[ 0 ].parentNode ) ? this.first().prevAll().length : -1;
 		}
 
-		// index in selector
+		// Index in selector
 		if ( typeof elem === "string" ) {
 			return indexOf.call( jQuery( elem ), this[ 0 ] );
 		}
@@ -3319,7 +3340,7 @@ jQuery.extend({
 
 			progressValues, progressContexts, resolveContexts;
 
-		// add listeners to Deferred subordinates; treat others as resolved
+		// Add listeners to Deferred subordinates; treat others as resolved
 		if ( length > 1 ) {
 			progressValues = new Array( length );
 			progressContexts = new Array( length );
@@ -3336,7 +3357,7 @@ jQuery.extend({
 			}
 		}
 
-		// if we're not waiting on anything, resolve the master
+		// If we're not waiting on anything, resolve the master
 		if ( !remaining ) {
 			deferred.resolveWith( resolveContexts, resolveValues );
 		}
@@ -3415,7 +3436,7 @@ jQuery.ready.promise = function( obj ) {
 		readyList = jQuery.Deferred();
 
 		// Catch cases where $(document).ready() is called after the browser event has already occurred.
-		// we once tried to use readyState "interactive" here, but it caused issues like the one
+		// We once tried to use readyState "interactive" here, but it caused issues like the one
 		// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
 		if ( document.readyState === "complete" ) {
 			// Handle it asynchronously to allow scripts the opportunity to delay ready
@@ -3509,7 +3530,7 @@ jQuery.acceptData = function( owner ) {
 
 
 function Data() {
-	// Support: Android < 4,
+	// Support: Android<4,
 	// Old WebKit does not have Object.preventExtensions/freeze method,
 	// return new empty object instead with no [[set]] accessor
 	Object.defineProperty( this.cache = {}, 0, {
@@ -3518,7 +3539,7 @@ function Data() {
 		}
 	});
 
-	this.expando = jQuery.expando + Math.random();
+	this.expando = jQuery.expando + Data.uid++;
 }
 
 Data.uid = 1;
@@ -3546,7 +3567,7 @@ Data.prototype = {
 				descriptor[ this.expando ] = { value: unlock };
 				Object.defineProperties( owner, descriptor );
 
-			// Support: Android < 4
+			// Support: Android<4
 			// Fallback to a less secure definition
 			} catch ( e ) {
 				descriptor[ this.expando ] = unlock;
@@ -3686,17 +3707,16 @@ var data_user = new Data();
 
 
 
-/*
-	Implementation Summary
+//	Implementation Summary
+//
+//	1. Enforce API surface and semantic compatibility with 1.9.x branch
+//	2. Improve the module's maintainability by reducing the storage
+//		paths to a single mechanism.
+//	3. Use the same single mechanism to support "private" and "user" data.
+//	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
+//	5. Avoid exposing implementation details on user objects (eg. expando properties)
+//	6. Provide a clear path for implementation upgrade to WeakMap in 2014
 
-	1. Enforce API surface and semantic compatibility with 1.9.x branch
-	2. Improve the module's maintainability by reducing the storage
-		paths to a single mechanism.
-	3. Use the same single mechanism to support "private" and "user" data.
-	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
-	5. Avoid exposing implementation details on user objects (eg. expando properties)
-	6. Provide a clear path for implementation upgrade to WeakMap in 2014
-*/
 var rbrace = /^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,
 	rmultiDash = /([A-Z])/g;
 
@@ -3901,7 +3921,7 @@ jQuery.extend({
 				queue.unshift( "inprogress" );
 			}
 
-			// clear up the last queue stop function
+			// Clear up the last queue stop function
 			delete hooks.stop;
 			fn.call( elem, next, hooks );
 		}
@@ -3911,7 +3931,7 @@ jQuery.extend({
 		}
 	},
 
-	// not intended for public consumption - generates a queueHooks object, or returns the current one
+	// Not public - generate a queueHooks object, or return the current one
 	_queueHooks: function( elem, type ) {
 		var key = type + "queueHooks";
 		return data_priv.get( elem, key ) || data_priv.access( elem, key, {
@@ -3941,7 +3961,7 @@ jQuery.fn.extend({
 			this.each(function() {
 				var queue = jQuery.queue( this, type, data );
 
-				// ensure a hooks for this queue
+				// Ensure a hooks for this queue
 				jQuery._queueHooks( this, type );
 
 				if ( type === "fx" && queue[0] !== "inprogress" ) {
@@ -4008,21 +4028,22 @@ var rcheckableType = (/^(?:checkbox|radio)$/i);
 		div = fragment.appendChild( document.createElement( "div" ) ),
 		input = document.createElement( "input" );
 
-	// #11217 - WebKit loses check when the name is after the checked attribute
+	// Support: Safari<=5.1
+	// Check state lost if the name is set (#11217)
 	// Support: Windows Web Apps (WWA)
-	// `name` and `type` need .setAttribute for WWA
+	// `name` and `type` must use .setAttribute for WWA (#14901)
 	input.setAttribute( "type", "radio" );
 	input.setAttribute( "checked", "checked" );
 	input.setAttribute( "name", "t" );
 
 	div.appendChild( input );
 
-	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
-	// old WebKit doesn't clone checked state correctly in fragments
+	// Support: Safari<=5.1, Android<4.2
+	// Older WebKit doesn't clone checked state correctly in fragments
 	support.checkClone = div.cloneNode( true ).cloneNode( true ).lastChild.checked;
 
+	// Support: IE<=11+
 	// Make sure textarea (and checkbox) defaultValue is properly cloned
-	// Support: IE9-IE11+
 	div.innerHTML = "<textarea>x</textarea>";
 	support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
 })();
@@ -4400,8 +4421,8 @@ jQuery.event = {
 			j = 0;
 			while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
 
-				// Triggered event must either 1) have no namespace, or
-				// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
+				// Triggered event must either 1) have no namespace, or 2) have namespace(s)
+				// a subset or equal to those in the bound event (both can have no namespace).
 				if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
 
 					event.handleObj = handleObj;
@@ -4551,7 +4572,7 @@ jQuery.event = {
 			event.target = document;
 		}
 
-		// Support: Safari 6.0+, Chrome < 28
+		// Support: Safari 6.0+, Chrome<28
 		// Target should not be a text node (#504, #13143)
 		if ( event.target.nodeType === 3 ) {
 			event.target = event.target.parentNode;
@@ -4656,7 +4677,7 @@ jQuery.Event = function( src, props ) {
 		// by a handler lower down the tree; reflect the correct value.
 		this.isDefaultPrevented = src.defaultPrevented ||
 				src.defaultPrevented === undefined &&
-				// Support: Android < 4.0
+				// Support: Android<4.0
 				src.returnValue === false ?
 			returnTrue :
 			returnFalse;
@@ -4746,8 +4767,8 @@ jQuery.each({
 	};
 });
 
-// Create "bubbling" focus and blur events
 // Support: Firefox, Chrome, Safari
+// Create "bubbling" focus and blur events
 if ( !support.focusinBubbles ) {
 	jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
 
@@ -4900,7 +4921,7 @@ var
 	// We have to close these tags to support XHTML (#13200)
 	wrapMap = {
 
-		// Support: IE 9
+		// Support: IE9
 		option: [ 1, "<select multiple='multiple'>", "</select>" ],
 
 		thead: [ 1, "<table>", "</table>" ],
@@ -4911,7 +4932,7 @@ var
 		_default: [ 0, "", "" ]
 	};
 
-// Support: IE 9
+// Support: IE9
 wrapMap.optgroup = wrapMap.option;
 
 wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
@@ -5001,7 +5022,7 @@ function getAll( context, tag ) {
 		ret;
 }
 
-// Support: IE >= 9
+// Fix IE bugs, see support tests
 function fixInput( src, dest ) {
 	var nodeName = dest.nodeName.toLowerCase();
 
@@ -5021,8 +5042,7 @@ jQuery.extend({
 			clone = elem.cloneNode( true ),
 			inPage = jQuery.contains( elem.ownerDocument, elem );
 
-		// Support: IE >= 9
-		// Fix Cloning issues
+		// Fix IE cloning issues
 		if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
 				!jQuery.isXMLDoc( elem ) ) {
 
@@ -5073,8 +5093,8 @@ jQuery.extend({
 
 				// Add nodes directly
 				if ( jQuery.type( elem ) === "object" ) {
-					// Support: QtWebKit
-					// jQuery.merge because push.apply(_, arraylike) throws
+					// Support: QtWebKit, PhantomJS
+					// push.apply(_, arraylike) throws on ancient WebKit
 					jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
 
 				// Convert non-html into a text node
@@ -5096,15 +5116,14 @@ jQuery.extend({
 						tmp = tmp.lastChild;
 					}
 
-					// Support: QtWebKit
-					// jQuery.merge because push.apply(_, arraylike) throws
+					// Support: QtWebKit, PhantomJS
+					// push.apply(_, arraylike) throws on ancient WebKit
 					jQuery.merge( nodes, tmp.childNodes );
 
 					// Remember the top-level container
 					tmp = fragment.firstChild;
 
-					// Fixes #12346
-					// Support: Webkit, IE
+					// Ensure the created nodes are orphaned (#12392)
 					tmp.textContent = "";
 				}
 			}
@@ -5466,7 +5485,7 @@ function actualDisplay( name, doc ) {
 		// getDefaultComputedStyle might be reliably used only on attached element
 		display = window.getDefaultComputedStyle && ( style = window.getDefaultComputedStyle( elem[ 0 ] ) ) ?
 
-			// Use of this method is a temporary fix (more like optmization) until something better comes along,
+			// Use of this method is a temporary fix (more like optimization) until something better comes along,
 			// since it was removed from specification and supported only in FF
 			style.display : jQuery.css( elem[ 0 ], "display" );
 
@@ -5516,7 +5535,14 @@ var rmargin = (/^margin/);
 var rnumnonpx = new RegExp( "^(" + pnum + ")(?!px)[a-z%]+$", "i" );
 
 var getStyles = function( elem ) {
-		return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+		// Support: IE<=11+, Firefox<=30+ (#15098, #14150)
+		// IE throws on elements created in popups
+		// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
+		if ( elem.ownerDocument.defaultView.opener ) {
+			return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+		}
+
+		return window.getComputedStyle( elem, null );
 	};
 
 
@@ -5528,7 +5554,7 @@ function curCSS( elem, name, computed ) {
 	computed = computed || getStyles( elem );
 
 	// Support: IE9
-	// getPropertyValue is only needed for .css('filter') in IE9, see #12537
+	// getPropertyValue is only needed for .css('filter') (#12537)
 	if ( computed ) {
 		ret = computed.getPropertyValue( name ) || computed[ name ];
 	}
@@ -5574,15 +5600,13 @@ function addGetHookIf( conditionFn, hookFn ) {
 	return {
 		get: function() {
 			if ( conditionFn() ) {
-				// Hook not needed (or it's not possible to use it due to missing dependency),
-				// remove it.
-				// Since there are no other hooks for marginRight, remove the whole object.
+				// Hook not needed (or it's not possible to use it due
+				// to missing dependency), remove it.
 				delete this.get;
 				return;
 			}
 
 			// Hook needed; redefine it so that the support test is not executed again.
-
 			return (this.get = hookFn).apply( this, arguments );
 		}
 	};
@@ -5599,6 +5623,8 @@ function addGetHookIf( conditionFn, hookFn ) {
 		return;
 	}
 
+	// Support: IE9-11+
+	// Style of cloned element affects source element cloned (#8908)
 	div.style.backgroundClip = "content-box";
 	div.cloneNode( true ).style.backgroundClip = "";
 	support.clearCloneStyle = div.style.backgroundClip === "content-box";
@@ -5631,6 +5657,7 @@ function addGetHookIf( conditionFn, hookFn ) {
 	if ( window.getComputedStyle ) {
 		jQuery.extend( support, {
 			pixelPosition: function() {
+
 				// This test is executed only once but we still do memoizing
 				// since we can use the boxSizingReliable pre-computing.
 				// No need to check if the test was already performed, though.
@@ -5644,6 +5671,7 @@ function addGetHookIf( conditionFn, hookFn ) {
 				return boxSizingReliableVal;
 			},
 			reliableMarginRight: function() {
+
 				// Support: Android 2.3
 				// Check if div with explicit width and no margin-right incorrectly
 				// gets computed margin-right based on width of container. (#3333)
@@ -5665,6 +5693,7 @@ function addGetHookIf( conditionFn, hookFn ) {
 				ret = !parseFloat( window.getComputedStyle( marginDiv, null ).marginRight );
 
 				docElem.removeChild( container );
+				div.removeChild( marginDiv );
 
 				return ret;
 			}
@@ -5696,8 +5725,8 @@ jQuery.swap = function( elem, options, callback, args ) {
 
 
 var
-	// swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
-	// see here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	// Swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
+	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
 	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
 	rnumsplit = new RegExp( "^(" + pnum + ")(.*)$", "i" ),
 	rrelNum = new RegExp( "^([+-])=(" + pnum + ")", "i" ),
@@ -5710,15 +5739,15 @@ var
 
 	cssPrefixes = [ "Webkit", "O", "Moz", "ms" ];
 
-// return a css property mapped to a potentially vendor prefixed property
+// Return a css property mapped to a potentially vendor prefixed property
 function vendorPropName( style, name ) {
 
-	// shortcut for names that are not vendor prefixed
+	// Shortcut for names that are not vendor prefixed
 	if ( name in style ) {
 		return name;
 	}
 
-	// check for vendor prefixed names
+	// Check for vendor prefixed names
 	var capName = name[0].toUpperCase() + name.slice(1),
 		origName = name,
 		i = cssPrefixes.length;
@@ -5751,7 +5780,7 @@ function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
 		val = 0;
 
 	for ( ; i < 4; i += 2 ) {
-		// both box models exclude margin, so add it if we want it
+		// Both box models exclude margin, so add it if we want it
 		if ( extra === "margin" ) {
 			val += jQuery.css( elem, extra + cssExpand[ i ], true, styles );
 		}
@@ -5762,15 +5791,15 @@ function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
 				val -= jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
 			}
 
-			// at this point, extra isn't border nor margin, so remove border
+			// At this point, extra isn't border nor margin, so remove border
 			if ( extra !== "margin" ) {
 				val -= jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
 			}
 		} else {
-			// at this point, extra isn't content, so add padding
+			// At this point, extra isn't content, so add padding
 			val += jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
 
-			// at this point, extra isn't content nor padding, so add border
+			// At this point, extra isn't content nor padding, so add border
 			if ( extra !== "padding" ) {
 				val += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
 			}
@@ -5788,7 +5817,7 @@ function getWidthOrHeight( elem, name, extra ) {
 		styles = getStyles( elem ),
 		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
 
-	// some non-html elements return undefined for offsetWidth, so check for null/undefined
+	// Some non-html elements return undefined for offsetWidth, so check for null/undefined
 	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
 	// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
 	if ( val <= 0 || val == null ) {
@@ -5803,7 +5832,7 @@ function getWidthOrHeight( elem, name, extra ) {
 			return val;
 		}
 
-		// we need the check for style in case a browser which returns unreliable values
+		// Check for style in case a browser which returns unreliable values
 		// for getComputedStyle silently falls back to the reliable elem.style
 		valueIsBorderBox = isBorderBox &&
 			( support.boxSizingReliable() || val === elem.style[ name ] );
@@ -5812,7 +5841,7 @@ function getWidthOrHeight( elem, name, extra ) {
 		val = parseFloat( val ) || 0;
 	}
 
-	// use the active box-sizing model to add/subtract irrelevant styles
+	// Use the active box-sizing model to add/subtract irrelevant styles
 	return ( val +
 		augmentWidthOrHeight(
 			elem,
@@ -5876,12 +5905,14 @@ function showHide( elements, show ) {
 }
 
 jQuery.extend({
+
 	// Add in style property hooks for overriding the default
 	// behavior of getting and setting a style property
 	cssHooks: {
 		opacity: {
 			get: function( elem, computed ) {
 				if ( computed ) {
+
 					// We should always get a number back from opacity
 					var ret = curCSS( elem, "opacity" );
 					return ret === "" ? "1" : ret;
@@ -5909,12 +5940,12 @@ jQuery.extend({
 	// Add in properties whose names you wish to fix before
 	// setting or getting the value
 	cssProps: {
-		// normalize float css property
 		"float": "cssFloat"
 	},
 
 	// Get and set the style property on a DOM Node
 	style: function( elem, name, value, extra ) {
+
 		// Don't set styles on text and comment nodes
 		if ( !elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style ) {
 			return;
@@ -5927,33 +5958,32 @@ jQuery.extend({
 
 		name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( style, origName ) );
 
-		// gets hook for the prefixed version
-		// followed by the unprefixed version
+		// Gets hook for the prefixed version, then unprefixed version
 		hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
 
 		// Check if we're setting a value
 		if ( value !== undefined ) {
 			type = typeof value;
 
-			// convert relative number strings (+= or -=) to relative numbers. #7345
+			// Convert "+=" or "-=" to relative numbers (#7345)
 			if ( type === "string" && (ret = rrelNum.exec( value )) ) {
 				value = ( ret[1] + 1 ) * ret[2] + parseFloat( jQuery.css( elem, name ) );
 				// Fixes bug #9237
 				type = "number";
 			}
 
-			// Make sure that null and NaN values aren't set. See: #7116
+			// Make sure that null and NaN values aren't set (#7116)
 			if ( value == null || value !== value ) {
 				return;
 			}
 
-			// If a number was passed in, add 'px' to the (except for certain CSS properties)
+			// If a number, add 'px' to the (except for certain CSS properties)
 			if ( type === "number" && !jQuery.cssNumber[ origName ] ) {
 				value += "px";
 			}
 
-			// Fixes #8908, it can be done more correctly by specifying setters in cssHooks,
-			// but it would mean to define eight (for every problematic property) identical functions
+			// Support: IE9-11+
+			// background-* props affect original clone's values
 			if ( !support.clearCloneStyle && value === "" && name.indexOf( "background" ) === 0 ) {
 				style[ name ] = "inherit";
 			}
@@ -5981,8 +6011,7 @@ jQuery.extend({
 		// Make sure that we're working with the right name
 		name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( elem.style, origName ) );
 
-		// gets hook for the prefixed version
-		// followed by the unprefixed version
+		// Try prefixed name followed by the unprefixed name
 		hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
 
 		// If a hook was provided get the computed value from there
@@ -5995,12 +6024,12 @@ jQuery.extend({
 			val = curCSS( elem, name, styles );
 		}
 
-		//convert "normal" to computed value
+		// Convert "normal" to computed value
 		if ( val === "normal" && name in cssNormalTransform ) {
 			val = cssNormalTransform[ name ];
 		}
 
-		// Return, converting to number if forced or a qualifier was provided and val looks numeric
+		// Make numeric if forced or a qualifier was provided and val looks numeric
 		if ( extra === "" || extra ) {
 			num = parseFloat( val );
 			return extra === true || jQuery.isNumeric( num ) ? num || 0 : val;
@@ -6013,8 +6042,9 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 	jQuery.cssHooks[ name ] = {
 		get: function( elem, computed, extra ) {
 			if ( computed ) {
-				// certain elements can have dimension info if we invisibly show them
-				// however, it must have a current display style that would benefit from this
+
+				// Certain elements can have dimension info if we invisibly show them
+				// but it must have a current display style that would benefit
 				return rdisplayswap.test( jQuery.css( elem, "display" ) ) && elem.offsetWidth === 0 ?
 					jQuery.swap( elem, cssShow, function() {
 						return getWidthOrHeight( elem, name, extra );
@@ -6042,8 +6072,6 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 jQuery.cssHooks.marginRight = addGetHookIf( support.reliableMarginRight,
 	function( elem, computed ) {
 		if ( computed ) {
-			// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
-			// Work around by temporarily setting element display to inline-block
 			return jQuery.swap( elem, { "display": "inline-block" },
 				curCSS, [ elem, "marginRight" ] );
 		}
@@ -6061,7 +6089,7 @@ jQuery.each({
 			var i = 0,
 				expanded = {},
 
-				// assumes a single number if not a string
+				// Assumes a single number if not a string
 				parts = typeof value === "string" ? value.split(" ") : [ value ];
 
 			for ( ; i < 4; i++ ) {
@@ -6184,17 +6212,18 @@ Tween.propHooks = {
 				return tween.elem[ tween.prop ];
 			}
 
-			// passing an empty string as a 3rd parameter to .css will automatically
-			// attempt a parseFloat and fallback to a string if the parse fails
-			// so, simple values such as "10px" are parsed to Float.
-			// complex values such as "rotate(1rad)" are returned as is.
+			// Passing an empty string as a 3rd parameter to .css will automatically
+			// attempt a parseFloat and fallback to a string if the parse fails.
+			// Simple values such as "10px" are parsed to Float;
+			// complex values such as "rotate(1rad)" are returned as-is.
 			result = jQuery.css( tween.elem, tween.prop, "" );
 			// Empty strings, null, undefined and "auto" are converted to 0.
 			return !result || result === "auto" ? 0 : result;
 		},
 		set: function( tween ) {
-			// use step hook for back compat - use cssHook if its there - use .style if its
-			// available and use plain properties where available
+			// Use step hook for back compat.
+			// Use cssHook if its there.
+			// Use .style if available and use plain properties where available.
 			if ( jQuery.fx.step[ tween.prop ] ) {
 				jQuery.fx.step[ tween.prop ]( tween );
 			} else if ( tween.elem.style && ( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null || jQuery.cssHooks[ tween.prop ] ) ) {
@@ -6208,7 +6237,6 @@ Tween.propHooks = {
 
 // Support: IE9
 // Panic based approach to setting things on disconnected nodes
-
 Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
 	set: function( tween ) {
 		if ( tween.elem.nodeType && tween.elem.parentNode ) {
@@ -6264,16 +6292,16 @@ var
 				start = +target || 1;
 
 				do {
-					// If previous iteration zeroed out, double until we get *something*
-					// Use a string for doubling factor so we don't accidentally see scale as unchanged below
+					// If previous iteration zeroed out, double until we get *something*.
+					// Use string for doubling so we don't accidentally see scale as unchanged below
 					scale = scale || ".5";
 
 					// Adjust and apply
 					start = start / scale;
 					jQuery.style( tween.elem, prop, start + unit );
 
-				// Update scale, tolerating zero or NaN from tween.cur()
-				// And breaking the loop if scale is unchanged or perfect, or if we've just had enough
+				// Update scale, tolerating zero or NaN from tween.cur(),
+				// break the loop if scale is unchanged or perfect, or if we've just had enough
 				} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
 			}
 
@@ -6305,8 +6333,8 @@ function genFx( type, includeWidth ) {
 		i = 0,
 		attrs = { height: type };
 
-	// if we include width, step value is 1 to do all cssExpand values,
-	// if we don't include width, step value is 2 to skip over Left and Right
+	// If we include width, step value is 1 to do all cssExpand values,
+	// otherwise step value is 2 to skip over Left and Right
 	includeWidth = includeWidth ? 1 : 0;
 	for ( ; i < 4 ; i += 2 - includeWidth ) {
 		which = cssExpand[ i ];
@@ -6328,7 +6356,7 @@ function createTween( value, prop, animation ) {
 	for ( ; index < length; index++ ) {
 		if ( (tween = collection[ index ].call( animation, prop, value )) ) {
 
-			// we're done with this property
+			// We're done with this property
 			return tween;
 		}
 	}
@@ -6343,7 +6371,7 @@ function defaultPrefilter( elem, props, opts ) {
 		hidden = elem.nodeType && isHidden( elem ),
 		dataShow = data_priv.get( elem, "fxshow" );
 
-	// handle queue: false promises
+	// Handle queue: false promises
 	if ( !opts.queue ) {
 		hooks = jQuery._queueHooks( elem, "fx" );
 		if ( hooks.unqueued == null ) {
@@ -6358,8 +6386,7 @@ function defaultPrefilter( elem, props, opts ) {
 		hooks.unqueued++;
 
 		anim.always(function() {
-			// doing this makes sure that the complete handler will be called
-			// before this completes
+			// Ensure the complete handler is called before this completes
 			anim.always(function() {
 				hooks.unqueued--;
 				if ( !jQuery.queue( elem, "fx" ).length ) {
@@ -6369,7 +6396,7 @@ function defaultPrefilter( elem, props, opts ) {
 		});
 	}
 
-	// height/width overflow pass
+	// Height/width overflow pass
 	if ( elem.nodeType === 1 && ( "height" in props || "width" in props ) ) {
 		// Make sure that nothing sneaks out
 		// Record all 3 overflow attributes because IE9-10 do not
@@ -6431,7 +6458,7 @@ function defaultPrefilter( elem, props, opts ) {
 			dataShow = data_priv.access( elem, "fxshow", {} );
 		}
 
-		// store state if its toggle - enables .stop().toggle() to "reverse"
+		// Store state if its toggle - enables .stop().toggle() to "reverse"
 		if ( toggle ) {
 			dataShow.hidden = !hidden;
 		}
@@ -6491,8 +6518,8 @@ function propFilter( props, specialEasing ) {
 			value = hooks.expand( value );
 			delete props[ name ];
 
-			// not quite $.extend, this wont overwrite keys already present.
-			// also - reusing 'index' from above because we have the correct "name"
+			// Not quite $.extend, this won't overwrite existing keys.
+			// Reusing 'index' because we have the correct "name"
 			for ( index in value ) {
 				if ( !( index in props ) ) {
 					props[ index ] = value[ index ];
@@ -6511,7 +6538,7 @@ function Animation( elem, properties, options ) {
 		index = 0,
 		length = animationPrefilters.length,
 		deferred = jQuery.Deferred().always( function() {
-			// don't match elem in the :animated selector
+			// Don't match elem in the :animated selector
 			delete tick.elem;
 		}),
 		tick = function() {
@@ -6520,7 +6547,8 @@ function Animation( elem, properties, options ) {
 			}
 			var currentTime = fxNow || createFxNow(),
 				remaining = Math.max( 0, animation.startTime + animation.duration - currentTime ),
-				// archaic crash bug won't allow us to use 1 - ( 0.5 || 0 ) (#12497)
+				// Support: Android 2.3
+				// Archaic crash bug won't allow us to use `1 - ( 0.5 || 0 )` (#12497)
 				temp = remaining / animation.duration || 0,
 				percent = 1 - temp,
 				index = 0,
@@ -6556,7 +6584,7 @@ function Animation( elem, properties, options ) {
 			},
 			stop: function( gotoEnd ) {
 				var index = 0,
-					// if we are going to the end, we want to run all the tweens
+					// If we are going to the end, we want to run all the tweens
 					// otherwise we skip this part
 					length = gotoEnd ? animation.tweens.length : 0;
 				if ( stopped ) {
@@ -6567,8 +6595,7 @@ function Animation( elem, properties, options ) {
 					animation.tweens[ index ].run( 1 );
 				}
 
-				// resolve when we played the last frame
-				// otherwise, reject
+				// Resolve when we played the last frame; otherwise, reject
 				if ( gotoEnd ) {
 					deferred.resolveWith( elem, [ animation, gotoEnd ] );
 				} else {
@@ -6650,7 +6677,7 @@ jQuery.speed = function( speed, easing, fn ) {
 	opt.duration = jQuery.fx.off ? 0 : typeof opt.duration === "number" ? opt.duration :
 		opt.duration in jQuery.fx.speeds ? jQuery.fx.speeds[ opt.duration ] : jQuery.fx.speeds._default;
 
-	// normalize opt.queue - true/undefined/null -> "fx"
+	// Normalize opt.queue - true/undefined/null -> "fx"
 	if ( opt.queue == null || opt.queue === true ) {
 		opt.queue = "fx";
 	}
@@ -6674,10 +6701,10 @@ jQuery.speed = function( speed, easing, fn ) {
 jQuery.fn.extend({
 	fadeTo: function( speed, to, easing, callback ) {
 
-		// show any hidden elements after setting opacity to 0
+		// Show any hidden elements after setting opacity to 0
 		return this.filter( isHidden ).css( "opacity", 0 ).show()
 
-			// animate to the value specified
+			// Animate to the value specified
 			.end().animate({ opacity: to }, speed, easing, callback );
 	},
 	animate: function( prop, speed, easing, callback ) {
@@ -6740,9 +6767,9 @@ jQuery.fn.extend({
 				}
 			}
 
-			// start the next in the queue if the last step wasn't forced
-			// timers currently will call their complete callbacks, which will dequeue
-			// but only if they were gotoEnd
+			// Start the next in the queue if the last step wasn't forced.
+			// Timers currently will call their complete callbacks, which
+			// will dequeue but only if they were gotoEnd.
 			if ( dequeue || !gotoEnd ) {
 				jQuery.dequeue( this, type );
 			}
@@ -6760,17 +6787,17 @@ jQuery.fn.extend({
 				timers = jQuery.timers,
 				length = queue ? queue.length : 0;
 
-			// enable finishing flag on private data
+			// Enable finishing flag on private data
 			data.finish = true;
 
-			// empty the queue first
+			// Empty the queue first
 			jQuery.queue( this, type, [] );
 
 			if ( hooks && hooks.stop ) {
 				hooks.stop.call( this, true );
 			}
 
-			// look for any active animations, and finish them
+			// Look for any active animations, and finish them
 			for ( index = timers.length; index--; ) {
 				if ( timers[ index ].elem === this && timers[ index ].queue === type ) {
 					timers[ index ].anim.stop( true );
@@ -6778,14 +6805,14 @@ jQuery.fn.extend({
 				}
 			}
 
-			// look for any animations in the old queue and finish them
+			// Look for any animations in the old queue and finish them
 			for ( index = 0; index < length; index++ ) {
 				if ( queue[ index ] && queue[ index ].finish ) {
 					queue[ index ].finish.call( this );
 				}
 			}
 
-			// turn off finishing flag
+			// Turn off finishing flag
 			delete data.finish;
 		});
 	}
@@ -6888,21 +6915,21 @@ jQuery.fn.delay = function( time, type ) {
 
 	input.type = "checkbox";
 
-	// Support: iOS 5.1, Android 4.x, Android 2.3
-	// Check the default checkbox/radio value ("" on old WebKit; "on" elsewhere)
+	// Support: iOS<=5.1, Android<=4.2+
+	// Default value for a checkbox should be "on"
 	support.checkOn = input.value !== "";
 
-	// Must access the parent to make an option select properly
-	// Support: IE9, IE10
+	// Support: IE<=11+
+	// Must access selectedIndex to make default options select
 	support.optSelected = opt.selected;
 
-	// Make sure that the options inside disabled selects aren't marked as disabled
-	// (WebKit marks them as disabled)
+	// Support: Android<=2.3
+	// Options inside disabled selects are incorrectly marked as disabled
 	select.disabled = true;
 	support.optDisabled = !opt.disabled;
 
-	// Check if an input maintains its value after becoming a radio
-	// Support: IE9, IE10
+	// Support: IE<=11+
+	// An input loses its value after becoming a radio
 	input = document.createElement( "input" );
 	input.value = "t";
 	input.type = "radio";
@@ -6999,8 +7026,6 @@ jQuery.extend({
 			set: function( elem, value ) {
 				if ( !support.radioValue && value === "radio" &&
 					jQuery.nodeName( elem, "input" ) ) {
-					// Setting the type on a radio button after the value resets the value in IE6-9
-					// Reset value to default in case type is set after value during creation
 					var val = elem.value;
 					elem.setAttribute( "type", value );
 					if ( val ) {
@@ -7070,7 +7095,7 @@ jQuery.extend({
 		var ret, hooks, notxml,
 			nType = elem.nodeType;
 
-		// don't get/set properties on text, comment and attribute nodes
+		// Don't get/set properties on text, comment and attribute nodes
 		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
 			return;
 		}
@@ -7106,8 +7131,6 @@ jQuery.extend({
 	}
 });
 
-// Support: IE9+
-// Selectedness for an option in an optgroup can be inaccurate
 if ( !support.optSelected ) {
 	jQuery.propHooks.selected = {
 		get: function( elem ) {
@@ -7215,7 +7238,7 @@ jQuery.fn.extend({
 						}
 					}
 
-					// only assign if different to avoid unneeded rendering.
+					// Only assign if different to avoid unneeded rendering.
 					finalValue = value ? jQuery.trim( cur ) : "";
 					if ( elem.className !== finalValue ) {
 						elem.className = finalValue;
@@ -7242,14 +7265,14 @@ jQuery.fn.extend({
 
 		return this.each(function() {
 			if ( type === "string" ) {
-				// toggle individual class names
+				// Toggle individual class names
 				var className,
 					i = 0,
 					self = jQuery( this ),
 					classNames = value.match( rnotwhite ) || [];
 
 				while ( (className = classNames[ i++ ]) ) {
-					// check each className given, space separated list
+					// Check each className given, space separated list
 					if ( self.hasClass( className ) ) {
 						self.removeClass( className );
 					} else {
@@ -7264,7 +7287,7 @@ jQuery.fn.extend({
 					data_priv.set( this, "__className__", this.className );
 				}
 
-				// If the element has a class name or if we're passed "false",
+				// If the element has a class name or if we're passed `false`,
 				// then remove the whole classname (if there was one, the above saved it).
 				// Otherwise bring back whatever was previously saved (if anything),
 				// falling back to the empty string if nothing was stored.
@@ -7308,9 +7331,9 @@ jQuery.fn.extend({
 				ret = elem.value;
 
 				return typeof ret === "string" ?
-					// handle most common string cases
+					// Handle most common string cases
 					ret.replace(rreturn, "") :
-					// handle cases where value is null/undef or number
+					// Handle cases where value is null/undef or number
 					ret == null ? "" : ret;
 			}
 
@@ -7418,7 +7441,7 @@ jQuery.extend({
 					}
 				}
 
-				// force browsers to behave consistently when non-matching value is set
+				// Force browsers to behave consistently when non-matching value is set
 				if ( !optionSet ) {
 					elem.selectedIndex = -1;
 				}
@@ -7439,8 +7462,6 @@ jQuery.each([ "radio", "checkbox" ], function() {
 	};
 	if ( !support.checkOn ) {
 		jQuery.valHooks[ this ].get = function( elem ) {
-			// Support: Webkit
-			// "" is returned instead of "on" if a value isn't specified
 			return elem.getAttribute("value") === null ? "on" : elem.value;
 		};
 	}
@@ -7522,10 +7543,6 @@ jQuery.parseXML = function( data ) {
 
 
 var
-	// Document location
-	ajaxLocParts,
-	ajaxLocation,
-
 	rhash = /#.*$/,
 	rts = /([?&])_=[^&]*/,
 	rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
@@ -7554,22 +7571,13 @@ var
 	transports = {},
 
 	// Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
-	allTypes = "*/".concat("*");
+	allTypes = "*/".concat( "*" ),
 
-// #8138, IE may throw an exception when accessing
-// a field from window.location if document.domain has been set
-try {
-	ajaxLocation = location.href;
-} catch( e ) {
-	// Use the href attribute of an A element
-	// since IE will modify it given document.location
-	ajaxLocation = document.createElement( "a" );
-	ajaxLocation.href = "";
-	ajaxLocation = ajaxLocation.href;
-}
+	// Document location
+	ajaxLocation = window.location.href,
 
-// Segment location into parts
-ajaxLocParts = rurl.exec( ajaxLocation.toLowerCase() ) || [];
+	// Segment location into parts
+	ajaxLocParts = rurl.exec( ajaxLocation.toLowerCase() ) || [];
 
 // Base "constructor" for jQuery.ajaxPrefilter and jQuery.ajaxTransport
 function addToPrefiltersOrTransports( structure ) {
@@ -8048,7 +8056,8 @@ jQuery.extend({
 		}
 
 		// We can fire global events as of now if asked to
-		fireGlobals = s.global;
+		// Don't fire events if jQuery.event is undefined in an AMD-usage scenario (#15118)
+		fireGlobals = jQuery.event && s.global;
 
 		// Watch for a new set of requests
 		if ( fireGlobals && jQuery.active++ === 0 ) {
@@ -8121,7 +8130,7 @@ jQuery.extend({
 			return jqXHR.abort();
 		}
 
-		// aborting is no longer a cancellation
+		// Aborting is no longer a cancellation
 		strAbort = "abort";
 
 		// Install callbacks on deferreds
@@ -8233,8 +8242,7 @@ jQuery.extend({
 					isSuccess = !error;
 				}
 			} else {
-				// We extract error from statusText
-				// then normalize statusText and status for non-aborts
+				// Extract error from statusText and normalize for non-aborts
 				error = statusText;
 				if ( status || !statusText ) {
 					statusText = "error";
@@ -8290,7 +8298,7 @@ jQuery.extend({
 
 jQuery.each( [ "get", "post" ], function( i, method ) {
 	jQuery[ method ] = function( url, data, callback, type ) {
-		// shift arguments if data argument was omitted
+		// Shift arguments if data argument was omitted
 		if ( jQuery.isFunction( data ) ) {
 			type = type || callback;
 			callback = data;
@@ -8304,13 +8312,6 @@ jQuery.each( [ "get", "post" ], function( i, method ) {
 			data: data,
 			success: callback
 		});
-	};
-});
-
-// Attach a bunch of functions for handling common AJAX events
-jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
-	jQuery.fn[ type ] = function( fn ) {
-		return this.on( type, fn );
 	};
 });
 
@@ -8531,8 +8532,9 @@ var xhrId = 0,
 
 // Support: IE9
 // Open requests must be manually aborted on unload (#5280)
-if ( window.ActiveXObject ) {
-	jQuery( window ).on( "unload", function() {
+// See https://support.microsoft.com/kb/2856746 for more info
+if ( window.attachEvent ) {
+	window.attachEvent( "onunload", function() {
 		for ( var key in xhrCallbacks ) {
 			xhrCallbacks[ key ]();
 		}
@@ -8885,6 +8887,16 @@ jQuery.fn.load = function( url, params, callback ) {
 
 
 
+// Attach a bunch of functions for handling common AJAX events
+jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
+	jQuery.fn[ type ] = function( fn ) {
+		return this.on( type, fn );
+	};
+});
+
+
+
+
 jQuery.expr.filters.animated = function( elem ) {
 	return jQuery.grep(jQuery.timers, function( fn ) {
 		return elem === fn.elem;
@@ -8921,7 +8933,8 @@ jQuery.offset = {
 		calculatePosition = ( position === "absolute" || position === "fixed" ) &&
 			( curCSSTop + curCSSLeft ).indexOf("auto") > -1;
 
-		// Need to be able to calculate position if either top or left is auto and position is either absolute or fixed
+		// Need to be able to calculate position if either
+		// top or left is auto and position is either absolute or fixed
 		if ( calculatePosition ) {
 			curPosition = curElem.position();
 			curTop = curPosition.top;
@@ -8978,8 +8991,8 @@ jQuery.fn.extend({
 			return box;
 		}
 
+		// Support: BlackBerry 5, iOS 3 (original iPhone)
 		// If we don't have gBCR, just use 0,0 rather than error
-		// BlackBerry 5, iOS 3 (original iPhone)
 		if ( typeof elem.getBoundingClientRect !== strundefined ) {
 			box = elem.getBoundingClientRect();
 		}
@@ -9001,7 +9014,7 @@ jQuery.fn.extend({
 
 		// Fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is its only offset parent
 		if ( jQuery.css( elem, "position" ) === "fixed" ) {
-			// We assume that getBoundingClientRect is available when computed position is fixed
+			// Assume getBoundingClientRect is there when computed position is fixed
 			offset = elem.getBoundingClientRect();
 
 		} else {
@@ -9064,16 +9077,18 @@ jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( 
 	};
 });
 
+// Support: Safari<7+, Chrome<37+
 // Add the top/left cssHooks using jQuery.fn.position
 // Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
-// getComputedStyle returns percent when specified for top/left/bottom/right
-// rather than make the css module depend on the offset module, we just check for it here
+// Blink bug: https://code.google.com/p/chromium/issues/detail?id=229280
+// getComputedStyle returns percent when specified for top/left/bottom/right;
+// rather than make the css module depend on the offset module, just check for it here
 jQuery.each( [ "top", "left" ], function( i, prop ) {
 	jQuery.cssHooks[ prop ] = addGetHookIf( support.pixelPosition,
 		function( elem, computed ) {
 			if ( computed ) {
 				computed = curCSS( elem, prop );
-				// if curCSS returns percentage, fallback to offset
+				// If curCSS returns percentage, fallback to offset
 				return rnumnonpx.test( computed ) ?
 					jQuery( elem ).position()[ prop ] + "px" :
 					computed;
@@ -9086,7 +9101,7 @@ jQuery.each( [ "top", "left" ], function( i, prop ) {
 // Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
 jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 	jQuery.each( { padding: "inner" + name, content: type, "": "outer" + name }, function( defaultExtra, funcName ) {
-		// margin is only for outerHeight, outerWidth
+		// Margin is only for outerHeight, outerWidth
 		jQuery.fn[ funcName ] = function( margin, value ) {
 			var chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
 				extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
@@ -9177,8 +9192,8 @@ jQuery.noConflict = function( deep ) {
 	return jQuery;
 };
 
-// Expose jQuery and $ identifiers, even in
-// AMD (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
+// Expose jQuery and $ identifiers, even in AMD
+// (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
 // and CommonJS for browser emulators (#13566)
 if ( typeof noGlobal === strundefined ) {
 	window.jQuery = window.$ = jQuery;
@@ -9191,7 +9206,7 @@ return jQuery;
 
 }));
 ;/*!
- * Fluid Infusion v1.5
+ * Fluid Infusion v2.0
  *
  * Infusion is distributed under the Educational Community License 2.0 and new BSD licenses:
  * http://wiki.fluidproject.org/display/fluid/Fluid+Licensing
@@ -9218,13 +9233,13 @@ https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 // Declare dependencies
 /* global console, opera, YAHOO*/
 
-var fluid_1_5 = fluid_1_5 || {};
-var fluid = fluid || fluid_1_5;
+var fluid_2_0 = fluid_2_0 || {};
+var fluid = fluid || fluid_2_0;
 
 (function ($, fluid) {
     "use strict";
 
-    fluid.version = "Infusion 1.5";
+    fluid.version = "Infusion 2.0-SNAPSHOT";
 
     // Export this for use in environments like node.js, where it is useful for
     // configuring stack trace behaviour
@@ -9234,7 +9249,15 @@ var fluid = fluid || fluid_1_5;
         fluid: fluid
     };
 
-    var globalObject = window || {};
+    fluid.global = fluid.global || window || {};
+
+    // A standard utility to schedule the invocation of a function after the current
+    // stack returns. On browsers this defaults to setTimeout(func, 1) but in
+    // other environments can be customised - e.g. to process.nextTick in node.js
+    // In future, this could be optimised in the browser to not dispatch into the event queue
+    fluid.invokeLater = function (func) {
+        return setTimeout(func, 1);
+    };
 
     // The following flag defeats all logging/tracing activities in the most performance-critical parts of the framework.
     // This should really be performed by a build-time step which eliminates calls to pushActivity/popActivity and fluid.log.
@@ -9640,7 +9663,7 @@ var fluid = fluid || fluid_1_5;
      * the right way round.
      * @param source {Arrayable or Object} The container to be iterated over
      * @param func {Function} A function accepting (value, key) for each iterated
-     * object. This function may return a value to terminate the iteration
+     * object.
      */
     fluid.each = function (source, func) {
         if (fluid.isArrayable(source)) {
@@ -9724,13 +9747,12 @@ var fluid = fluid || fluid_1_5;
      */
     fluid.remove_if = function (source, fn, target) {
         if (fluid.isArrayable(source)) {
-            for (var i = 0; i < source.length; ++i) {
+            for (var i = source.length - 1; i >= 0; --i) {
                 if (fn(source[i], i)) {
                     if (target) {
-                        target.push(source[i]);
+                        target.unshift(source[i]);
                     }
                     source.splice(i, 1);
-                    --i;
                 }
             }
         } else {
@@ -9788,7 +9810,8 @@ var fluid = fluid || fluid_1_5;
 
     /** Accepts an object to be filtered, and a list of keys. Either all keys not present in
      * the list are removed, or only keys present in the list are returned.
-     * @param toFilter {Array|Object} The object to be filtered - this will be modified by the operation
+     * @param toFilter {Array|Object} The object to be filtered - this will be NOT modified by the operation (current implementation
+     * passes through $.extend shallow algorithm)
      * @param keys {Array of String} The list of keys to operate with
      * @param exclude {boolean} If <code>true</code>, the keys listed are removed rather than included
      * @return the filtered object (the same object that was supplied as <code>toFilter</code>
@@ -10105,7 +10128,7 @@ var fluid = fluid || fluid_1_5;
     fluid.getGlobalValue = function (path, env) {
         if (path) {
             env = env || fluid.environment;
-            return fluid.get(globalObject, path, {type: "environment", value: env});
+            return fluid.get(fluid.global, path, {type: "environment", value: env});
         }
     };
 
@@ -10135,18 +10158,18 @@ var fluid = fluid || fluid_1_5;
         }
     };
 
-    /** Registers a new global function at a given path (currently assumes that
-     * it lies within the fluid namespace)
+    /** Registers a new global function at a given path
      */
 
     fluid.registerGlobalFunction = function (functionPath, func, env) {
         env = env || fluid.environment;
-        fluid.set(globalObject, functionPath, func, {type: "environment", value: env});
+        fluid.set(fluid.global, functionPath, func, {type: "environment", value: env});
     };
 
     fluid.setGlobalValue = fluid.registerGlobalFunction;
 
-    /** Ensures that an entry in the global namespace exists **/
+    /** Ensures that an entry in the global namespace exists. If it does not, a new entry is created as {} and returned. If an existing
+     * value is found, it is returned instead **/
     fluid.registerNamespace = function (naimspace, env) {
         env = env || fluid.environment;
         var existing = fluid.getGlobalValue(naimspace, env);
@@ -10182,8 +10205,8 @@ var fluid = fluid || fluid_1_5;
         return fluid_prefix + (fluid_guid++);
     };
 
-    fluid.event.identifyListener = function (listener) {
-        if (typeof(listener) !== "string" && !listener.$$fluid_guid) {
+    fluid.event.identifyListener = function (listener, soft) {
+        if (typeof(listener) !== "string" && !listener.$$fluid_guid && !soft) {
             listener.$$fluid_guid = fluid.allocateGuid();
         }
         return listener.$$fluid_guid;
@@ -10211,11 +10234,18 @@ var fluid = fluid || fluid_1_5;
     // unsupported, NON-API function
     fluid.event.sortListeners = function (listeners) {
         var togo = [];
-        fluid.each(listeners, function (listener) {
-            if (listener.length !== undefined) {
-                togo = togo.concat(listener);
+        fluid.each(listeners, function (oneNamespace) {
+            var headHard; // notify only the first listener with hard namespace - or else all if all are soft
+            for (var i = 0; i < oneNamespace.length; ++ i) {
+                var thisListener = oneNamespace[i];
+                if (!thisListener.softNamespace && !headHard) {
+                    headHard = thisListener;
+                }
+            }
+            if (headHard) {
+                togo.push(headHard);
             } else {
-                togo.push(listener);
+                togo = togo.concat(oneNamespace);
             }
         });
         return togo.sort(fluid.priorityComparator);
@@ -10255,13 +10285,15 @@ var fluid = fluid || fluid_1_5;
      * listeners, to which "events" can be fired. These events consist of an arbitrary
      * function signature. General documentation on the Fluid events system is at
      * http://wiki.fluidproject.org/display/fluid/The+Fluid+Event+System .
-     * @param {Boolean} unicast If <code>true</code>, this is a "unicast" event which may only accept
-     * a single listener.
-     * @param {Boolean} preventable If <code>true</code> the return value of each handler will
+     * @param {Object} options - A structure to configure this event firer. Supported fields:
+     *     {String} name - a name for this firer
+     *     {Boolean} preventable - If <code>true</code> the return value of each handler will
      * be checked for <code>false</code> in which case further listeners will be shortcircuited, and this
      * will be the return value of fire()
      */
-    fluid.makeEventFirer = function (unicast, preventable, name, ownerId) {
+    fluid.makeEventFirer = function (options) {
+        options = options || {};
+        var name = options.name || "<anonymous>";
         var that;
         function fireToListeners(listeners, args, wrapper) {
             if (!listeners || that.destroyed) { return; }
@@ -10276,11 +10308,8 @@ var fluid = fluid || fluid_1_5;
                 }
                 var value;
                 var ret = (wrapper ? wrapper(listener) : listener).apply(null, args);
-                if (preventable && ret === false || that.destroyed) {
+                if (options.preventable && ret === false || that.destroyed) {
                     value = false;
-                }
-                if (unicast) {
-                    value = ret;
                 }
                 if (value !== undefined) {
                     return value;
@@ -10288,7 +10317,6 @@ var fluid = fluid || fluid_1_5;
             }
         }
         var identify = fluid.event.identifyListener;
-
 
         var lazyInit = function () { // Lazy init function to economise on object references for events which are never listened to
             that.listeners = {};
@@ -10301,9 +10329,6 @@ var fluid = fluid || fluid_1_5;
                 if (!listener) {
                     return;
                 }
-                if (unicast) {
-                    namespace = "unicast";
-                }
                 if (typeof(listener) === "string") {
                     listener = {globalName: listener};
                 }
@@ -10314,13 +10339,9 @@ var fluid = fluid || fluid_1_5;
                     softNamespace: softNamespace,
                     priority: fluid.event.mapPriority(priority, that.sortedListeners.length)};
                 that.byId[id] = record;
-                if (softNamespace) {
-                    var thisListeners = (that.listeners[namespace] = fluid.makeArray(that.listeners[namespace]));
-                    thisListeners.push(record);
-                }
-                else {
-                    that.listeners[namespace] = record;
-                }
+
+                var thisListeners = (that.listeners[namespace] = fluid.makeArray(that.listeners[namespace]));
+                thisListeners[softNamespace ? "push" : "unshift"] (record);
 
                 that.sortedListeners = fluid.event.sortListeners(that.listeners);
             };
@@ -10328,8 +10349,8 @@ var fluid = fluid || fluid_1_5;
         };
         that = {
             eventId: fluid.allocateGuid(),
-            ownerId: ownerId,
             name: name,
+            ownerId: options.ownerId,
             typeName: "fluid.event.firer",
             destroy: function () {
                 that.destroyed = true;
@@ -10340,17 +10361,16 @@ var fluid = fluid || fluid_1_5;
 
             removeListener: function (listener) {
                 if (!that.listeners) { return; }
-                var namespace, id;
+                var namespace, id, record;
                 if (typeof (listener) === "string") {
                     namespace = listener;
-                    var record = that.listeners[listener];
+                    record = that.listeners[namespace];
                     if (!record) {
                         return;
                     }
-                    listener = record.length !== undefined ? record : record.listener;
                 }
-                if (typeof(listener) === "function") {
-                    id = identify(listener);
+                else if (typeof(listener) === "function") {
+                    id = identify(listener, true);
                     if (!id) {
                         fluid.fail("Cannot remove unregistered listener function ", listener, " from event " + that.name);
                     }
@@ -10359,19 +10379,23 @@ var fluid = fluid || fluid_1_5;
                 var softNamespace = rec && rec.softNamespace;
                 namespace = namespace || (rec && rec.namespace) || id;
                 delete that.byId[id];
+                record = that.listeners[namespace];
+                if (!record) {
+                    return;
+                }
                 if (softNamespace) {
-                    fluid.remove_if(that.listeners[namespace], function (thisLis) {
+                    fluid.remove_if(record, function (thisLis) {
                         return thisLis.listener.$$fluid_guid === id;
                     });
                 } else {
+                    record.shift();
+                }
+                if (record.length === 0) {
                     delete that.listeners[namespace];
                 }
                 that.sortedListeners = fluid.event.sortListeners(that.listeners);
             },
-            // NB - this method exists currently solely for the convenience of the new,
-            // transactional changeApplier. As it exists it is hard to imagine the function
-            // being helpful to any other client. We need to get more experience on the kinds
-            // of listeners that are useful, and ultimately factor this method away.
+            // NB - this method exists only to support the old ChangeApplier. It will be removed along with it.
             fireToListeners: function (listeners, args, wrapper) {
                 return fireToListeners(listeners, args, wrapper);
             },
@@ -10381,9 +10405,6 @@ var fluid = fluid || fluid_1_5;
         };
         return that;
     };
-
-    // This name will be deprecated in Fluid 1.5 for fluid.makeEventFirer (or fluid.eventFirer)
-    fluid.event.getEventFirer = fluid.makeEventFirer;
 
     /** Fire the specified event with supplied arguments. This call is an optimisation utility
      * which handles the case where the firer has not been instantiated (presumably as a result
@@ -10458,7 +10479,11 @@ var fluid = fluid || fluid_1_5;
                 event = fluid.event.resolveEvent(that, eventKey, eventSpec);
             }
         } else {
-            event = fluid.makeEventFirer(eventSpec === "unicast", eventSpec === "preventable", fluid.event.nameEvent(that, eventKey), that.id);
+            event = fluid.makeEventFirer({
+                name: fluid.event.nameEvent(that, eventKey),
+                preventable: eventSpec === "preventable",
+                ownerId: that.id
+            });
         }
         return event;
     };
@@ -10472,6 +10497,9 @@ var fluid = fluid || fluid_1_5;
 
     // unsupported, NON-API function
     fluid.mergeListenerPolicy = function (target, source, key) {
+        if (typeof (key) !== "string") {
+            fluid.fail("Error in listeners declaration - the keys in this structure must resolve to event names - got " + key + " from ", source);
+        }
         // cf. triage in mergeListeners
         var hasNamespace = key.charAt(0) !== "{" && key.indexOf(".") !== -1;
         return hasNamespace ? (source || target) : fluid.arrayConcatPolicy(target, source);
@@ -10747,7 +10775,7 @@ var fluid = fluid || fluid_1_5;
             } else {
                 fluid.fail("The grade hierarchy of component with typeName " + componentName + " is incomplete - it inherits from the following grade(s): " +
                  blankGrades.join(", ") + " for which the grade definitions are corrupt or missing. Please check the files which might include these " +
-                 " grades and ensure they are readable and have been loaded by this instance of Infusion");
+                 "grades and ensure they are readable and have been loaded by this instance of Infusion");
             }
         }
         var creator = function () {
@@ -10890,7 +10918,7 @@ var fluid = fluid || fluid_1_5;
             // will THEN return to "evaluation of arguments" (expander blocks) and only then FINALLY to this "slow"
             // traversal of concrete properties to do the final merge.
             if (source !== undefined) {
-                // This use of function creation within a loop is acceptable since 
+                // This use of function creation within a loop is acceptable since
                 // the function does not attempt to close directly over the loop counter
                 fluid.each(source, function (newSource, name) {
                     if (!target.hasOwnProperty(name)) { // only request each new target key once -- all sources will be queried per strategy
@@ -11225,6 +11253,29 @@ var fluid = fluid || fluid_1_5;
 
     fluid.defaults("fluid.function", {});
 
+    /** Invoke a global function by name and named arguments. A courtesy to allow declaratively encoded function calls
+     * to use named arguments rather than bare arrays.
+     * @param name {String} A global name which can be resolved to a Function. The defaults for this name must
+     * resolve onto a grade including "fluid.function". The defaults record should also contain an entry
+     * <code>argumentMap</code>, a hash of argument names onto indexes.
+     * @param spec {Object} A named hash holding the argument values to be sent to the function. These will be looked
+     * up in the <code>argumentMap</code> and resolved into a flat list of arguments.
+     * @return {Any} The return value from the function
+     */
+
+    fluid.invokeGradedFunction = function (name, spec) {
+        var defaults = fluid.defaults(name);
+        if (!defaults || !defaults.argumentMap || !fluid.hasGrade(defaults, "fluid.function")) {
+            fluid.fail("Cannot look up name " + name +
+                " to a function with registered argumentMap - got defaults ", defaults);
+        }
+        var args = [];
+        fluid.each(defaults.argumentMap, function (value, key) {
+            args[value] = spec[key];
+        });
+        return fluid.invokeGlobalFunction(name, args);
+    };
+
     fluid.lifecycleFunctions = {
         preInitFunction: true,
         postInitFunction: true,
@@ -11383,7 +11434,7 @@ var fluid = fluid || fluid_1_5;
                 }
             }
             if (value) {
-                that.options[key] = fluid.makeEventFirer(null, null, key, that.id);
+                that.options[key] = fluid.makeEventFirer({name: key, ownerId: that.id});
                 fluid.event.addListenerToFirer(that.options[key], value);
             }
         });
@@ -11407,14 +11458,14 @@ var fluid = fluid || fluid_1_5;
             fluid.fireEvent(that, "events.afterDestroy", [that, "", null]);
         };
     };
-    
+
     /** Returns <code>true</code> if the supplied reference holds a component which has been destroyed **/
-    
+
     fluid.isDestroyed = function (that) {
         return that.destroy === fluid.destroyedMarker;
     };
 
-    // unsupported, NON-API function    
+    // unsupported, NON-API function
     fluid.doDestroy = function (that, name, parent) {
         fluid.fireEvent(that, "events.onDestroy", [that, name || "", parent]);
         that.destroy = fluid.destroyedMarker;
@@ -11422,6 +11473,9 @@ var fluid = fluid || fluid_1_5;
             if (key !== "afterDestroy" && typeof(that.events[key].destroy) === "function") {
                 that.events[key].destroy();
             }
+        }
+        if (that.applier) { // TODO: Break this out into the grade's destroyer
+            that.applier.destroy();
         }
     };
 
@@ -11689,7 +11743,7 @@ var fluid = fluid || fluid_1_5;
         };
     };
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2007-2010 University of Cambridge
 Copyright 2007-2009 University of Toronto
@@ -11708,7 +11762,7 @@ https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 /** This file contains functions which depend on the presence of a DOM document
  * but which do not depend on the contents of Fluid.js **/
 
-var fluid_1_5 = fluid_1_5 || {};
+var fluid_2_0 = fluid_2_0 || {};
 
 (function ($, fluid) {
     "use strict";
@@ -11866,7 +11920,7 @@ var fluid_1_5 = fluid_1_5 || {};
         };
     });
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2008-2010 University of Cambridge
 Copyright 2008-2009 University of Toronto
@@ -11879,7 +11933,7 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
+var fluid_2_0 = fluid_2_0 || {};
 
 (function ($, fluid) {
     "use strict";
@@ -11982,7 +12036,7 @@ var fluid_1_5 = fluid_1_5 || {};
         return text;
     };
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2007-2010 University of Cambridge
 Copyright 2007-2009 University of Toronto
@@ -11998,11 +12052,16 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
-var fluid = fluid || fluid_1_5;
+var fluid_2_0 = fluid_2_0 || {};
+var fluid = fluid || fluid_2_0;
 
 (function ($, fluid) {
     "use strict";
+
+    /** Render a timestamp from a Date object into a helpful fixed format for debug logs to millisecond accuracy
+     * @param date {Date} The date to be rendered
+     * @return {String} A string format consisting of hours:minutes:seconds.millis for the datestamp padded to fixed with 
+     */
 
     fluid.renderTimestamp = function (date) {
         var zeropad = function (num, width) {
@@ -12032,10 +12091,10 @@ var fluid = fluid || fluid_1_5;
             }
         }
         var toReallyGo = [];
-        fluid.each(togo, function(el, path) {
+        fluid.each(togo, function (el, path) {
             toReallyGo.push({path: path, count: el});
         });
-        toReallyGo.sort(function(a, b) {return b.count - a.count;});
+        toReallyGo.sort(function (a, b) {return b.count - a.count;});
         return toReallyGo;
     };
 
@@ -12046,7 +12105,7 @@ var fluid = fluid || fluid_1_5;
             prefixCount[prefix] = 0;
         });
         var togo = [];
-        fluid.each(pathCount, function(el) {
+        fluid.each(pathCount, function (el) {
             var path = el.path;
             if (!fluid.find(prefixes, function(prefix) {
                 if (path.indexOf(prefix) === 0) {
@@ -12086,7 +12145,7 @@ var fluid = fluid || fluid_1_5;
         return stackStyle;
     };
 
-    fluid.obtainException = function() {
+    fluid.obtainException = function () {
         try {
             throw new Error("Trace exception");
         }
@@ -12099,7 +12158,7 @@ var fluid = fluid || fluid_1_5;
 
     fluid.registerNamespace("fluid.exceptionDecoders");
 
-    fluid.decodeStack = function() {
+    fluid.decodeStack = function () {
         if (stackStyle.style !== "firefox") {
             return null;
         }
@@ -12107,61 +12166,96 @@ var fluid = fluid || fluid_1_5;
         return fluid.exceptionDecoders[stackStyle.style](e);
     };
 
-    fluid.exceptionDecoders.firefox = function(e) {
+    fluid.exceptionDecoders.firefox = function (e) {
         var lines = e.stack.replace(/(?:\n@:0)?\s+$/m, "").replace(/^\(/gm, "{anonymous}(").split("\n");
-        return fluid.transform(lines, function(line) {
+        return fluid.transform(lines, function (line) {
             var atind = line.indexOf("@");
             return atind === -1? [line] : [line.substring(atind + 1), line.substring(0, atind)];
         });
     };
 
-    fluid.getCallerInfo = function(atDepth) {
+    // Main entry point for callers. 
+    // TODO: This infrastructure is several years old and probably still only works on Firefox if there
+    fluid.getCallerInfo = function (atDepth) {
         atDepth = (atDepth || 3) - stackStyle.offset;
         var stack = fluid.decodeStack();
         return stack? stack[atDepth][0] : null;
     };
 
-    function generate(c, count) {
+    /** Generates a string for padding purposes by replicating a character a given number of times
+     * @param c {Character} A character to be used for padding
+     * @param count {Integer} The number of times to repeat the character
+     * @return A string of length <code>count</code> consisting of repetitions of the supplied character
+     */
+    // UNOPTIMISED 
+    fluid.generatePadding = function (c, count) {
         var togo = "";
         for (var i = 0; i < count; ++ i) {
             togo += c;
         }
         return togo;
-    }
+    };
+     
+    // Marker so that we can render a custom string for properties which are not direct and concrete
+    fluid.SYNTHETIC_PROPERTY = {};
 
-    function printImpl(obj, small, options) {
-        var big = small + options.indentChars;
+    // utility to avoid triggering custom getter code which could throw an exception - e.g. express 3.x's request object 
+    fluid.getSafeProperty = function (obj, key) {
+        var desc = Object.getOwnPropertyDescriptor(obj, key); // supported on all of our environments - is broken on IE8
+        return desc && !desc.get ? obj[key] : fluid.SYNTHETIC_PROPERTY;
+    };
+
+    function printImpl (obj, small, options) {
+        var big = small + options.indentChars, togo, isFunction = typeof(obj) === "function";
         if (obj === null) {
-            return "null";
-        }
-        else if (fluid.isPrimitive(obj)) {
-            return JSON.stringify(obj);
+            togo = "null";
+        } else if (obj === undefined) {
+            togo = "undefined"; // NB - object invalid for JSON interchange
+        } else if (obj === fluid.SYNTHETIC_PROPERTY) {
+            togo = "[Synthetic property]";
+        } else if (fluid.isPrimitive(obj) && !isFunction) {
+            togo = JSON.stringify(obj);
         }
         else {
+            if ($.inArray(obj, options.stack) !== -1) {
+                return "(CIRCULAR)"; // NB - object invalid for JSON interchange
+            }
+            options.stack.push(obj);
             var j = [];
             var i;
             if (fluid.isArrayable(obj)) {
                 if (obj.length === 0) {
-                    return "[]";
+                    togo = "[]";
+                } else {
+                    for (i = 0; i < obj.length; ++ i) {
+                        j[i] = printImpl(obj[i], big, options);
+                    }
+                    togo = "[\n" + big + j.join(",\n" + big) + "\n" + small + "]";
                 }
-                for (i = 0; i < obj.length; ++ i) {
-                    j[i] = printImpl(obj[i], big, options);
-                }
-                return "[\n" + big + j.join(",\n" + big) + "\n" + small + "]";
             }
             else {
                 i = 0;
-                fluid.each(obj, function(value, key) {
+                togo = "{" + (isFunction ? " Function" : "") + "\n"; // NB - Function object invalid for JSON interchange
+                for (var key in obj) {
+                    var value = fluid.getSafeProperty(obj, key);
                     j[i++] = JSON.stringify(key) + ": " + printImpl(value, big, options);
-                });
-                return "{\n" + big + j.join(",\n" + big) + "\n" + small + "}";
+                }
+                togo += big + j.join(",\n" + big) + "\n" + small + "}";
             }
+            options.stack.pop();
         }
+        return togo;
     }
 
-    fluid.prettyPrintJSON = function(obj, options) {
-        options = $.extend({indent: 4}, options);
-        options.indentChars = generate(" ", options.indent);
+    /** Render a complex JSON object into a nicely indented format suitable for human readability.
+     * @param obj {Object} The object to be rendered
+     * @param options {Object} An options structure governing the rendering process. The only option which
+     * is currently supported is <code>indent</code> holding the number of space characters to be used to
+     * indent each level of containment.
+     */
+    fluid.prettyPrintJSON = function (obj, options) {
+        options = $.extend({indent: 4, stack: []}, options);
+        options.indentChars = fluid.generatePadding(" ", options.indent);
         return printImpl(obj, "", options);
     };
 
@@ -12205,7 +12299,7 @@ var fluid = fluid || fluid_1_5;
         return togo;
     };
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2011-2013 OCAD University
 Copyright 2010-2011 Lucendo Development Ltd.
@@ -12218,7 +12312,7 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
+var fluid_2_0 = fluid_2_0 || {};
 
 (function ($, fluid) {
     "use strict";
@@ -12484,7 +12578,7 @@ var fluid_1_5 = fluid_1_5 || {};
         } else {
             fluid.registerCollectedClearer(shadows[shadows.length - 1], parentShadow, memberNames[memberNames.length - 1]);
         }
-        // This use of function creation within a loop is acceptable since 
+        // This use of function creation within a loop is acceptable since
         // the function does not attempt to close directly over the loop counter
         for (var i = 0; i < thatStack.length - 1; ++ i) {
             fluid.each(shadows[i].distributions, function (distribution) {
@@ -12861,7 +12955,13 @@ var fluid_1_5 = fluid_1_5 || {};
             if (atval === undefined) {
                 // TODO: This check is very expensive - once gingerness is stable, we ought to be able to
                 // eagerly compute and cache the value of options.components - check is also incorrect and will miss injections
-                if (fluid.getForComponent(component, ["options", "components", thisSeg])) {
+                var subRecord = fluid.getForComponent(component, ["options", "components", thisSeg]);
+                if (subRecord) {
+                    if (subRecord.createOnEvent) {
+                        fluid.fail("Error resolving path segment \"" + thisSeg + "\" of path " + segs.join(".") + " since component with record ", subRecord,
+                            " has annotation \"createOnEvent\" - this very likely represents an implementation error. Either alter the reference so it does not " +
+                            " match this component, or alter your workflow to ensure that the component is instantiated by the time this reference resolves");
+                    }
                     fluid.initDependent(component, thisSeg);
                     atval = component[thisSeg];
                 }
@@ -12914,7 +13014,7 @@ var fluid_1_5 = fluid_1_5 || {};
                 return true; // YOUR VISIT IS AT AN END!!
             }
             if (fluid.getForComponent(component, ["options", "components", context, "type"]) && !component[context]) {
-  // This is an expensive guess since we make it for every component up the stack - must apply the WAVE OF EXPLOSION (FLUID-4925) to discover all components first
+  // This is an expensive guess since we make it for every component up the stack - must apply the WAVE OF EXPLOSIONS (FLUID-4925) to discover all components first
   // This line attempts a hopeful construction of components that could be guessed by nickname through finding them unconstructed
   // in options. In the near future we should eagerly BEGIN the process of constructing components, discovering their
   // types and then attaching them to the tree VERY EARLY so that we get consistent results from different strategies.
@@ -12931,7 +13031,7 @@ var fluid_1_5 = fluid_1_5 || {};
     fluid.makeStackFetcher = function (parentThat, localRecord) {
         var fetcher = function (parsed) {
             if (parentThat && parentThat.destroy === fluid.destroyedMarker) {
-                fluid.fail("Cannot resolve reference ", parsed, " from component " + fluid.dumpThat(parentThat) + " which has been destroyed");
+                fluid.fail("Cannot resolve reference " + fluid.renderContextReference(parsed) + " from component " + fluid.dumpThat(parentThat) + " which has been destroyed");
             }
             var context = parsed.context;
             if (localRecord && localRecordExpected.test(context)) {
@@ -12962,6 +13062,7 @@ var fluid_1_5 = fluid_1_5 || {};
 
     // unsupported, non-API function
     fluid.clearListeners = function (shadow) {
+        // TODO: bug here - "afterDestroy" listeners will be unregistered already unless they come from this component
         fluid.each(shadow.listeners, function (rec) {
             rec.event.removeListener(rec.listener);
         });
@@ -13236,8 +13337,13 @@ var fluid_1_5 = fluid_1_5 || {};
     fluid.makeIoCRootDestroy = function (instantiator, that) {
         return function () {
             instantiator.clearComponent(that, "", that, null, true);
-            fluid.doDestroy(that);
-            fluid.fireEvent(that, "events.afterDestroy", [that, "", null]);
+        };
+    };
+    
+    // NON-API function
+    fluid.fabricateDestroyMethod = function (that, name, instantiator, child) {
+        return function () {
+            instantiator.clearComponent(that, name, child);
         };
     };
 
@@ -13449,13 +13555,6 @@ var fluid_1_5 = fluid_1_5 || {};
         return togo;
     };
 
-    // NON-API function
-    fluid.fabricateDestroyMethod = function (that, name, instantiator, child) {
-        return function () {
-            instantiator.clearComponent(that, name, child);
-        };
-    };
-
     /** Instantiate the subcomponent with the supplied name of the supplied top-level component. Although this method
      * is published as part of the Fluid API, it should not be called by general users and may not remain stable. It is
      * currently the only mechanism provided for instantiating components whose definitions are dynamic, and will be
@@ -13517,6 +13616,10 @@ var fluid_1_5 = fluid_1_5 || {};
         var events = fluid.makeArray(component.createOnEvent);
         fluid.each(events, function(eventName) {
             var event = eventName.charAt(0) === "{" ? fluid.expandOptions(eventName, that) : that.events[eventName];
+            if (!event || !event.addListener) {
+                fluid.fail("Error instantiating createOnEvent component with name " + componentName + " of parent ", that, " since event specification " +
+                    eventName + " could not be expanded to an event - got ", event);
+            }
             event.addListener(function () {
                 fluid.pushActivity("initDeferred", "instantiating deferred component %componentName of parent %that due to event %eventName",
                  {componentName: componentName, that: that, eventName: eventName});
@@ -13549,7 +13652,7 @@ var fluid_1_5 = fluid_1_5 || {};
         fluid.each(components, function (component, name) {
             if (!component.createOnEvent) {
                 var priority = fluid.priorityForComponent(component);
-                componentSort[name] = {key: name, priority: fluid.event.mapPriority(priority, 0)};
+                componentSort[name] = [{key: name, priority: fluid.event.mapPriority(priority, 0)}];
             }
             else {
                 fluid.bindDeferredComponent(that, name, component);
@@ -14024,7 +14127,7 @@ outer:  for (var i = 0; i < exist.length; ++i) {
         // occurred - this was implemented wrongly in 1.4.
         var firer;
         if (isComposite) {
-            firer = fluid.makeEventFirer(null, null, " [composite] " + fluid.event.nameEvent(that, eventName));
+            firer = fluid.makeEventFirer({name: " [composite] " + fluid.event.nameEvent(that, eventName)});
             var dispatcher = fluid.event.dispatchListener(that, firer.fire, eventName, eventSpec, isMultiple);
             if (isMultiple) {
                 fluid.event.listenerEngine(origin, dispatcher, adder);
@@ -14233,7 +14336,7 @@ outer:  for (var i = 0; i < exist.length; ++i) {
     };
 
     fluid.renderContextReference = function (parsed) {
-        return "{" + parsed.context + "}." + parsed.path;
+        return "{" + parsed.context + "}" + (parsed.path ? "." + parsed.path : "");
     };
 
     // unsupported, non-API function
@@ -14488,7 +14591,7 @@ outer:  for (var i = 0; i < exist.length; ++i) {
     fluid.noexpand = fluid.expander.noexpand; // TODO: check naming and namespacing
 
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2008-2010 University of Cambridge
 Copyright 2008-2009 University of Toronto
@@ -14503,7 +14606,7 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
+var fluid_2_0 = fluid_2_0 || {};
 
 (function ($, fluid) {
     "use strict";
@@ -14683,7 +14786,7 @@ var fluid_1_5 = fluid_1_5 || {};
     /** Escapes a single path segment by replacing any character ".", "\" or "}" with
      * itself prepended by \
      */
-     // supported, PUBLIC API function
+    // supported, PUBLIC API function
     fluid.pathUtil.escapeSegment = function (segment) {
         return fluid.pathUtil.composeSegment("", segment);
     };
@@ -14775,6 +14878,7 @@ var fluid_1_5 = fluid_1_5 || {};
         if (!enlist) {
             enlist = {
                 that: that,
+                applier: fluid.getForComponent(that, "applier"), // required for FLUID-5504 even though currently unused
                 complete: fluid.isModelComplete(that)
             };
             instantiator.modelTransactions.init[that.id] = enlist;
@@ -14806,7 +14910,7 @@ var fluid_1_5 = fluid_1_5 || {};
         var transRec = fluid.getModelTransactionRec(instantiator, transId);
         var transac;
         var transacs = fluid.transform(mrec, function (recel) {
-            transac = recel.that.applier.initiate(transId);
+            transac = recel.that.applier.initiate("init", transId);
             transRec[recel.that.applier.applierId] = {transaction: transac};
             return transac;
         });
@@ -14957,10 +15061,13 @@ var fluid_1_5 = fluid_1_5 || {};
             if (relay) {
                 ++transRec[linkId];
                 if (!existing) {
-                    var newTrans = targetApplier.initiate(transId, true); // non-top-level transaction will defeat postCommit
+                    var newTrans = targetApplier.initiate("relay", transId); // non-top-level transaction will defeat postCommit
                     existing = transRec[applierId] = {transaction: newTrans, options: options};
                 }
                 if (transducer && !options.targetApplier) {
+                    // TODO: This is just for safety but is still unusual and now abused. The transducer doesn't need the "newValue" since all the transform information
+                    // has been baked into the transform document itself. However, we now rely on this special signalling value to make sure we regenerate transforms in 
+                    // the "forwardAdapter"
                     transducer(existing.transaction, options.sourceApplier ? undefined : newValue, sourceSegs, targetSegs);
                 } else if (newValue !== undefined) {
                     existing.transaction.fireChangeRequest({type: "ADD", segs: targetSegs, value: newValue});
@@ -15006,6 +15113,7 @@ var fluid_1_5 = fluid_1_5 || {};
             if (options.targetApplier) {
                 // register changes from the model onto changes to the model relay document
                 fluid.registerDirectChangeRelay(source, sourceSegs, target, targetSegs, linkId, null, {
+                    transactional: false,
                     targetApplier: options.targetApplier,
                     relayCount: options.relayCount,
                     update: options.update
@@ -15016,13 +15124,13 @@ var fluid_1_5 = fluid_1_5 || {};
                 fluid.registerDirectChangeRelay(target, targetSegs, source, [], linkId+"-transform", options.forwardAdapter, {transactional: true, sourceApplier: options.forwardApplier});
             }
         } else { // more efficient branch where relay is uncontextualised
-            fluid.registerDirectChangeRelay(target, targetSegs, source, sourceSegs, linkId, options.forwardAdapter, {});
+            fluid.registerDirectChangeRelay(target, targetSegs, source, sourceSegs, linkId, options.forwardAdapter, {transactional: false});
             if (sourceSegs) {
-                fluid.registerDirectChangeRelay(source, sourceSegs, target, targetSegs, linkId, options.backwardAdapter, {});
+                fluid.registerDirectChangeRelay(source, sourceSegs, target, targetSegs, linkId, options.backwardAdapter, {transactional: false});
             }
         }
     };
-    
+
     fluid.model.guardedAdapter = function (componentThat, cond, func, args) {
         // TODO: We can't use fluid.isModelComplete here because of the broken half-transactional system - it may appear that model has arrived halfway through init transaction
         var isInit = componentThat.modelRelay === fluid.inEvaluationMarker;
@@ -15061,7 +15169,7 @@ var fluid_1_5 = fluid_1_5 || {};
         };
         that.forwardApplier = fluid.makeNewChangeApplier(that.forwardHolder);
         that.forwardApplier.isRelayApplier = true; // special annotation so these can be discovered in the transaction record
-        that.invalidator = fluid.makeEventFirer(null, null, "Invalidator for model relay with applier " + that.forwardApplier.applierId);
+        that.invalidator = fluid.makeEventFirer({name: "Invalidator for model relay with applier " + that.forwardApplier.applierId});
         if (sourcePath !== null) {
             that.backwardApplier = fluid.makeNewChangeApplier(that.backwardHolder);
             that.backwardAdapter = function () {
@@ -15091,14 +15199,14 @@ var fluid_1_5 = fluid_1_5 || {};
             }
         };
     };
-    
+
     fluid.model.relayConditions = {
         initOnly: {init: true,  live: false},
         liveOnly: {init: false, live: true},
         never:    {init: false, live: false},
         always:   {init: true,  live: true}
     };
-    
+
     fluid.model.parseRelayCondition = function (condition) {
         return fluid.model.relayConditions[condition || "always"];
     };
@@ -15155,19 +15263,22 @@ var fluid_1_5 = fluid_1_5 || {};
         }
         return value;
     };
-    
-        
+
+
     // Conclude the transaction by firing to all external listeners in priority order
     fluid.model.notifyExternal = function (transRec) {
         var allChanges = transRec ? fluid.values(transRec.externalChanges) : [];
         allChanges.sort(fluid.priorityComparator);
         for (var i = 0; i < allChanges.length; ++ i) {
             var change = allChanges[i];
-            change.listener.apply(null, change.args);
+            var targetApplier = change.args[5]; // NOTE: This argument gets here via fluid.model.storeExternalChange from fluid.notifyModelChanges
+            if (!targetApplier.destroyed) { // 3rd point of guarding for FLUID-5592
+                change.listener.apply(null, change.args);
+            }
         }
         fluid.clearLinkCounts(transRec, true); // "options" structures for relayCount are aliased
     };
-    
+
     fluid.model.commitRelays = function (instantiator, transactionId) {
         var transRec = instantiator.modelTransactions[transactionId];
         fluid.each(transRec, function (transEl) {
@@ -15219,14 +15330,14 @@ var fluid_1_5 = fluid_1_5 || {};
                 fluid.model.commitRelays(instantiator, transaction.id);
             }
         }
-        
+
         function concludeTransaction(transaction, applier, code) {
             if (code !== "relay") {
                 fluid.model.notifyExternal(instantiator.modelTransactions[transaction.id]);
                 delete instantiator.modelTransactions[transaction.id];
             }
         }
-        
+
         applier.preCommit.addListener(updateRelays);
         applier.preCommit.addListener(commitRelays);
         applier.postCommit.addListener(concludeTransaction);
@@ -15306,6 +15417,9 @@ var fluid_1_5 = fluid_1_5 || {};
 
     fluid.resolveModelListener = function (that, record, isNewApplier) {
         var togo = function () {
+            if (fluid.isDestroyed(that)) { // first guarding point to resolve FLUID-5592
+                return;
+            }
             var change = fluid.modelChangedToChange(isNewApplier, arguments);
             var args = [change];
             var localRecord = {change: change, "arguments": args};
@@ -15337,15 +15451,23 @@ var fluid_1_5 = fluid_1_5 || {};
                     listenerIndex: listenerCount,
                     segs: parsed.modelSegs,
                     path: parsed.path,
-                    priority: fluid.event.mapPriority(record.priority, listenerCount),
+                    includeSource: record.includeSource,
+                    excludeSource: record.excludeSource,
+                    priority: record.priority,
+                    guardSource: record.guardSource, // compatibility for obsolete system - will remove with old applier
                     transactional: true
                 };
                 ++listenerCount;
-                fluid.addSourceGuardedListener(parsed.applier, spec, record.guardSource, func, "modelChanged", record.namespace, record.softNamespace);
+                if (record.guardSource) {
+                    fluid.addSourceGuardedListener(parsed.applier, spec, record.guardSource, func, "modelChanged", record.namespace, record.softNamespace);
+                } else {
+                    parsed.applier.modelChanged.addListener(spec, func, record.namespace, record.softNamespace);
+                }
+
                 fluid.recordChangeListener(that, parsed.applier, func);
                 function initModelEvent() {
                     if (isNewApplier && fluid.isModelComplete(parsed.that)) {
-                        var trans = parsed.applier.initiate();
+                        var trans = parsed.applier.initiate("init");
                         fluid.initModelEvent(that, trans, [spec]);
                         trans.commit();
                     }
@@ -15491,6 +15613,7 @@ var fluid_1_5 = fluid_1_5 || {};
         if (sourceCode === "primitive") {
             if (!fluid.model.isSameValue(targetSlot, source)) {
                 changedValue = source;
+                ++options.unchanged;
             }
         } else if (targetCode !== sourceCode || sourceCode === "array" && source.length !== targetSlot.length) {
             // RH is not primitive - array or object and mismatching or any array rewrite
@@ -15499,7 +15622,7 @@ var fluid_1_5 = fluid_1_5 || {};
         if (changedValue !== fluid.NO_VALUE) {
             target[name] = changedValue;
             if (options.changeMap) {
-                fluid.model.setChangedPath(options, segs, "ADD");
+                fluid.model.setChangedPath(options, segs, options.inverse ? "DELETE" : "ADD");
             }
         }
         if (sourceCode !== "primitive") {
@@ -15529,7 +15652,7 @@ var fluid_1_5 = fluid_1_5 || {};
     // After the 1.5 release, this will replace the old "applyChangeRequest"
     // Changes: "MERGE" action abolished
     // ADD/DELETE at root can be destructive
-    // changes tracked in optional final argument holding "changeMap: {}, changes: 0"
+    // changes tracked in optional final argument holding "changeMap: {}, changes: 0, unchanged: 0"
     fluid.model.applyHolderChangeRequest = function (holder, request, options) {
         options = fluid.model.defaultAccessorConfig(options);
         options.deltaMap = options.changeMap ? {} : null;
@@ -15541,7 +15664,7 @@ var fluid_1_5 = fluid_1_5 || {};
         } else {
             if (!holder.model) {
                 holder.model = {};
-                fluid.model.setChangedPath(options, [], "ADD");
+                fluid.model.setChangedPath(options, [], options.inverse ? "DELETE" : "ADD");
             }
             pen = fluid.model.stepTargetAccess(holder.model, request.type, request.segs, 0, length - 1, options);
         }
@@ -15560,6 +15683,53 @@ var fluid_1_5 = fluid_1_5 || {};
             fluid.fail("Unrecognised change type of " + request.type);
         }
         return options.deltas ? options.deltaMap : null;
+    };
+    
+    /** Compare two models for equality using a deep algorithm. It is assumed that both models are JSON-equivalent and do
+     * not contain circular links.
+     * @param modela The first model to be compared
+     * @param modelb The second model to be compared
+     * @param options {Object} If supplied, will receive a map and summary of the change content between the objects. Structure is:
+     *     changeMap: {Object/String} An isomorphic map of the object structures to values "ADD" or "DELETE" indicating
+     * that values have been added/removed at that location. Note that in the case the object structure differs at the root, <code>changeMap</code> will hold
+     * the plain String value "ADD" or "DELETE"
+     *     changes: {Integer} Counts the number of changes between the objects - The two objects are identical iff <code>changes === 0</code>.
+     *     unchanged: {Integer} Counts the number of leaf (primitive) values at which the two objects are identical. Note that the current implementation will
+     * double-count, this summary should be considered indicative rather than precise.
+     * @return <code>true</code> if the models are identical
+     */
+    // TODO: This algorithm is quite inefficient in that both models will be copied once each
+    // supported, PUBLIC API function
+    fluid.model.diff = function (modela, modelb, options) {
+        options = options || {changes: 0, unchanged: 0, changeMap: {}}; // current algorithm can't avoid the expense of changeMap
+        var typea = fluid.typeCode(modela);
+        var typeb = fluid.typeCode(modelb);
+        var togo;
+        if (typea === "primitive" && typeb === "primitive") {
+            togo = fluid.model.isSameValue(modela, modelb);
+        } else if (typea === "primitive" ^ typeb === "primitive") {
+            togo = false;
+        } else {
+            // Apply both forward and reverse changes - if no changes either way, models are identical
+            // "ADD" reported in the reverse direction must be accounted as a "DELETE"
+            var holdera = {
+                model: fluid.copy(modela)
+            };
+            fluid.model.applyHolderChangeRequest(holdera, {value: modelb, segs: [], type: "ADD"}, options);
+            var holderb = {
+                model: fluid.copy(modelb)
+            };
+            options.inverse = true;
+            fluid.model.applyHolderChangeRequest(holderb, {value: modela, segs: [], type: "ADD"}, options);
+            togo = options.changes === 0;
+        }
+        if (togo === false && options.changes === 0) { // catch all primitive cases
+            options.changes = 1;
+            options.changeMap = modelb === undefined ? "DELETE" : "ADD";
+        } else if (togo === true && options.unchanged === 0) {
+            options.unchanged = 1;
+        }
+        return togo;
     };
 
     // Here we only support for now very simple expressions which have at most one
@@ -15595,13 +15765,29 @@ var fluid_1_5 = fluid_1_5 || {};
         }
         return togo;
     };
-    
+
     fluid.storeExternalChange = function (transRec, applier, invalidPath, spec, args) {
         var pathString = applier.composeSegments.apply(null, invalidPath);
         var keySegs = [applier.applierId, fluid.event.identifyListener(spec.listener), spec.listenerIndex, pathString];
         var keyString = keySegs.join("|");
         // These are unbottled in fluid.concludeTransaction
         transRec.externalChanges[keyString] = {listener: spec.listener, priority: spec.priority, args: args};
+    };
+    
+    fluid.isExcludedChangeSource = function (transaction, spec) {
+        if (!spec.excludeSource) { // mergeModelListeners initModelEvent fabricates a fake spec that bypasses processing
+            return false;
+        }
+        var excluded = spec.excludeSource["*"];
+        for (var source in transaction.sources) {
+            if (spec.excludeSource[source]) {
+                excluded = true;
+            }
+            if (spec.includeSource[source]) {
+                excluded = false;
+            }
+        }
+        return excluded;
     };
 
     fluid.notifyModelChanges = function (listeners, changeMap, newHolder, oldHolder, changeRequest, transaction, applier, that) {
@@ -15611,10 +15797,28 @@ var fluid_1_5 = fluid_1_5 || {};
             var spec = listeners[i];
             var invalidPaths = fluid.matchChanges(changeMap, spec.segs, newHolder);
             for (var j = 0; j < invalidPaths.length; ++ j) {
+                if (applier.destroyed) { // 2nd guarding point for FLUID-5592
+                    return;
+                }
                 var invalidPath = invalidPaths[j];
                 spec.listener = fluid.event.resolveListener(spec.listener);
                 // TODO: process namespace and softNamespace rules, and propagate "sources" in 4th argument
                 var args = [fluid.model.getSimple(newHolder, invalidPath), fluid.model.getSimple(oldHolder, invalidPath), invalidPath.slice(1), changeRequest, transaction, applier];
+                // FLUID-5489: Do not notify of null changes which were reported as a result of invalidating a higher path
+                // TODO: We can improve greatly on efficiency by i) reporting a special code from fluid.matchChanges which signals the difference between invalidating a higher and lower path,
+                // ii) improving fluid.model.diff to create fewer intermediate structures and no copies
+                // TODO: The relay invalidation system is broken and must always be notified (branch 1) - since our old/new value detection is based on the wrong (global) timepoints in the transaction here,
+                // rather than the "last received model" by the holder of the transform document
+                if (!spec.isRelay) {
+                    var isNull = fluid.model.diff(args[0], args[1]);
+                    if (isNull) {
+                        continue;
+                    }
+                    var sourceExcluded = fluid.isExcludedChangeSource(transaction, spec);
+                    if (sourceExcluded) {
+                        continue;
+                    }
+                }
                 if (transRec && !spec.isRelay && spec.transactional) { // bottle up genuine external changes so we can sort and dedupe them later
                     fluid.storeExternalChange(transRec, applier, invalidPath, spec, args);
                 } else {
@@ -15651,8 +15855,8 @@ var fluid_1_5 = fluid_1_5 || {};
             },
             options: options,
             modelChanged: {},
-            preCommit: fluid.makeEventFirer(null, null, "preCommit event for ChangeApplier " + applierId),
-            postCommit: fluid.makeEventFirer(null, null, "postCommit event for ChangeApplier " + applierId)
+            preCommit: fluid.makeEventFirer({name: "preCommit event for ChangeApplier " }),
+            postCommit: fluid.makeEventFirer({name: "postCommit event for ChangeApplier "})
         };
         function preFireChangeRequest(changeRequest) {
             if (!changeRequest.type) {
@@ -15660,6 +15864,11 @@ var fluid_1_5 = fluid_1_5 || {};
             }
             changeRequest.segs = changeRequest.segs || that.parseEL(changeRequest.path);
         }
+        that.destroy = function () {
+            that.preCommit.destroy();
+            that.postCommit.destroy();
+            that.destroyed = true;
+        };
         that.modelChanged.addListener = function (spec, listener, namespace, softNamespace) {
             if (typeof(spec) === "string") {
                 spec = {path: spec};
@@ -15673,10 +15882,15 @@ var fluid_1_5 = fluid_1_5 || {};
                 listener = {globalName: listener};
             }
             spec.listener = listener;
-            var transactional = spec.transactional;
+            if (spec.transactional !== false) {
+                spec.transactional = true;
+            }
             spec.segs = spec.segs || that.parseEL(spec.path);
-            var collection = transactional ? "transListeners" : "listeners";
-            that.changeListeners[collection].push(spec);
+            var collection = that.changeListeners[spec.transactional ? "transListeners" : "listeners"];
+            spec.excludeSource = fluid.arrayToHash(fluid.makeArray(spec.excludeSource || (spec.includeSource ? "*" : undefined)));
+            spec.includeSource = fluid.arrayToHash(fluid.makeArray(spec.includeSource));
+            spec.priority = fluid.event.mapPriority(spec.priority, collection.length);
+            collection.push(spec);
         };
         that.modelChanged.removeListener = function (listener) {
             var id = fluid.event.identifyListener(listener);
@@ -15694,10 +15908,13 @@ var fluid_1_5 = fluid_1_5 || {};
             ation.commit();
         };
 
-        that.initiate = function (transactionId, defeatPost) { // defeatPost is supplied for all non-top-level transactions
+        that.initiate = function (source, transactionId) {
+            source = source || "local";
+            var defeatPost = source === "relay"; // defeatPost is supplied for all non-top-level transactions
             var trans = {
                 instanceId: fluid.allocateGuid(), // for debugging only
                 id: transactionId || fluid.allocateGuid(),
+                sources: {},
                 changeRecord: {
                     resolverSetConfig: options.resolverSetConfig, // here to act as "options" in applyHolderChangeRequest
                     resolverGetConfig: options.resolverGetConfig
@@ -15706,6 +15923,7 @@ var fluid_1_5 = fluid_1_5 || {};
                     trans.oldHolder = holder;
                     trans.newHolder = { model: fluid.copy(holder.model) };
                     trans.changeRecord.changes = 0;
+                    trans.changeRecord.unchanged = 0; // just for type consistency - we don't use these values in the ChangeApplier
                     trans.changeRecord.changeMap = {};
                 },
                 commit: function (code) {
@@ -15726,6 +15944,7 @@ var fluid_1_5 = fluid_1_5 || {};
                     fluid.notifyModelChanges(that.changeListeners.listeners, deltaMap, trans.newHolder, holder, changeRequest, trans, that, holder);
                 }
             };
+            trans.sources[source] = true;
             trans.reset();
             fluid.bindRequestChange(trans);
             return trans;
@@ -15917,9 +16136,9 @@ var fluid_1_5 = fluid_1_5 || {};
     fluid.makeHolderChangeApplier = function (holder, options) {
         options = fluid.model.defaultAccessorConfig(options);
         var baseEvents = {
-            guards: fluid.event.getEventFirer(false, true, "guard event"),
-            postGuards: fluid.event.getEventFirer(false, true, "postGuard event"),
-            modelChanged: fluid.event.getEventFirer(false, false, "modelChanged event")
+            guards: fluid.makeEventFirer({preventable: true, name: "guard event"}),
+            postGuards: fluid.makeEventFirer({preventable: true, name: "postGuard event"}),
+            modelChanged: fluid.makeEventFirer({name: "modelChanged event"})
         };
         var threadLocal = fluid.threadLocal(function() { return {sources: {}};});
         var that = {
@@ -15927,7 +16146,8 @@ var fluid_1_5 = fluid_1_5 || {};
         // a simple algorithm looking for that field
             applierId: fluid.allocateGuid(),
             holder: holder,
-            options: options
+            options: options,
+            destroy: fluid.identity // dummy function to avoid confusing FLUID-5592 code - we don't support this subtlety for old appliers
         };
 
         function makeGuardWrapper(cullUnchanged) {
@@ -16205,7 +16425,7 @@ var fluid_1_5 = fluid_1_5 || {};
         return togo;
     };
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2010 University of Toronto
 Copyright 2010-2011 OCAD University
@@ -16218,8 +16438,8 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
-var fluid = fluid || fluid_1_5;
+var fluid_2_0 = fluid_2_0 || {};
+var fluid = fluid || fluid_2_0;
 
 (function ($, fluid) {
     "use strict";
@@ -16321,13 +16541,13 @@ var fluid = fluid || fluid_1_5;
     // in a compound transform definition
     fluid.model.transform.NONDEFAULT_OUTPUT_PATH_RETURN = {};
 
-    fluid.model.transform.setValue = function (userOutputPath, value, transform, merge) {
+    fluid.model.transform.setValue = function (userOutputPath, value, transform) {
         // avoid crosslinking to input object - this might be controlled by a "nocopy" option in future
         var toset = fluid.copy(value);
         var outputPath = fluid.model.composePaths(transform.outputPrefix, userOutputPath);
         // TODO: custom resolver config here to create non-hash output model structure
         if (toset !== undefined) {
-            transform.applier.requestChange(outputPath, toset, merge ? "MERGE" : undefined);
+            transform.applier.requestChange(outputPath, toset);
         }
         return userOutputPath ? fluid.model.transform.NONDEFAULT_OUTPUT_PATH_RETURN : toset;
     };
@@ -16342,48 +16562,18 @@ var fluid = fluid || fluid_1_5;
         return (val !== undefined) ? val : def;
     };
 
-    // TODO: Incomplete implementation which only checks expected paths
-    fluid.deepEquals = function (expected, actual, stats) {
-        if (fluid.isPrimitive(expected)) {
-            if (expected === actual) {
-                ++stats.matchCount;
-            } else {
-                ++stats.mismatchCount;
-                stats.messages.push("Value mismatch at path " + stats.path + ": expected " + expected + " actual " + actual);
-            }
-        }
-        else {
-            if (typeof(expected) !== typeof(actual)) {
-                ++stats.mismatchCount;
-                stats.messages.push("Type mismatch at path " + stats.path + ": expected " + typeof(expected)  + " actual " + typeof(actual));
-            } else {
-                fluid.each(expected, function (value, key) {
-                    stats.pathOps.push(key);
-                    fluid.deepEquals(expected[key], actual[key], stats);
-                    stats.pathOps.pop(key);
-                });
-            }
-        }
-    };
-
-    fluid.model.transform.matchValue = function (expected, actual) {
-        if (fluid.isPrimitive(expected)) {
-            return expected === actual ? 1 : 0;
-        } else {
-            var stats = {
-                matchCount: 0,
-                mismatchCount: 0,
-                messages: []
-            };
-            fluid.model.makePathStack(stats, "path");
-            fluid.deepEquals(expected, actual, stats);
-            return stats.matchCount;
-        }
-    };
-
-    // unsupported, NON-API function
-    fluid.model.transform.compareMatches = function (speca, specb) {
-        return specb.matchCount - speca.matchCount;
+    // Compute a "match score" between two pieces of model material, with 0 indicating a complete mismatch, and
+    // higher values indicating increasingly good matches
+    fluid.model.transform.matchValue = function (expected, actual, partialMatches) {
+        var stats = {changes: 0, unchanged: 0, changeMap: {}};
+        fluid.model.diff(expected, actual, stats);
+        // i) a pair with 0 matches counts for 0 in all cases
+        // ii) without "partial match mode" (the default), we simply count matches, with any mismatch giving 0
+        // iii) with "partial match mode", a "perfect score" in the top 24 bits is
+        // penalised for each mismatch, with a positive score of matches store in the bottom 24 bits
+        return stats.unchanged === 0 ? 0
+            : (partialMatches ? 0xffffff000000 - 0x1000000 * stats.changes + stats.unchanged :
+            (stats.changes ? 0 : 0xffffff000000 + stats.unchanged));
     };
 
     fluid.firstDefined = function (a, b) {
@@ -16453,7 +16643,7 @@ var fluid = fluid || fluid_1_5;
             var expanded = fluid.model.transform.getValue(valueHolder.valuePath, valueHolder.value, transform);
 
             transformArgs.unshift(expanded);
-            //if the function has no input, the result is considered undefined, and this is returned
+            // if the function has no input, the result is considered undefined, and this is returned
             if (expanded === undefined) {
                 return undefined;
             }
@@ -16477,7 +16667,7 @@ var fluid = fluid || fluid_1_5;
                 //If outputPath is given in the expander we want to:
                 // (1) output to the document
                 // (2) return undefined, to ensure that expanders higher up in the hierarchy doesn't attempt to output it again
-                fluid.model.transform.setValue(transformSpec.outputPath, transformed, transform, transformSpec.merge);
+                fluid.model.transform.setValue(transformSpec.outputPath, transformed, transform);
                 transformed = undefined;
             }
         }
@@ -16591,14 +16781,23 @@ var fluid = fluid || fluid_1_5;
         var defaults = fluid.defaults(typeName);
         return { defaults: defaults, typeName: typeName};
     };
+    
+    // A utility which is helpful in computing inverses involving compound values. 
+    // For example, with the valueMapper, compound input values are accepted as literals implicitly,
+    // whereas as output values they must be escaped. This utility escapes a value if it is not primitive.
+    fluid.model.transform.literaliseValue = function (value) {
+        return fluid.isPrimitive(value) ? value : {
+            literalValue: value
+        };
+    };
 
     // unsupported, NON-API function
     fluid.model.transform.processRule = function (rule, transform) {
         if (typeof(rule) === "string") {
             rule = fluid.model.transform.pathToRule(rule);
         }
-        // special dispensation to allow "literalValue" at top level
-        else if (rule.literalValue && transform.outputPrefix !== "") {
+        // special dispensation to allow "literalValue" to escape any value
+        else if (rule.literalValue !== undefined) {
             rule = fluid.model.transform.literalValueToRule(rule.literalValue);
         }
         var togo;
@@ -16775,9 +16974,11 @@ var fluid = fluid || fluid_1_5;
 
         var transform = {
             source: source,
-            target: schemaStrategy ? fluid.model.transform.defaultSchemaValue(schemaStrategy(null, "", 0, [""])) : {},
+            target: {
+                model: schemaStrategy ? fluid.model.transform.defaultSchemaValue(schemaStrategy(null, "", 0, [""])) : {}
+            },
             resolverGetConfig: getConfig,
-            collectedFlatSchemaOpts: undefined, //to hold options for flat schema collected during transforms
+            collectedFlatSchemaOpts: undefined, // to hold options for flat schema collected during transforms
             queuedChanges: [],
             queuedTransforms: [] // TODO: This is used only by wildcard applier - explain its operation
         };
@@ -16800,7 +17001,7 @@ var fluid = fluid || fluid_1_5;
         }
         setConfig.strategies = [fluid.model.defaultFetchStrategy, schemaStrategy ? fluid.model.transform.schemaToCreatorStrategy(schemaStrategy)
                 : fluid.model.defaultCreatorStrategy];
-        transform.finalApplier = options.finalApplier || fluid.makeChangeApplier(transform.target, {resolverSetConfig: setConfig});
+        transform.finalApplier = options.finalApplier || fluid.makeNewChangeApplier(transform.target, {resolverSetConfig: setConfig});
 
         if (transform.queuedTransforms.length > 0) {
             transform.typeStack = [];
@@ -16808,7 +17009,7 @@ var fluid = fluid || fluid_1_5;
             fluid.model.transform.expandWildcards(transform, source);
         }
         fluid.model.fireSortedChanges(transform.queuedChanges, transform.finalApplier);
-        return transform.target;
+        return transform.target.model;
     };
 
     $.extend(fluid.model.transformWithRules, fluid.model.transform);
@@ -16834,7 +17035,7 @@ var fluid = fluid || fluid_1_5;
         };
     };
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2010 University of Toronto
 Copyright 2010-2011 OCAD University
@@ -16848,8 +17049,8 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
-var fluid = fluid || fluid_1_5;
+var fluid_2_0 = fluid_2_0 || {};
+var fluid = fluid || fluid_2_0;
 
 (function ($, fluid) {
     "use strict";
@@ -16868,12 +17069,12 @@ var fluid = fluid || fluid_1_5;
 
     fluid.transforms.value = fluid.identity;
 
-    fluid.transforms.value.invert = function (transformSpec, transform) {
+    fluid.transforms.value.invert = function (transformSpec, transformer) {
         var togo = fluid.copy(transformSpec);
         // TODO: this will not behave correctly in the face of compound "value" which contains
         // further transforms
-        togo.inputPath = fluid.model.composePaths(transform.outputPrefix, transformSpec.outputPath);
-        togo.outputPath = fluid.model.composePaths(transform.inputPrefix, transformSpec.inputPath);
+        togo.inputPath = fluid.model.composePaths(transformer.outputPrefix, transformSpec.outputPath);
+        togo.outputPath = fluid.model.composePaths(transformer.inputPrefix, transformSpec.inputPath);
         return togo;
     };
 
@@ -16921,9 +17122,9 @@ var fluid = fluid || fluid_1_5;
         gradeNames: "fluid.transformFunction"
     });
 
-    fluid.transforms["delete"] = function (transformSpec, transform) {
-        var outputPath = fluid.model.composePaths(transform.outputPrefix, transformSpec.outputPath);
-        transform.applier.requestChange(outputPath, null, "DELETE");
+    fluid.transforms["delete"] = function (transformSpec, transformer) {
+        var outputPath = fluid.model.composePaths(transformer.outputPrefix, transformSpec.outputPath);
+        transformer.applier.requestChange(outputPath, null, "DELETE");
     };
 
 
@@ -16931,14 +17132,14 @@ var fluid = fluid || fluid_1_5;
         gradeNames: "fluid.transformFunction"
     });
 
-    fluid.transforms.firstValue = function (transformSpec, transform) {
+    fluid.transforms.firstValue = function (transformSpec, transformer) {
         if (!transformSpec.values || !transformSpec.values.length) {
             fluid.fail("firstValue transformer requires an array of values at path named \"values\", supplied", transformSpec);
         }
         for (var i = 0; i < transformSpec.values.length; i++) {
             var value = transformSpec.values[i];
             // TODO: problem here - all of these transforms will have their side-effects (setValue) even if only one is chosen
-            var expanded = transform.expand(value);
+            var expanded = transformer.expand(value);
             if (expanded !== undefined) {
                 return expanded;
             }
@@ -16968,7 +17169,7 @@ var fluid = fluid || fluid_1_5;
     };
 
     /* TODO: This inversion doesn't work if the value and factors are given as paths in the source model */
-    fluid.transforms.linearScale.invert = function  (transformSpec, transform) {
+    fluid.transforms.linearScale.invert = function  (transformSpec, transformer) {
         var togo = fluid.copy(transformSpec);
 
         if (togo.factor) {
@@ -16979,8 +17180,8 @@ var fluid = fluid || fluid_1_5;
         }
         // TODO: This rubbish should be done by the inversion machinery by itself. We shouldn't have to repeat it in every
         // inversion rule
-        togo.valuePath = fluid.model.composePaths(transform.outputPrefix, transformSpec.outputPath);
-        togo.outputPath = fluid.model.composePaths(transform.inputPrefix, transformSpec.valuePath);
+        togo.valuePath = fluid.model.composePaths(transformer.outputPrefix, transformSpec.outputPath);
+        togo.outputPath = fluid.model.composePaths(transformer.inputPrefix, transformSpec.valuePath);
         return togo;
     };
 
@@ -17008,11 +17209,11 @@ var fluid = fluid || fluid_1_5;
         "||": function (a, b) { return a || b; }
     };
 
-    fluid.transforms.binaryOp = function (inputs, transformSpec, transform) {
+    fluid.transforms.binaryOp = function (inputs, transformSpec, transformer) {
         var left = inputs.left();
         var right = inputs.right();
 
-        var operator = fluid.model.transform.getValue(undefined, transformSpec.operator, transform);
+        var operator = fluid.model.transform.getValue(undefined, transformSpec.operator, transformer);
 
         var fun = fluid.transforms.binaryLookup[operator];
         return (fun === undefined || left === undefined || right === undefined) ?
@@ -17043,36 +17244,40 @@ var fluid = fluid || fluid_1_5;
         invertConfiguration: "fluid.transforms.valueMapper.invert",
         collectInputPaths: "fluid.transforms.valueMapper.collect"
     });
+    
+    
+    // unsupported, NON-API function
+    fluid.model.transform.compareMatches = function (speca, specb) {
+        return specb.matchValue - speca.matchValue;
+    };
 
     // unsupported, NON-API function
-    fluid.model.transform.matchValueMapperFull = function (outerValue, transformSpec, transform) {
+    fluid.model.transform.matchValueMapperFull = function (outerValue, transformSpec, transformer) {
         var o = transformSpec.options;
         if (o.length === 0) {
             fluid.fail("valueMapper supplied empty list of options: ", transformSpec);
         }
-        if (o.length === 1) {
-            return 0;
-        }
         var matchPower = [];
         for (var i = 0; i < o.length; ++i) {
             var option = o[i];
-            var value = fluid.firstDefined(fluid.model.transform.getValue(option.inputPath, undefined, transform),
+            var value = fluid.firstDefined(fluid.model.transform.getValue(option.inputPath, undefined, transformer),
                 outerValue);
-            var matchCount = fluid.model.transform.matchValue(option.undefinedInputValue ? undefined : option.inputValue, value);
-            matchPower[i] = {index: i, matchCount: matchCount};
+            var matchValue = fluid.model.transform.matchValue(option.undefinedInputValue ? undefined :
+                (option.inputValue === undefined ? transformSpec.defaultInputValue : option.inputValue), value, transformSpec.partialMatches || option.partialMatches);
+            matchPower[i] = {index: i, matchValue: matchValue};
         }
         matchPower.sort(fluid.model.transform.compareMatches);
-        return matchPower[0].matchCount === matchPower[1].matchCount ? -1 : matchPower[0].index;
+        return (matchPower[0].matchValue <= 0 || o.length > 1 && matchPower[0].matchValue === matchPower[1].matchValue) ? -1 : matchPower[0].index;
     };
 
-    fluid.transforms.valueMapper = function (transformSpec, transform) {
+    fluid.transforms.valueMapper = function (transformSpec, transformer) {
         if (!transformSpec.options) {
-            fluid.fail("demultiplexValue requires a list or hash of options at path named \"options\", supplied ", transformSpec);
+            fluid.fail("valueMapper requires a list or hash of options at path named \"options\", supplied ", transformSpec);
         }
-        var value = fluid.model.transform.getValue(transformSpec.inputPath, undefined, transform);
+        var value = fluid.model.transform.getValue(transformSpec.inputPath, undefined, transformer);
         var deref = fluid.isArrayable(transformSpec.options) ? // long form with list of records
             function (testVal) {
-                var index = fluid.model.transform.matchValueMapperFull(testVal, transformSpec, transform);
+                var index = fluid.model.transform.matchValueMapperFull(testVal, transformSpec, transformer);
                 return index === -1 ? null : transformSpec.options[index];
             } :
             function (testVal) {
@@ -17090,7 +17295,7 @@ var fluid = fluid || fluid_1_5;
         }
 
         var outputPath = indexed.outputPath === undefined ? transformSpec.defaultOutputPath : indexed.outputPath;
-        transform.outputPrefixOp.push(outputPath);
+        transformer.outputPrefixOp.push(outputPath);
         var outputValue;
         if (fluid.isPrimitive(indexed)) {
             outputValue = indexed;
@@ -17100,20 +17305,20 @@ var fluid = fluid || fluid_1_5;
                 outputValue = undefined;
             } else {
                 // get value from outputValue or outputValuePath. If none is found set the outputValue to be that of defaultOutputValue (or undefined)
-                outputValue = fluid.model.transform.resolveParam(indexed, transform, "outputValue", undefined);
+                outputValue = fluid.model.transform.resolveParam(indexed, transformer, "outputValue", undefined);
                 outputValue = (outputValue === undefined) ? transformSpec.defaultOutputValue : outputValue;
             }
         }
-        //output if outputPath or defaultOutputPath have been specified and the relevant child hasn't done the outputting
+        // output if outputPath or defaultOutputPath have been specified and the relevant child hasn't done the outputting
         if (typeof(outputPath) === "string" && outputValue !== undefined) {
-            fluid.model.transform.setValue(undefined, outputValue, transform, transformSpec.merge);
+            fluid.model.transform.setValue(undefined, outputValue, transformer, transformSpec.merge);
             outputValue = undefined;
         }
-        transform.outputPrefixOp.pop();
+        transformer.outputPrefixOp.pop();
         return outputValue;
     };
 
-    fluid.transforms.valueMapper.invert = function (transformSpec, transform) {
+    fluid.transforms.valueMapper.invert = function (transformSpec, transformer) {
         var options = [];
         var togo = {
             type: "fluid.transforms.valueMapper",
@@ -17130,10 +17335,10 @@ var fluid = fluid || fluid_1_5;
         var anyCustomOutput = findCustom("outputPath");
         var anyCustomInput = findCustom("inputPath");
         if (!anyCustomOutput) {
-            togo.inputPath = fluid.model.composePaths(transform.outputPrefix, transformSpec.outputPath);
+            togo.inputPath = fluid.model.composePaths(transformer.outputPrefix, transformSpec.defaultOutputPath);
         }
         if (!anyCustomInput) {
-            togo.defaultOutputPath = fluid.model.composePaths(transform.inputPrefix, transformSpec.inputPath);
+            togo.defaultOutputPath = fluid.model.composePaths(transformer.inputPrefix, transformSpec.inputPath);
         }
         var def = fluid.firstDefined;
         fluid.each(transformSpec.options, function (option, key) {
@@ -17142,14 +17347,14 @@ var fluid = fluid || fluid_1_5;
             if (origInputValue === undefined) {
                 fluid.fail("Failure inverting configuration for valueMapper - inputValue could not be resolved for record " + key + ": ", transformSpec);
             }
-            outOption.outputValue = origInputValue;
+            outOption.outputValue = fluid.model.transform.literaliseValue(origInputValue);
             var origOutputValue = def(option.outputValue, transformSpec.defaultOutputValue);
-            outOption.inputValue = fluid.model.transform.getValue(option.outputValuePath, origOutputValue, transform);
+            outOption.inputValue = fluid.model.transform.getValue(option.outputValuePath, origOutputValue, transformer);
             if (anyCustomOutput) {
-                outOption.inputPath = fluid.model.composePaths(transform.outputPrefix, def(option.outputPath, transformSpec.outputPath));
+                outOption.inputPath = fluid.model.composePaths(transformer.outputPrefix, def(option.outputPath, transformSpec.outputPath));
             }
             if (anyCustomInput) {
-                outOption.outputPath = fluid.model.composePaths(transform.inputPrefix, def(option.inputPath, transformSpec.inputPath));
+                outOption.outputPath = fluid.model.composePaths(transformer.inputPrefix, def(option.inputPath, transformSpec.inputPath));
             }
             if (option.outputValuePath) {
                 outOption.inputValuePath = option.outputValuePath;
@@ -17159,11 +17364,11 @@ var fluid = fluid || fluid_1_5;
         return togo;
     };
 
-    fluid.transforms.valueMapper.collect = function (transformSpec, transform) {
+    fluid.transforms.valueMapper.collect = function (transformSpec, transformer) {
         var togo = [];
-        fluid.model.transform.accumulateInputPath(transformSpec.inputPath, transform, togo);
+        fluid.model.transform.accumulateInputPath(transformSpec.inputPath, transformer, togo);
         fluid.each(transformSpec.options, function (option) {
-            fluid.model.transform.accumulateInputPath(option.inputPath, transform, togo);
+            fluid.model.transform.accumulateInputPath(option.inputPath, transformer, togo);
         });
         return togo;
     };
@@ -17176,7 +17381,7 @@ var fluid = fluid || fluid_1_5;
     });
 
 
-    fluid.transforms.arrayToSetMembership = function (value, transformSpec, transform) {
+    fluid.transforms.arrayToSetMembership = function (value, transformSpec, transformer) {
         var options = transformSpec.options;
 
         if (!value || !fluid.isArrayable(value)) {
@@ -17197,19 +17402,19 @@ var fluid = fluid || fluid_1_5;
         fluid.each(options, function (outPath, key) {
             // write to output path given in options the value <presentValue> or <missingValue> depending on whether key is found in user input
             var outVal = ($.inArray(key, value) !== -1) ? transformSpec.presentValue : transformSpec.missingValue;
-            fluid.model.transform.setValue(outPath, outVal, transform);
+            fluid.model.transform.setValue(outPath, outVal, transformer);
         });
         // TODO: Why does this transform make no return?
     };
 
-    fluid.transforms.arrayToSetMembership.invert = function (transformSpec, transform) {
+    fluid.transforms.arrayToSetMembership.invert = function (transformSpec, transformer) {
         var togo = fluid.copy(transformSpec);
         delete togo.inputPath;
         togo.type = "fluid.transforms.setMembershipToArray";
-        togo.outputPath = fluid.model.composePaths(transform.inputPrefix, transformSpec.inputPath);
+        togo.outputPath = fluid.model.composePaths(transformer.inputPrefix, transformSpec.inputPath);
         var newOptions = {};
         fluid.each(transformSpec.options, function (path, oldKey) {
-            var newKey = fluid.model.composePaths(transform.outputPrefix, path);
+            var newKey = fluid.model.composePaths(transformer.outputPrefix, path);
             newOptions[newKey] = oldKey;
         });
         togo.options = newOptions;
@@ -17220,7 +17425,7 @@ var fluid = fluid || fluid_1_5;
         gradeNames: ["fluid.standardOutputTransformFunction"]
     });
 
-    fluid.transforms.setMembershipToArray = function (transformSpec, transform) {
+    fluid.transforms.setMembershipToArray = function (transformSpec, transformer) {
         var options = transformSpec.options;
 
         if (!options) {
@@ -17237,7 +17442,7 @@ var fluid = fluid || fluid_1_5;
 
         var outputArr = [];
         fluid.each(options, function (arrVal, inPath) {
-            var val = fluid.model.transform.getValue(inPath, undefined, transform);
+            var val = fluid.model.transform.getValue(inPath, undefined, transformer);
             if (val === transformSpec.presentValue) {
                 outputArr.push(arrVal);
             }
@@ -17284,16 +17489,16 @@ var fluid = fluid || fluid_1_5;
         }
     };
 
-    fluid.model.transform.expandInnerValues = function (inputPath, outputPath, transform, innerValues) {
-        var inputPrefixOp = transform.inputPrefixOp;
-        var outputPrefixOp = transform.outputPrefixOp;
+    fluid.model.transform.expandInnerValues = function (inputPath, outputPath, transformer, innerValues) {
+        var inputPrefixOp = transformer.inputPrefixOp;
+        var outputPrefixOp = transformer.outputPrefixOp;
         var apply = fluid.model.transform.applyPaths;
 
         apply("push", inputPrefixOp, inputPath);
         apply("push", outputPrefixOp, outputPath);
         var expanded = {};
         fluid.each(innerValues, function (innerValue) {
-            var expandedInner = transform.expand(innerValue);
+            var expandedInner = transformer.expand(innerValue);
             if (!fluid.isPrimitive(expandedInner)) {
                 $.extend(true, expanded, expandedInner);
             } else {
@@ -17312,7 +17517,7 @@ var fluid = fluid || fluid_1_5;
         invertConfiguration: "fluid.transforms.arrayToObject.invert"
     });
 
-    fluid.transforms.arrayToObject = function (arr, transformSpec, transform) {
+    fluid.transforms.arrayToObject = function (arr, transformSpec, transformer) {
         if (transformSpec.key === undefined) {
             fluid.fail("arrayToObject requires a 'key' option.", transformSpec);
         }
@@ -17334,19 +17539,19 @@ var fluid = fluid || fluid_1_5;
             delete content[pivot];
             // fix sub Arrays if needed:
             if (transformSpec.innerValue) {
-                content = fluid.model.transform.expandInnerValues([transform.inputPrefix, transformSpec.inputPath, k.toString()],
-                    [newKey], transform, transformSpec.innerValue);
+                content = fluid.model.transform.expandInnerValues([transformer.inputPrefix, transformSpec.inputPath, k.toString()],
+                    [newKey], transformer, transformSpec.innerValue);
             }
             newHash[newKey] = content;
         });
         return newHash;
     };
 
-    fluid.transforms.arrayToObject.invert = function (transformSpec, transform) {
+    fluid.transforms.arrayToObject.invert = function (transformSpec, transformer) {
         var togo = fluid.copy(transformSpec);
         togo.type = "fluid.transforms.objectToArray";
-        togo.inputPath = fluid.model.composePaths(transform.outputPrefix, transformSpec.outputPath);
-        togo.outputPath = fluid.model.composePaths(transform.inputPrefix, transformSpec.inputPath);
+        togo.inputPath = fluid.model.composePaths(transformer.outputPrefix, transformSpec.outputPath);
+        togo.outputPath = fluid.model.composePaths(transformer.inputPrefix, transformSpec.inputPath);
         // invert transforms from innerValue as well:
         // TODO: The Model Transformations framework should be capable of this, but right now the
         // issue is that we use a "private contract" to operate the "innerValue" slot. We need to
@@ -17369,7 +17574,7 @@ var fluid = fluid || fluid_1_5;
      * Transforms an object into array of objects.
      * This performs the inverse transform of fluid.transforms.arrayToObject.
      */
-    fluid.transforms.objectToArray = function (hash, transformSpec, transform) {
+    fluid.transforms.objectToArray = function (hash, transformSpec, transformer) {
         if (transformSpec.key === undefined) {
             fluid.fail("objectToArray requires a 'key' option.", transformSpec);
         }
@@ -17382,7 +17587,7 @@ var fluid = fluid || fluid_1_5;
             content[pivot] = k;
             if (transformSpec.innerValue) {
                 v = fluid.model.transform.expandInnerValues([transformSpec.inputPath, k], [transformSpec.outputPath, newArray.length.toString()],
-                    transform, transformSpec.innerValue);
+                    transformer, transformSpec.innerValue);
             }
             $.extend(true, content, v);
             newArray.push(content);
@@ -17423,7 +17628,7 @@ var fluid = fluid || fluid_1_5;
         return fluid.invokeGlobalFunction(transformSpec.func, args);
     };
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2010-2011 Lucendo Development Ltd.
 Copyright 2010-2011 OCAD University
@@ -17439,7 +17644,7 @@ https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 /** This file contains functions which depend on the presence of a DOM document
  *  and which depend on the contents of Fluid.js **/
 
-var fluid_1_5 = fluid_1_5 || {};
+var fluid_2_0 = fluid_2_0 || {};
 
 (function ($, fluid) {
     "use strict";
@@ -17902,34 +18107,38 @@ var fluid_1_5 = fluid_1_5 || {};
     };
 
     fluid.defaults("fluid.ariaLabeller", {
+        gradeNames: ["fluid.viewComponent", "autoInit"],
         labelAttribute: "aria-label",
-        liveRegionMarkup: "<div class=\"liveRegion fl-offScreen-hidden\" aria-live=\"polite\"></div>",
+        liveRegionMarkup: "<div class=\"liveRegion fl-hidden-accessible\" aria-live=\"polite\"></div>",
         liveRegionId: "fluid-ariaLabeller-liveRegion",
-        events: {
-            generateLiveElement: "unicast"
+        invokers: {
+            generateLiveElement: {
+                funcName: "fluid.ariaLabeller.generateLiveElement",
+                args: "{that}"
+            },
+            update: {
+                funcName: "fluid.ariaLabeller.update",
+                args: ["{that}", "{arguments}.0"]
+            }
         },
         listeners: {
-            generateLiveElement: "fluid.ariaLabeller.generateLiveElement"
+            onCreate: {
+                func: "{that}.update",
+                args: [null]
+            }
         }
     });
-
-    fluid.ariaLabeller = function (element, options) {
-        var that = fluid.initView("fluid.ariaLabeller", element, options);
-
-        that.update = function (newOptions) {
-            newOptions = newOptions || that.options;
-            that.container.attr(that.options.labelAttribute, newOptions.text);
-            if (newOptions.dynamicLabel) {
-                var live = fluid.jById(that.options.liveRegionId);
-                if (live.length === 0) {
-                    live = that.events.generateLiveElement.fire(that);
-                }
-                live.text(newOptions.text);
+    
+    fluid.ariaLabeller.update = function (that, newOptions) {
+        newOptions = newOptions || that.options;
+        that.container.attr(that.options.labelAttribute, newOptions.text);
+        if (newOptions.dynamicLabel) {
+            var live = fluid.jById(that.options.liveRegionId);
+            if (live.length === 0) {
+                live = that.generateLiveElement();
             }
-        };
-
-        that.update();
-        return that;
+            live.text(newOptions.text);
+        }
     };
 
     fluid.ariaLabeller.generateLiveElement = function (that) {
@@ -18087,7 +18296,7 @@ var fluid_1_5 = fluid_1_5 || {};
         backDelay: 100
     });
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;/*
 Copyright 2010-2011 OCAD University
 Copyright 2010-2011 Lucendo Development Ltd.
@@ -18100,7 +18309,7 @@ You may obtain a copy of the ECL 2.0 License and BSD License at
 https://github.com/fluid-project/infusion/raw/master/Infusion-LICENSE.txt
 */
 
-var fluid_1_5 = fluid_1_5 || {};
+var fluid_2_0 = fluid_2_0 || {};
 
 (function ($, fluid) {
     "use strict";
@@ -18126,7 +18335,7 @@ var fluid_1_5 = fluid_1_5 || {};
             fluid.fetchResources.fetchResourcesImpl(that);
         };
         fluid.each(resourceSpecs, function(resourceSpec, key) {
-            resourceSpec.recurseFirer = fluid.event.getEventFirer(null, null, "I/O completion for resource \"" + key + "\"");
+            resourceSpec.recurseFirer = fluid.makeEventFirer({name: "I/O completion for resource \"" + key + "\""});
             resourceSpec.recurseFirer.addListener(that.operate);
             if (resourceSpec.url && !resourceSpec.href) {
                 resourceSpec.href = resourceSpec.url;
@@ -18247,7 +18456,7 @@ var fluid_1_5 = fluid_1_5 || {};
         var cached = resourceCache[canon];
         if (!cached) {
             fluid.log("First request for cached resource with url " + canon);
-            cached = fluid.event.getEventFirer(null, null, "cache notifier for resource URL " + canon);
+            cached = fluid.makeEventFirer({name: "cache notifier for resource URL " + canon});
             cached.$$firer$$ = true;
             resourceCache[canon] = cached;
             var fetchClass = resourceSpec.fetchClass;
@@ -18434,7 +18643,7 @@ var fluid_1_5 = fluid_1_5 || {};
     };
 
 
-})(jQuery, fluid_1_5);
+})(jQuery, fluid_2_0);
 ;// -*- mode: javascript; tab-width: 2; indent-tabs-mode: nil; -*-
 
 //------------------------------------------------------------------------------
@@ -19839,10 +20048,19 @@ var fluid = fluid || require("infusion"),
         var enviroOpts = !options ? undefined : {
             audioSettings: options
         };
-        flock.enviro.shared = flock.enviro(enviroOpts);
+
+        var enviro = flock.enviro.shared = flock.enviro(enviroOpts);
+
+        return enviro;
     };
 
     flock.OUT_UGEN_ID = "flocking-out";
+    flock.MAX_CHANNELS = 32;
+    flock.MIN_BUSES = 2;
+    flock.MAX_INPUT_BUSES = 32;
+    flock.MIN_INPUT_BUSES = 1; // TODO: This constraint should be removed.
+    flock.ALL_CHANNELS = flock.MAX_INPUT_BUSES;
+
     flock.PI = Math.PI;
     flock.TWOPI = 2.0 * Math.PI;
     flock.HALFPI = Math.PI / 2.0;
@@ -19919,11 +20137,6 @@ var fluid = fluid || require("infusion"),
     fluid.staticEnvironment.audioEngine = fluid.typeTag("flock.platform." + flock.platform.audioEngine);
 
     flock.defaultBufferSizeForPlatform = function () {
-        if (flock.platform.browser.mozilla) {
-            // Strangely terrible performance seems to have cropped up on Firefox in recent versions.
-            return 16384;
-        }
-
         if (flock.platform.isMobile) {
             return 8192;
         }
@@ -19947,6 +20160,8 @@ var fluid = fluid || require("infusion"),
      * Utilities *
      *************/
 
+    flock.noOp = function () {};
+
     flock.isIterable = function (o) {
         var type = typeof o;
         return o && o.length !== undefined && type !== "string" && type !== "function";
@@ -19959,6 +20174,9 @@ var fluid = fluid || require("infusion"),
         return obj.tags && obj.tags.indexOf(tag) > -1;
     };
 
+    // TODO: Chrome profiler marks this function as unoptimized.
+    // This should probably be factored into separate functions for
+    // new and existing arrays. (e.g. "generate" vs. "fill")
     flock.generate = function (bufOrSize, generator) {
         var buf = typeof bufOrSize === "number" ? new Float32Array(bufOrSize) : bufOrSize,
             isFunc = typeof generator === "function",
@@ -19982,6 +20200,33 @@ var fluid = fluid || require("infusion"),
             buf[i] = 0.0;
         }
         return buf;
+    };
+
+    /**
+     * Performs an in-place reversal of all items in the array.
+     *
+     * @arg {Iterable} b a buffer or array to reverse
+     * @return {Iterable} the buffer, reversed
+     */
+    flock.reverse = function (b) {
+        if (!b || !flock.isIterable(b) || b.length < 2) {
+            return b;
+        }
+
+        // A native implementation of reverse() exists for regular JS arrays
+        // and is partially implemented for TypedArrays. Use it if possible.
+        if (typeof b.reverse === "function") {
+            return b.reverse();
+        }
+
+        var t;
+        for (var l = 0, r = b.length - 1; l < r; l++, r--) {
+            t = b[l];
+            b[l] = b[r];
+            b[r] = t;
+        }
+
+        return b;
     };
 
     /**
@@ -20123,6 +20368,20 @@ var fluid = fluid || require("infusion"),
                 // amplitudes decreasing by the inverse of the harmonic number
                 return harm % 2 === 0 ? 0.0 : 1.0 / harm;
             });
+        },
+
+        hann: function (size) {
+            // Hanning envelope: sin^2(i) for i from 0 to pi
+            return flock.generate(size, function (i) {
+                var y = Math.sin(Math.PI * i / size);
+                return y * y;
+            });
+        },
+
+        sinWindow: function (size) {
+            return flock.generate(size, function (i) {
+                return Math.sin(Math.PI * i / size);
+            });
         }
     };
 
@@ -20232,106 +20491,75 @@ var fluid = fluid || require("infusion"),
         "cb": 11
     };
 
-    flock.interpolate = {};
+    flock.interpolate = {
+        /**
+         * Performs simple truncation.
+         */
+        none: function (idx, table) {
+            idx = idx % table.length;
 
-    /**
-     * Performs linear interpretation.
-     */
-    flock.interpolate.linear = function (idx, table) {
-        var len = table.length;
-        if (len < 1) {
-            return 0;
+            return table[idx | 0];
+        },
+
+        /**
+         * Performs linear interpolation.
+         */
+        linear: function (idx, table) {
+            var len = table.length;
+            idx = idx % len;
+
+            var i1 = idx | 0,
+                i2 = (i1 + 1) % len,
+                frac = idx - i1,
+                y1 = table[i1],
+                y2 = table[i2];
+
+            return y1 + frac * (y2 - y1);
+        },
+
+        /**
+         * Performs Hermite cubic interpolation.
+         *
+         * Based on Laurent De Soras' implementation at:
+         * http://www.musicdsp.org/showArchiveComment.php?ArchiveID=93
+         *
+         * @param idx {Number} an index into the table
+         * @param table {Arrayable} the table from which values around idx should be drawn and interpolated
+         * @return {Number} an interpolated value
+         */
+        hermite: function (idx, table) {
+            var len = table.length,
+                intPortion = Math.floor(idx),
+                i0 = intPortion % len,
+                frac = idx - intPortion,
+                im1 = i0 > 0 ? i0 - 1 : len - 1,
+                i1 = (i0 + 1) % len,
+                i2 = (i0 + 2) % len,
+                xm1 = table[im1],
+                x0 = table[i0],
+                x1 = table[i1],
+                x2 = table[i2],
+                c = (x1 - xm1) * 0.5,
+                v = x0 - x1,
+                w = c + v,
+                a = w + v + (x2 - x0) * 0.5,
+                bNeg = w + a,
+                val = (((a * frac) - bNeg) * frac + c) * frac + x0;
+
+            return val;
         }
-
-        idx = idx % len;
-
-        var i1 = idx | 0,
-            i2 = (i1 + 1) % len,
-            frac = idx - i1,
-            y1 = table[i1],
-            y2 = table[i2];
-
-        return y1 + frac * (y2 - y1);
     };
 
-    /**
-     * Performs cubic interpretation.
-     *
-     * Based on Laurent De Soras' implementation at:
-     * http://www.musicdsp.org/showArchiveComment.php?ArchiveID=93
-     *
-     * @param idx {Number} an index into the table
-     * @param table {Arrayable} the table from which values around idx should be drawn and interpolated
-     * @return {Number} an interpolated value
-     */
-    flock.interpolate.cubic = function (idx, table) {
-        var len = table.length;
+    flock.interpolate.cubic = flock.interpolate.hermite;
 
-        if (len < 1) {
-            return 0;
+    flock.log = {
+        warn: function (msg) {
+            fluid.log(fluid.logLevel.WARN, msg);
+        },
+
+        debug: function (msg) {
+            fluid.log(fluid.logLevel.INFO, msg);
         }
-
-        var intPortion = Math.floor(idx),
-            i0 = intPortion % len,
-            frac = idx - intPortion,
-            im1 = i0 > 0 ? i0 - 1 : len - 1,
-            i1 = (i0 + 1) % len,
-            i2 = (i0 + 2) % len,
-            xm1 = table[im1],
-            x0 = table[i0],
-            x1 = table[i1],
-            x2 = table[i2],
-            c = (x1 - xm1) * 0.5,
-            v = x0 - x1,
-            w = c + v,
-            a = w + v + (x2 - x0) * 0.5,
-            bNeg = w + a,
-            val = (((a * frac) - bNeg) * frac + c) * frac + x0;
-
-        return val;
-    };
-
-
-    flock.expand = {};
-
-    // TODO: Unit tests.
-    flock.expand.overlay = function (expandSpec) {
-        if (!expandSpec) {
-            return;
-        }
-
-        var ugenDefs = [];
-
-        for (var inputPath in expandSpec.expandInputs) {
-            var expansions = expandSpec.expandInputs[inputPath];
-            if (expansions.length > ugenDefs.length) {
-                flock.expand.overlay.extend(ugenDefs, expandSpec.ugenDef, expansions.length);
-            }
-
-            flock.expand.overlay.merge(ugenDefs, inputPath, expansions);
-        }
-
-        return ugenDefs;
-    };
-
-    flock.expand.overlay.extend = function (arr, protoObj, length) {
-        var numExtra = length - arr.length;
-
-        for (var i = 0; i < numExtra; i++) {
-            arr.push(fluid.copy(protoObj));
-        }
-
-        return arr;
-    };
-
-    flock.expand.overlay.merge = function (protos, path, extensions) {
-        for (var i = 0; i < extensions.length; i++) {
-            var obj = protos[i],
-                extension = extensions[i];
-            flock.set(obj, path, extension);
-        }
-
-        return protos;
     };
 
     flock.fail = function (msg) {
@@ -20343,7 +20571,7 @@ var fluid = fluid || require("infusion"),
     };
 
     flock.pathParseError = function (root, path, token) {
-        var msg = "Error parsing path: " + path + ". Segment '" + token +
+        var msg = "Error parsing path '" + path + "'. Segment '" + token +
             "' could not be resolved. Root object was: " + fluid.prettyPrintJSON(root);
 
         flock.fail(msg);
@@ -20392,8 +20620,8 @@ var fluid = fluid || require("infusion"),
             root = root[prop];
             type = typeof root;
             if (type !== "object") {
-                flock.fail("Error while setting a value at path + " + path +
-                    ". A non-container object was found at segment " + prop + ". Value: " + root);
+                flock.fail("Error while setting a value at path '" + path +
+                    "'. A non-container object was found at segment '" + prop + "'. Value: " + root);
 
                 return;
             }
@@ -20419,17 +20647,41 @@ var fluid = fluid || require("infusion"),
 
     flock.input = {};
 
-    flock.input.shouldExpand = function (inputName, target) {
-        var specialInputs = flock.parse.specialInputs;
-        if (target && target.options && target.options.noExpand) {
-            specialInputs = specialInputs.concat(target.options.noExpand);
-        }
-
-        return specialInputs.indexOf(inputName) < 0;
+    flock.input.shouldExpand = function (inputName) {
+        return flock.parse.specialInputs.indexOf(inputName) < 0;
     };
 
+    // TODO: Replace this with a regular expression;
+    // this produces too much garbage!
     flock.input.pathExpander = function (path) {
-        return path.replace(/\.(?![0-9])/g, ".inputs.");
+        var segs = fluid.model.parseEL(path),
+            separator = "inputs",
+            len = segs.length,
+            penIdx = len - 1,
+            togo = [],
+            i;
+
+        for (i = 0; i < penIdx; i++) {
+            var seg = segs[i];
+            var nextSeg = segs[i + 1];
+
+            togo.push(seg);
+
+            if (nextSeg === "model" || nextSeg === "options") {
+                togo = togo.concat(segs.slice(i + 1, penIdx));
+                break;
+            }
+
+            if (!isNaN(Number(nextSeg))) {
+                continue;
+            }
+
+            togo.push(separator);
+        }
+
+        togo.push(segs[penIdx]);
+
+        return togo.join(".");
     };
 
     flock.input.expandPaths = function (paths) {
@@ -20456,7 +20708,7 @@ var fluid = fluid || require("infusion"),
         var input = flock.get(root, path);
 
         // If the unit generator is a valueType ugen, return its value, otherwise return the ugen itself.
-        return flock.hasTag(input, "flock.ugen.valueType") ? input.model.value : input;
+        return flock.hasTag(input, "flock.ugen.valueType") ? input.inputs.value : input;
     };
 
     flock.input.getValuesForPathArray = function (root, paths) {
@@ -20494,23 +20746,47 @@ var fluid = fluid || require("infusion"),
             flock.input.getValuesForPathObject(root, path);
     };
 
+    flock.input.resolveValue = function (root, path, val, target, inputName, previousInput, valueParser) {
+        // Check to see if the value is actually a "get expression"
+        // (i.e. an EL path wrapped in ${}) and resolve it if necessary.
+        if (typeof val === "string") {
+            var extracted = fluid.extractEL(val, flock.input.valueExpressionSpec);
+            if (extracted) {
+                var resolved = flock.input.getValueForPath(root, extracted);
+                if (resolved === undefined) {
+                    flock.log.debug("The value expression '" + val + "' resolved to undefined. " +
+                    "If this isn't expected, check to ensure that your path is valid.");
+                }
+
+                return resolved;
+            }
+        }
+
+        return flock.input.shouldExpand(inputName) && valueParser ?
+            valueParser(val, path, target, previousInput) : val;
+    };
+
+    flock.input.valueExpressionSpec = {
+        ELstyle: "${}"
+    };
+
     flock.input.setValueForPath = function (root, path, val, baseTarget, valueParser) {
         path = flock.input.expandPath(path);
 
         var previousInput = flock.get(root, path),
             lastDotIdx = path.lastIndexOf("."),
             inputName = path.slice(lastDotIdx + 1),
-            target = lastDotIdx > -1 ? flock.get(root, path.slice(0, path.lastIndexOf(".inputs"))) : baseTarget,
-            newInput = flock.input.shouldExpand(inputName, target) && valueParser ?
-                valueParser(val, path, target, previousInput) : val;
+            target = lastDotIdx > -1 ? flock.get(root, path.slice(0, path.lastIndexOf(".inputs"))) :
+                baseTarget,
+            resolvedVal = flock.input.resolveValue(root, path, val, target, inputName, previousInput, valueParser);
 
-        flock.set(root, path, newInput);
+        flock.set(root, path, resolvedVal);
 
         if (target && target.onInputChanged) {
             target.onInputChanged(inputName);
         }
 
-        return newInput;
+        return resolvedVal;
     };
 
     flock.input.setValuesForPaths = function (root, valueMap, baseTarget, valueParser) {
@@ -20631,15 +20907,30 @@ var fluid = fluid || require("infusion"),
      ***********************/
 
     fluid.defaults("flock.enviro", {
-        gradeNames: ["fluid.modelComponent", "flock.nodeList", "autoInit"],
-        model: {
-            playState: {
-                written: 0,
-                total: null
-            },
+        gradeNames: ["fluid.standardRelayComponent", "flock.nodeList", "autoInit"],
 
-            isPlaying: false
+        members: {
+            audioSettings: "@expand:flock.enviro.clampAudioSettings({that}.options.audioSettings)",
+            buses: {
+                expander: {
+                    funcName: "flock.enviro.createAudioBuffers",
+                    args: ["{that}.audioSettings.numBuses", "{that}.audioSettings.blockSize"]
+                }
+            },
+            buffers: {},
+            bufferSources: {}
         },
+
+        model: {
+            isPlaying: false,
+
+            // TODO: Buses should probably be managed by their own component.
+            nextAvailableBus: {
+                input: 0,
+                interconnect: 0
+            }
+        },
+
         audioSettings: {
             rates: {
                 audio: 48000, // This is only a hint. Some audio backends (such as the Web Audio API)
@@ -20651,51 +20942,101 @@ var fluid = fluid || require("infusion"),
             },
             blockSize: 64,
             chans: 2,
+            numInputBuses: 2,
             numBuses: 8,
             // This buffer size determines the overall latency of Flocking's audio output.
             // TODO: Replace this with IoC awesomeness.
             bufferSize: flock.defaultBufferSizeForPlatform(),
-
-            // Hints to some audio backends.
-            genPollIntervalFactor: flock.platform.isLinux ? 1 : 20 // Only used on Firefox.
         },
+
         components: {
             asyncScheduler: {
                 type: "flock.scheduler.async"
             },
 
             audioStrategy: {
-                type: "flock.enviro.audioStrategy",
+                type: "flock.audioStrategy.platform",
                 options: {
-                    audioSettings: "{enviro}.options.audioSettings",
-                    model: {
-                        playState: "{enviro}.model.playState"
-                    }
+                    audioSettings: "{enviro}.audioSettings"
                 }
+            }
+        },
+
+        invokers: {
+            acquireNextBus: {
+                funcName: "flock.enviro.acquireNextBus",
+                args: [
+                    "{arguments}.0", // The type of bus, either "input" or "interconnect".
+                    "{that}.buses",
+                    "{that}.applier",
+                    "{that}.model",
+                    "{that}.audioSettings"
+                ]
+            }
+        },
+
+        listeners: {
+            onCreate: {
+                funcName: "flock.enviro.calculateControlRate",
+                args: ["{that}.audioSettings"]
             }
         }
     });
 
+    flock.enviro.clampAudioSettings = function (s) {
+        s.numInputBuses = Math.min(s.numInputBuses, flock.MAX_INPUT_BUSES);
+        s.numInputBuses = Math.max(s.numInputBuses, flock.MIN_INPUT_BUSES);
+        s.chans = Math.min(s.chans, flock.MAX_CHANNELS);
+        s.numBuses = Math.max(s.numBuses, s.chans);
+        s.numBuses = Math.max(s.numBuses, flock.MIN_BUSES);
+
+        return s;
+    };
+
+    // TODO: This should be modelized.
+    flock.enviro.calculateControlRate = function (audioSettings) {
+        audioSettings.rates.control = audioSettings.rates.audio / audioSettings.blockSize;
+        return audioSettings;
+    };
+
+    flock.enviro.acquireNextBus = function (type, buses, applier, m, s) {
+        var busNum = m.nextAvailableBus[type];
+
+        if (busNum === undefined) {
+            flock.fail("An invalid bus type was specified when invoking " +
+                "flock.enviro.acquireNextBus(). Type was: " + type);
+            return;
+        }
+
+        // Input buses start immediately after the output buses.
+        var offsetBusNum = busNum + s.chans,
+            offsetBusMax = s.chans + s.numInputBuses;
+
+        // Interconnect buses are after the input buses.
+        if (type === "interconnect") {
+            offsetBusNum += s.numInputBuses;
+            offsetBusMax = buses.length;
+        }
+
+        if (offsetBusNum >= offsetBusMax) {
+            flock.fail("Unable to aquire a bus. There are insufficient buses available. " +
+                "Please use an existing bus or configure additional buses using the enviroment's " +
+                "numBuses and numInputBuses parameters.");
+            return;
+        }
+
+        applier.change("nextAvailableBus." + type, ++busNum);
+
+        return offsetBusNum;
+    };
+
     flock.enviro.preInit = function (that) {
-        that.audioSettings = that.options.audioSettings;
-        that.buses = flock.enviro.createAudioBuffers(that.audioSettings.numBuses,
-                that.audioSettings.blockSize);
-        that.buffers = {};
-        that.bufferSources = {};
 
         /**
          * Starts generating samples from all synths.
-         *
-         * @param {Number} dur optional duration to play in seconds
          */
-        that.play = function (dur) {
-            dur = dur === undefined ? Infinity : dur;
-
-            var playState = that.model.playState,
-                sps = dur * that.audioSettings.rates.audio * that.audioSettings.chans;
-
-            playState.total = playState.written + sps;
-            that.audioStrategy.startGeneratingSamples();
+        that.play = function () {
+            that.audioStrategy.start();
             that.model.isPlaying = true;
         };
 
@@ -20703,13 +21044,17 @@ var fluid = fluid || require("infusion"),
          * Stops generating samples from all synths.
          */
         that.stop = function () {
-            that.audioStrategy.stopGeneratingSamples();
+            that.audioStrategy.stop();
             that.model.isPlaying = false;
         };
 
+        // TODO: This should be factored as an event.
         that.reset = function () {
             that.stop();
             that.asyncScheduler.clearAll();
+            that.applier.change("nextAvailableBus.input", []);
+            that.applier.change("nextAvailableBus.interconnect", []);
+            that.audioStrategy.reset();
             that.clearAll();
         };
 
@@ -20730,8 +21075,6 @@ var fluid = fluid || require("infusion"),
     };
 
     flock.enviro.finalInit = function (that) {
-        var audioSettings = that.options.audioSettings,
-            rates = audioSettings.rates;
 
         that.gen = function () {
             var evaluator = that.audioStrategy.nodeEvaluator;
@@ -20739,10 +21082,6 @@ var fluid = fluid || require("infusion"),
             evaluator.gen();
         };
 
-        // TODO: Model-based (with ChangeApplier) sharing of audioSettings
-        rates.audio = that.audioStrategy.options.audioSettings.rates.audio;
-        rates.control = rates.audio / audioSettings.blockSize;
-        audioSettings.chans = that.audioStrategy.options.audioSettings.chans;
     };
 
     flock.enviro.createAudioBuffers = function (numBufs, blockSize) {
@@ -20754,8 +21093,9 @@ var fluid = fluid || require("infusion"),
         return bufs;
     };
 
-    fluid.defaults("flock.enviro.audioStrategy", {
-        gradeNames: ["fluid.modelComponent"],
+
+    fluid.defaults("flock.audioStrategy", {
+        gradeNames: ["fluid.standardRelayComponent"],
 
         components: {
             nodeEvaluator: {
@@ -20846,7 +21186,7 @@ var fluid = fluid || require("infusion"),
 
             for (key in inputs) {
                 input = inputs[key];
-                if (typeof input !== "number") {
+                if (flock.isUGen(input)) {
                     idx = that.insertTree(idx, input);
                     idx++;
                 }
@@ -20999,8 +21339,10 @@ var fluid = fluid || require("infusion"),
         /**
          * Generates one block of audio rate signal by evaluating this synth's unit generator graph.
          */
+        // TODO: This function is marked as unoptimized by the Chrome profiler.
         that.gen = function () {
-            var nodes = that.nodes,
+            var m = that.model,
+                nodes = that.nodes,
                 i,
                 node;
 
@@ -21009,6 +21351,8 @@ var fluid = fluid || require("infusion"),
                 if (node.gen !== undefined) {
                     node.gen(node.model.blockSize);
                 }
+
+                m.value = node.model.value;
             }
         };
 
@@ -21138,13 +21482,8 @@ var fluid = fluid || require("infusion"),
 
     flock.synth.value.finalInit = function (that) {
         that.value = function () {
-            var nodes = that.nodes,
-                lastIdx = nodes.length - 1,
-                out = nodes[lastIdx];
-
             that.gen(1);
-
-            return out.model.value;
+            return that.model.value;
         };
     };
 
@@ -21372,7 +21711,7 @@ var fluid = fluid || require("infusion"),
 * Dual licensed under the MIT and GPL Version 2 licenses.
 */
 
-/*global require*/
+/*global require, AudioBuffer*/
 /*jshint white: false, newcap: true, regexp: true, browser: true,
     forin: false, nomen: true, bitwise: false, maxerr: 100,
     indent: 4, plusplus: false, curly: true, eqeqeq: true,
@@ -21486,31 +21825,86 @@ var fluid = fluid || require("infusion"),
     // TODO: This is actually part of the interpreter's expansion process
     // and should be clearly named as such.
     flock.bufferDesc = function (data) {
-        data.container = data.container || {};
-        data.format = data.format || {};
+        var fn = flock.platform.isWebAudio && data instanceof AudioBuffer ?
+            flock.bufferDesc.fromAudioBuffer : flock.isIterable(data) ?
+            flock.bufferDesc.fromChannelArray : flock.bufferDesc.expand;
 
-        data.format.numChannels = data.format.numChannels || data.data.channels.length;
+        return fn(data);
+    };
 
-        if (data.data && data.data.channels) {
+    flock.bufferDesc.inferFormat = function (bufDesc) {
+        var format = bufDesc.format,
+            data = bufDesc.data;
+
+        format.sampleRate = format.sampleRate || 44100;
+        format.numSampleFrames = format.numSampleFrames || data.channels[0].length;
+        format.duration = format.numSampleFrames / format.sampleRate;
+
+        return bufDesc;
+    };
+
+    flock.bufferDesc.fromChannelArray = function (arr, sampleRate) {
+        var bufDesc = {
+            container: {},
+
+            format: {
+                numChannels: 1,
+                sampleRate: sampleRate
+            },
+
+            data: {
+                channels: [arr]
+            }
+        };
+
+        return flock.bufferDesc.inferFormat(bufDesc);
+    };
+
+    flock.bufferDesc.expand = function (bufDesc) {
+        bufDesc.container = bufDesc.container || {};
+        bufDesc.format = bufDesc.format || {};
+
+        bufDesc.format.numChannels = bufDesc.format.numChannels || bufDesc.data.channels.length;
+
+        if (bufDesc.data && bufDesc.data.channels) {
             // Special case for an unwrapped single-channel array.
-            if (data.format.numChannels === 1 && data.data.channels.length !== 1) {
-                data.data.channels = [data.data.channels];
+            if (bufDesc.format.numChannels === 1 && bufDesc.data.channels.length !== 1) {
+                bufDesc.data.channels = [bufDesc.data.channels];
             }
 
-            if (data.format.numChannels !== data.data.channels.length) {
+            if (bufDesc.format.numChannels !== bufDesc.data.channels.length) {
                 throw new Error("The specified number of channels does not match " +
                     "the actual channel data. " +
-                    "numChannels was: " + data.format.numChannels +
-                    " but the sample data contains " + data.data.channels.length + " channels.");
+                    "numChannels was: " + bufDesc.format.numChannels +
+                    " but the sample data contains " + bufDesc.data.channels.length + " channels.");
             }
         }
 
-        data.format.sampleRate = data.format.sampleRate || 44100;
-        data.format.numSampleFrames = data.format.numSampleFrames || data.data.channels[0].length;
-        data.format.duration = data.format.numSampleFrames / data.format.sampleRate;
-
-        return data;
+        return flock.bufferDesc.inferFormat(bufDesc);
     };
+
+    flock.bufferDesc.fromAudioBuffer = function (audioBuffer) {
+        var desc = {
+            container: {},
+            format: {
+                sampleRate: audioBuffer.sampleRate,
+                numChannels: audioBuffer.numberOfChannels,
+                numSampleFrames: audioBuffer.length,
+                duration: audioBuffer.duration
+            },
+            data: {
+                channels: []
+            }
+        },
+        i;
+
+        for (i = 0; i < audioBuffer.numberOfChannels; i++) {
+            desc.data.channels.push(audioBuffer.getChannelData(i));
+        }
+
+        return desc;
+    };
+
 
     /**
      * Represents a source for fetching buffers.
@@ -21650,6 +22044,91 @@ var fluid = fluid || require("infusion"),
         return that.bufferPromise.promise;
     };
 
+    /**
+     * A Buffer Loader is responsible for loading a collection
+     * of buffers asynchronously, and will fire an event when they
+     * are all ready.
+     */
+    fluid.defaults("flock.bufferLoader", {
+        gradeNames: ["fluid.eventedComponent", "autoInit"],
+
+        members: {
+            buffers: []
+        },
+
+        // A list of BufferDef objects to resolve.
+        bufferDefs: [],
+
+        events: {
+            afterBuffersLoaded: null
+        },
+
+        listeners: {
+            onCreate: {
+                funcName: "flock.bufferLoader.loadBuffers",
+                args: ["{that}.options.bufferDefs", "{that}.buffers", "{that}.events.afterBuffersLoaded.fire"]
+            }
+        }
+    });
+
+    flock.bufferLoader.idFromURL = function (url) {
+        var lastSlash = url.lastIndexOf("/"),
+            idStart = lastSlash > -1 ? lastSlash + 1 : 0,
+            ext = url.lastIndexOf("."),
+            idEnd = ext > -1 ? ext : url.length;
+
+        return url.substring(idStart, idEnd);
+    };
+
+    flock.bufferLoader.idsFromURLs = function (urls) {
+        return fluid.transform(urls, flock.bufferLoader.idFromURL);
+    };
+
+    flock.bufferLoader.expandFileSequence = function (fileURLs) {
+        fileURLs = fileURLs || [];
+
+        var bufDefs = [],
+            i,
+            url,
+            id;
+
+        for (i = 0; i < fileURLs.length; i++) {
+            url = fileURLs[i];
+            id = flock.bufferLoader.idFromURL(url);
+            bufDefs.push({
+                id: id,
+                url: url
+            });
+        }
+
+        return bufDefs;
+    };
+
+    flock.bufferLoader.loadBuffers = function (bufferDefs, decodedBuffers, afterBuffersLoaded) {
+        bufferDefs = fluid.makeArray(bufferDefs);
+
+        // TODO: This is a sign that the flock.parse.bufferForDef is still terribly broken.
+        var bufferTarget = {
+            setBuffer: function (decoded) {
+                decodedBuffers.push(decoded);
+
+                if (decodedBuffers.length === bufferDefs.length) {
+                    afterBuffersLoaded(decodedBuffers);
+                }
+            }
+        };
+
+        for (var i = 0; i < bufferDefs.length; i++) {
+            // TODO: Hardcoded reference to the shared environment.
+            var bufDef = bufferDefs[i];
+            if (bufDef.id === undefined && bufDef.url !== undefined) {
+                bufDef.id = flock.bufferLoader.idFromURL(bufDef.url);
+            }
+
+            flock.parse.bufferForDef(bufferDefs[i], bufferTarget, flock.enviro.shared);
+        }
+    };
+
 }());
 ;/*
 * Flocking Parser
@@ -21763,7 +22242,7 @@ var fluid = fluid || require("infusion"),
 
 
     flock.parse.reservedWords = ["id", "ugen", "rate", "inputs", "options"];
-    flock.parse.specialInputs = ["value", "buffer", "table"];
+    flock.parse.specialInputs = ["value", "buffer", "list", "table", "envelope"];
 
     flock.parse.expandUGenDef = function (ugenDef) {
         var inputs = {},
@@ -21940,19 +22419,9 @@ var fluid = fluid || require("infusion"),
     };
 
     flock.parse.expandBufferDef = function (bufDef) {
-        if (flock.isIterable(bufDef)) {
-            // If we get a direct array reference, wrap it up in a buffer description.
-            return flock.bufferDesc({
-                data: {
-                    channels: bufDef // TODO: What about bare single-channel arrays?
-                }
-            });
-        }
-
-        // If we get a bare string, interpret it as an id reference.
-        return typeof (bufDef) !== "string" ? bufDef : {
-            id: bufDef
-        };
+        return typeof bufDef === "string" ? {id: bufDef} :
+            (flock.isIterable(bufDef) || bufDef.data || bufDef.format) ?
+            flock.bufferDesc(bufDef) : bufDef;
     };
 
     flock.parse.bufferForDef = function (bufDef, ugen, enviro) {
@@ -21991,6 +22460,10 @@ var fluid = fluid || require("infusion"),
         };
 
         var error = function (msg) {
+            if (!msg && source.model.src && source.model.src.indexOf(".aif")) {
+                msg = "if this is an AIFF file, you might need to include" +
+                " flocking-audiofile-compatibility.js in some browsers.";
+            }
             throw new Error("Error while resolving buffer " + source.model.src + ": " + msg);
         };
 
@@ -22019,620 +22492,28 @@ var fluid = fluid || require("infusion"),
     };
 
 }());
-;// TODO: This is a copy of polydataview.js, now inlined here to avoid script loading
-// issues related to web workers. Ultimately, Flocking should shed its dependency on
-// PolyDataView now that DataView ships in all major browsers.
-
-/*
- * PolyDataView, a better polyfill for DataView.
- * http://github.com/colinbdclark/PolyDataView
- *
- * Copyright 2012, Colin Clark
- * Dual licensed under the MIT and GPL Version 2 licenses.
- *
- * Contributions:
- *   - getFloat32 and getFloat64, Copyright 2011 Christopher Chedeau
- *   - getFloat80, Copyright 2011 Joe Turner
- */
-
-/*global global, self, require, window, ArrayBuffer, Uint8Array, Uint32Array, Float32Array,
-  File, FileReader, PolyDataView*/
-/*jshint white: false, newcap: true, regexp: true, browser: true,
-    forin: false, nomen: true, bitwise: false, maxerr: 100,
-    indent: 4, plusplus: false, curly: true, eqeqeq: true,
-    freeze: true, latedef: true, noarg: true, nonew: true, quotmark: double, undef: true,
-    unused: true, strict: true, asi: false, boss: false, evil: false, expr: false,
-    funcscope: false*/
-
-/*
- * To Do:
- *  - Finish unit tests for getFloat80() and the various array getters.
- */
-
-(function () {
-    "use strict";
-
-    var g = typeof (window) !== "undefined" ? window : typeof (self) !== "undefined" ? self : global;
-
-    var nativeDataView = typeof (g.DataView) !== "undefined" ? g.DataView : undefined;
-
-    var isHostLittleEndian = (function () {
-        var endianTest = new ArrayBuffer(4),
-            u8View = new Uint8Array(endianTest),
-            u32View = new Uint32Array(endianTest);
-
-        u8View[0] = 0x01;
-        u8View[1] = 0x02;
-        u8View[2] = 0x03;
-        u8View[3] = 0x04;
-
-        return u32View[0] === 0x04030201;
-    }());
-
-
-    var addSharedMethods = function (that) {
-
-        /**
-         * Non-standard
-         */
-        that.getString = function (len, w, o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var s = "",
-                i,
-                c;
-
-            for (i = 0; i < len; i++) {
-                c = that.getUint(w, o, isL);
-                if (c > 0xFFFF) {
-                    c -= 0x10000;
-                    s += String.fromCharCode(0xD800 + (c >> 10), 0xDC00 + (c & 0x3FF));
-                } else {
-                    s += String.fromCharCode(c);
-                }
-                o = o + w;
-            }
-
-            return s;
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getFloat80 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            // This method is a modified version of Joe Turner's implementation of an "extended" float decoder,
-            // originally licensed under the WTF license.
-            // https://github.com/oampo/audiofile.js/blob/master/audiofile.js
-            var expon = that.getUint(2, o, isL),
-                hi = that.getUint(4, o + 2),
-                lo = that.getUint(4, o + 6),
-                rng = 1 << (16 - 1),
-                sign = 1,
-                value;
-
-            if (expon >= rng) {
-                expon |= ~(rng - 1);
-            }
-
-            if (expon < 0) {
-                sign = -1;
-                expon += rng;
-            }
-
-            if (expon === hi === lo === 0) {
-                value = 0;
-            } else if (expon === 0x7FFF) {
-                value = Number.MAX_VALUE;
-            } else {
-                expon -= 16383;
-                value = (hi * 0x100000000 + lo) * Math.pow(2, expon - 63);
-            }
-
-            that.offsetState = o + 10;
-
-            return sign * value;
-        };
-    };
-
-    var PolyDataView = function (buffer, byteOffset, byteLength) {
-        var cachedArray = [];
-
-        var that = {
-            buffer: buffer,
-            byteOffset: typeof (byteOffset) === "number" ? byteOffset : 0
-        };
-        that.byteLength = typeof (byteLength) === "number" ? byteLength : buffer.byteLength - that.byteOffset;
-
-        // Bail if we're trying to read off the end of the buffer.
-        if (that.byteOffset > buffer.byteLength || that.byteOffset + that.byteLength > buffer.byteLength) {
-            throw new Error("INDEX_SIZE_ERR: DOM Exception 1");
-        }
-
-        /**
-         * Non-standard
-         */
-        that.u8Buf = new Uint8Array(buffer, that.byteOffset, that.byteLength);
-
-        /**
-         * Non-standard
-         */
-        that.offsetState = that.byteOffset;
-
-        /**
-         * Non-standard
-         */
-        that.getUints = function (len, w, o, isL, array) {
-            // TODO: Complete cut and paste job from getInts()!
-            o = typeof (o) === "number" ? o : that.offsetState;
-            if (o + (len * w) > that.u8Buf.length) {
-                throw new Error("INDEX_SIZE_ERR: DOM Exception 1");
-            }
-
-            that.offsetState = o + (len * w);
-            var arrayType = g["Uint" + (w * 8) + "Array"];
-
-            if (len > 1 && isHostLittleEndian === isL) {
-                return new arrayType(that.buffer, o, len); // jshint ignore:line
-            }
-
-            array = array || new arrayType(len); // jshint ignore:line
-            var startByte,
-                idxInc,
-                i,
-                idx,
-                n,
-                j,
-                scale,
-                v;
-
-            if (isL) {
-                startByte = 0;
-                idxInc = 1;
-            } else {
-                startByte = w - 1;
-                idxInc = -1;
-            }
-
-            for (i = 0; i < len; i++) {
-                idx = o + (i * w) + startByte;
-                n = 0;
-                for (j = 0, scale = 1; j < w; j++, scale *= 256) {
-                    v = that.u8Buf[idx];
-                    n += v * scale;
-                    idx += idxInc;
-                }
-                array[i] = n;
-            }
-
-            return array;
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getInts = function (len, w, o, isL, array) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-            if (o + (len * w) > that.u8Buf.length) {
-                throw new Error("INDEX_SIZE_ERR: DOM Exception 1");
-            }
-
-            that.offsetState = o + (len * w);
-            var arrayType = g["Int" + (w * 8) + "Array"];
-
-            // If the host's endianness matches the file's, just use a typed array view directly.
-            if (len > 1 && isHostLittleEndian === isL) {
-                return new arrayType(that.buffer, o, len); // jshint ignore:line
-            }
-
-            array = array || new arrayType(len); // jshint ignore:line
-            var mask = Math.pow(256, w),
-                halfMask = (mask / 2) - 1,
-                startByte,
-                idxInc,
-                i,
-                idx,
-                n,
-                j,
-                scale,
-                v;
-
-            if (isL) {
-                startByte = 0;
-                idxInc = 1;
-            } else {
-                startByte = w - 1;
-                idxInc = -1;
-            }
-
-            for (i = 0; i < len; i++) {
-                idx = o + (i * w) + startByte;
-                n = 0;
-                for (j = 0, scale = 1; j < w; j++, scale *= 256) {
-                    v = that.u8Buf[idx];
-                    n += v * scale;
-                    idx += idxInc;
-                }
-                array[i] = n > halfMask ? n - mask : n;
-            }
-
-            return array;
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getFloats = function (len, w, o, isL, array) {
-            var bits = w * 8,
-                getterName = "getFloat" + bits,
-                arrayType = g["Float" + bits + "Array"],
-                i;
-
-            // If the host's endianness matches the file's, just use a typed array view directly.
-            if (len > 1 && isHostLittleEndian === isL) {
-                o = typeof (o) === "number" ? o : that.offsetState;
-                if (o + (len * w) > that.u8Buf.length) {
-                    throw new Error("INDEX_SIZE_ERR: DOM Exception 1");
-                }
-                that.offsetState = o + (len * w);
-                return new arrayType(that.buffer, o, len); // jshint ignore:line
-            }
-
-            array = array || new arrayType(len); // jshint ignore:line
-
-            for (i = 0; i < len; i++) {
-                array[i] = that[getterName](o, isL);
-            }
-
-            return array;
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getUint = function (w, o, isL) {
-            return w === 1 ? that.getUint8(o, isL) : that.getUints(1, w, o, isL, cachedArray)[0];
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getInt = function (w, o, isL) {
-            return that.getInts(1, w, o, isL, cachedArray)[0];
-        };
-
-        that.getUint8 = function (o) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.u8Buf[o];
-            that.offsetState = o + 1;
-
-            return n;
-        };
-
-        that.getInt8 = function (o, isL) {
-            return that.getInts(1, 1, o, isL, cachedArray)[0];
-        };
-
-        that.getUint16 = function (o, isL) {
-            return that.getUints(1, 2, o, isL, cachedArray)[0];
-        };
-
-        that.getInt16 = function (o, isL) {
-            return that.getInts(1, 2, o, isL, cachedArray)[0];
-        };
-
-        that.getUint32 = function (o, isL) {
-            return that.getUints(1, 4, o, isL, cachedArray)[0];
-        };
-
-        that.getInt32 = function (o, isL) {
-            return that.getInts(1, 4, o, isL, cachedArray)[0];
-        };
-
-        that.getFloat32 = function (o, isL) {
-            // This method is a modified version of Christopher Chedeau's Float32 decoding
-            // implementation from jDataView, originally distributed under the WTF license.
-            // https://github.com/vjeux/jDataView
-            var bytes = that.getUints(4, 1, o, isL),
-                b0,
-                b1,
-                b2,
-                b3,
-                sign,
-                exp,
-                mant;
-
-            if (isL) {
-                b0 = bytes[3];
-                b1 = bytes[2];
-                b2 = bytes[1];
-                b3 = bytes[0];
-            } else {
-                b0 = bytes[0];
-                b1 = bytes[1];
-                b2 = bytes[2];
-                b3 = bytes[3];
-            }
-
-            sign = 1 - (2 * (b0 >> 7));
-            exp = (((b0 << 1) & 255) | (b1 >> 7)) - 127;
-            mant = ((b1 & 127) * 65536) | (b2 * 256) | b3;
-
-            if (exp === 128) {
-                return mant !== 0 ? NaN : sign * Infinity;
-            }
-
-            if (exp === -127) {
-                return sign * mant * 1.401298464324817e-45;
-            }
-
-            return sign * (1 + mant * 1.1920928955078125e-7) * Math.pow(2, exp);
-        };
-
-        that.getFloat64 = function (o, isL) {
-            // This method is a modified version of Christopher Chedeau's Float64 decoding
-            // implementation from jDataView, originally distributed under the WTF license.
-            // https://github.com/vjeux/jDataView
-            var bytes = that.getUints(8, 1, o, isL),
-                b0,
-                b1,
-                b2,
-                b3,
-                b4,
-                b5,
-                b6,
-                b7,
-                sign,
-                exp,
-                mant;
-
-            if (isL) {
-                b0 = bytes[7];
-                b1 = bytes[6];
-                b2 = bytes[5];
-                b3 = bytes[4];
-                b4 = bytes[3];
-                b5 = bytes[2];
-                b6 = bytes[1];
-                b7 = bytes[0];
-            } else {
-                b0 = bytes[0];
-                b1 = bytes[1];
-                b2 = bytes[2];
-                b3 = bytes[3];
-                b4 = bytes[4];
-                b5 = bytes[5];
-                b6 = bytes[6];
-                b7 = bytes[7];
-            }
-
-            sign = 1 - (2 * (b0 >> 7));
-            exp = ((((b0 << 1) & 255) << 3) | (b1 >> 4)) - 1023;
-            mant = ((b1 & 15) * 281474976710656) + (b2 * 1099511627776) + (b3 * 4294967296) +
-                (b4 * 16777216) + (b5 * 65536) + (b6 * 256) + b7;
-
-            if (exp === 1024) {
-                return mant !== 0 ? NaN : sign * Infinity;
-            }
-
-            if (exp === -1023) {
-                return sign * mant * 5e-324;
-            }
-
-            return sign * (1 + mant * 2.220446049250313e-16) * Math.pow(2, exp);
-        };
-
-        addSharedMethods(that);
-        return that;
-    };
-
-    var wrappedDataView = function (buffer, byteOffset, byteLength) {
-        var that = {
-            buffer: buffer,
-            byteOffset: typeof (byteOffset) === "number" ? byteOffset : 0
-        };
-        that.byteLength = typeof (byteLength) === "number" ? byteLength : buffer.byteLength - that.byteOffset;
-
-        /**
-         * Non-standard
-         */
-        that.dv = new nativeDataView(buffer, that.byteOffset, that.byteLength); // jshint ignore:line
-
-        /**
-         * Non-standard
-         */
-        that.offsetState = that.byteOffset;
-
-        /**
-         * Non-standard
-         */
-        that.getUint = function (w, o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv["getUint" + (w * 8)](o, isL);
-            that.offsetState = o + w;
-
-            return n;
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getInt = function (w, o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv["getInt" + (w * 8)](o, isL);
-            that.offsetState = o + w;
-
-            return n;
-        };
-
-        /**
-         * Non-standard
-         */
-        var getBytes = function (type, len, w, o, isL, array) {
-            var bits = w * 8,
-                typeSize = type + bits,
-                dv = that.dv,
-                getterName = "get" + typeSize,
-                i;
-
-            array = array || new g[typeSize + "Array"](len);
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            for (i = 0; i < len; i++) {
-                array[i] = dv[getterName](o, isL);
-                o += w;
-            }
-
-            that.offsetState = o;
-
-            return array;
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getUints = function (len, w, o, isL, array) {
-            return getBytes("Uint", len, w, o, isL, array);
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getInts = function (len, w, o, isL, array) {
-            return getBytes("Int", len, w, o, isL, array);
-        };
-
-        /**
-         * Non-standard
-         */
-        that.getFloats = function (len, w, o, isL, array) {
-            return getBytes("Float", len, w, o, isL, array);
-        };
-
-        that.getUint8 = function (o) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getUint8(o);
-            that.offsetState = o + 1;
-
-            return n;
-        };
-
-        that.getInt8 = function (o) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getInt8(o);
-            that.offsetState = o + 1;
-
-            return n;
-        };
-
-        that.getUint16 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getUint16(o, isL);
-            that.offsetState = o + 2;
-
-            return n;
-        };
-
-        that.getInt16 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getInt16(o, isL);
-            that.offsetState = o + 2;
-
-            return n;
-        };
-
-        that.getUint32 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getUint32(o, isL);
-            that.offsetState = o + 4;
-
-            return n;
-        };
-
-        that.getInt32 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getInt32(o, isL);
-            that.offsetState = o + 4;
-
-            return n;
-        };
-
-        that.getFloat32 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getFloat32(o, isL);
-            that.offsetState = o + 4;
-
-            return n;
-        };
-
-        that.getFloat64 = function (o, isL) {
-            o = typeof (o) === "number" ? o : that.offsetState;
-
-            var n = that.dv.getFloat64(o, isL);
-            that.offsetState = o + 8;
-
-            return n;
-        };
-
-        addSharedMethods(that);
-        return that;
-    };
-
-    g.PolyDataView = nativeDataView ? wrappedDataView : PolyDataView;
-
-}());
-
-
-/*
- * Flocking Audio File Decoder Library
+;/*
+ * Flocking Audio File Utilities
  * http://github.com/colinbdclark/flocking
  *
  * Copyright 2011-2014, Colin Clark
  * Dual licensed under the MIT and GPL Version 2 licenses.
  */
 
-// Stub out fluid.registerNamespace in cases where we're in a Web Worker and Infusion is unavailable.
-var fluid = typeof (fluid) !== "undefined" ? fluid : typeof (require) !== "undefined" ? require("infusion") : {
-    registerNamespace: function (path) {
-        "use strict";
+/*global require, ArrayBuffer, Uint8Array, File, FileReader */
+/*jshint white: false, newcap: true, regexp: true, browser: true,
+forin: false, nomen: true, bitwise: false, maxerr: 100,
+indent: 4, plusplus: false, curly: true, eqeqeq: true,
+freeze: true, latedef: true, noarg: true, nonew: true, quotmark: double, undef: true,
+unused: true, strict: true, asi: false, boss: false, evil: false, expr: false,
+funcscope: false*/
 
-        if (!path) {
-            return;
-        }
-        var root = self,
-            tokens = path.split("."),
-            i,
-            token;
-
-        for (i = 0; i < tokens.length; i++) {
-            token = tokens[i];
-            if (!root[token]) {
-                root[token] = {};
-            }
-            root = root[token];
-        }
-
-        return root;
-    }
-};
-
-var flock = fluid.registerNamespace("flock");
+var fluid = fluid || require("infusion"),
+    flock = fluid.registerNamespace("flock");
 
 (function () {
-    "use strict";
 
-    var $ = fluid.registerNamespace("jQuery");
+    "use strict";
 
     /**
      * Applies the specified function in the next round of the event loop.
@@ -22711,7 +22592,7 @@ var flock = fluid.registerNamespace("flock");
         // TODO: Better error handling in cases where we've got unrecognized file extensions.
         //       i.e. we should try to read the header instead of relying on extensions.
         if (lastDot < 0) {
-            throw new Error("The file '" + fileName + "' does not have a valid extension.");
+            return undefined;
         }
 
         ext = fileName.substring(lastDot + 1);
@@ -22822,25 +22703,21 @@ var flock = fluid.registerNamespace("flock");
         var success = options.success;
 
         var wrappedSuccess = function (rawData, type) {
-            var decoders = flock.audio.decode,
-                decoder;
+            var strategies = flock.audio.decoderStrategies,
+                strategy = strategies[type] || strategies["default"];
 
-            if (!options) {
-                decoder = decoders.async;
-            } else if (options.decoder) {
-                decoder = typeof (options.decoder) === "string" ?
-                    fluid.getGlobalValue(options.decoder) : options.decoder;
-            } else if (options.async === false) {
-                decoder = decoders.sync;
-            } else {
-                decoder = decoders.async;
+            if (options.decoder) {
+                strategy = typeof (options.decoder) === "string" ?
+                     fluid.getGlobalValue(options.decoder) : options.decoder;
             }
 
-            decoder({
+            strategy({
                 rawData: rawData,
                 type: type,
                 success: success,
-                error: options.error
+                error: options.error,
+                sampleRate: options.sampleRate ||
+                    (flock.enviro.shared ? flock.enviro.shared.audioSettings.rates.audio : undefined)
             });
         };
 
@@ -22849,420 +22726,41 @@ var flock = fluid.registerNamespace("flock");
     };
 
     /**
-     * Synchronously decodes an audio file.
+     * Asynchronously decodes the specified ArrayBuffer rawData using
+     * the browser's Web Audio Context.
      */
-    flock.audio.decode.sync = function (options) {
-        try {
-            var buffer = flock.audio.decodeArrayBuffer(options.rawData, options.type);
-            options.success(buffer, options.type);
-        } catch (e) {
-            if (options.error) {
-                options.error(e.msg);
-            } else {
-                throw e;
-            }
-        }
+    flock.audio.decode.webAudio = function (o) {
+        var ctx = flock.enviro.shared.audioStrategy.context,
+            success = function (audioBuffer) {
+                var bufDesc = flock.bufferDesc.fromAudioBuffer(audioBuffer);
+                o.success(bufDesc);
+            };
+
+        ctx.decodeAudioData(o.rawData, success, o.error);
     };
 
-    /**
-     * Asynchronously decodes the specified rawData in a Web Worker.
-     */
-    flock.audio.decode.async = function (options) {
-        var workerUrl = flock.audio.decode.async.findWorkerUrl(options),
-            w = new Worker(workerUrl);
-
-        w.addEventListener("message", function (e) {
-            var data = e.data,
-                msg = e.data.msg;
-
-            if (msg === "afterDecoded") {
-                options.success(data.buffer, data.type);
-            } else if (msg === "onError") {
-                options.error(data.errorMsg);
-            }
-        }, true);
-
-        w.postMessage({
-            msg: "decode",
-            rawData: options.rawData,
-            type: options.type
-        });
+    flock.audio.decoderStrategies = {
+        "default": flock.audio.decode.webAudio
     };
 
-    flock.audio.decode.async.findWorkerUrl = function (options) {
-        if (options && options.workerUrl) {
-            return options.workerUrl;
+    flock.audio.registerDecoderStrategy = function (type, strategy) {
+        if (!type) {
+            return;
         }
 
-        var workerFileName = "flocking-audiofile-worker.js",
-            flockingFileNames = flock.audio.decode.async.findWorkerUrl.flockingFileNames,
-            i,
-            fileName,
-            scripts,
-            src,
-            idx,
-            baseUrl;
-
-        for (i = 0; i < flockingFileNames.length; i++) {
-            fileName = flockingFileNames[i];
-            scripts = $("script[src$='" + fileName + "']");
-            if (scripts.length > 0) {
-                break;
-            }
-        }
-
-        if (scripts.length < 1) {
-            throw new Error("Flocking error: could not load the Audio Decoder into a worker because " +
-                "flocking-all.js or flocking-core.js could not be found.");
-        }
-
-        src = scripts.eq(0).attr("src");
-        idx = src.indexOf(fileName);
-        baseUrl = src.substring(0, idx);
-
-        return baseUrl + workerFileName;
-    };
-
-    flock.audio.decode.async.findWorkerUrl.flockingFileNames = [
-        "flocking-all.js",
-        "flocking-all.min.js",
-        "flocking-no-jquery.js",
-        "flocking-no-jquery.min.js",
-        "flocking-audiofile.js",
-        "flocking-core.js"
-    ];
-
-    flock.audio.decodeArrayBuffer = function (data, type) {
-        var formatSpec = flock.audio.formats[type];
-        if (!formatSpec) {
-            throw new Error("There is no decoder available for " + type + " files.");
-        }
-
-        return formatSpec.reader(data, formatSpec);
-    };
-
-    flock.audio.decode.deinterleaveSampleData = function (dataType, bits, numChans, interleaved) {
-        var numFrames = interleaved.length / numChans,
-            chans = [],
-            i,
-            samp = 0,
-            max,
-            frame,
-            chan;
-
-        // Initialize each channel.
-        for (i = 0; i < numChans; i++) {
-            chans[i] = new Float32Array(numFrames);
-        }
-
-        if (dataType === "Int") {
-            max = Math.pow(2, bits - 1);
-            for (frame = 0; frame < numFrames; frame++) {
-                for (chan = 0; chan < numChans; chan++) {
-                    chans[chan][frame] = interleaved[samp] / max;
-                    samp++;
-                }
-            }
-        } else {
-            for (frame = 0; frame < numFrames; frame++) {
-                for (chan = 0; chan < numChans; chan++) {
-                    chans[chan][frame] = interleaved[samp];
-                    samp++;
-                }
+        if (typeof type === "object") {
+            for (var key in type) {
+                flock.audio.decoderStrategies[key] = type[key];
             }
 
+            return;
         }
 
-        return chans;
-    };
-
-    flock.audio.decode.data = function (dv, format, dataType, isLittle) {
-        var numChans = format.numChannels,
-            numFrames = format.numSampleFrames,
-            l = numFrames * numChans,
-            bits = format.bitRate,
-            interleaved = dv["get" + dataType + "s"](l, bits / 8, undefined, isLittle);
-
-        return flock.audio.decode.deinterleaveSampleData(dataType, bits, numChans, interleaved);
-    };
-
-    flock.audio.decode.dataChunk = function (dv, format, dataType, data, isLittle) {
-        var l = data.size;
-
-        // Now that we've got the actual data size, correctly set the number of sample frames if it wasn't already present.
-        format.numSampleFrames = format.numSampleFrames || (l / (format.bitRate / 8)) / format.numChannels;
-        format.duration = format.numSampleFrames / format.sampleRate;
-
-        // Read the channel data.
-        data.channels = flock.audio.decode.data(dv, format, dataType, isLittle);
-
-        return data;
-    };
-
-    flock.audio.decode.chunk = function (dv, id, type, headerLayout, layout, chunkIDs, metadata, isLittle, chunks) {
-        var chunkMetadata = metadata[id],
-            offsets = chunkMetadata.offsets,
-            header = chunkMetadata.header,
-            chunk,
-            prop,
-            subchunksLength;
-
-        chunk = flock.audio.decode.chunkFields(dv, layout, isLittle, offsets.fields);
-
-        for (prop in header) {
-            chunk[prop] = header[prop];
+        if (typeof strategy === "string") {
+            strategy = fluid.getGlobalValue(strategy);
         }
 
-        if (offsets.fields + header.size > dv.offsetState) {
-            offsets.data = dv.offsetState;
-        }
-
-        // Read subchunks if there are any.
-        if (layout.chunkLayouts) {
-            subchunksLength = dv.byteLength - offsets.data;
-            flock.audio.decode.scanChunks(dv, subchunksLength, headerLayout, isLittle, metadata);
-            flock.audio.decode.chunks(dv, headerLayout, layout.chunkLayouts, chunkIDs, metadata, isLittle, chunks);
-        }
-
-        return chunk;
-    };
-
-    flock.audio.decode.scanChunks = function (dv, l, headerLayout, isLittle, allMetadata) {
-        allMetadata = allMetadata || {};
-
-        var metadata;
-
-        while (dv.offsetState < l) {
-            metadata = flock.audio.decode.chunkHeader(dv, headerLayout, isLittle);
-            allMetadata[metadata.header.id] = metadata;
-            dv.offsetState += metadata.header.size;
-        }
-
-        return allMetadata;
-    };
-
-    flock.audio.decode.chunks = function (dv, headerLayout, layouts, chunkIDs, metadata, isLittle, chunks) {
-        chunks = chunks || {};
-
-        var order = layouts.order,
-            i,
-            id,
-            type,
-            layout;
-
-        for (i = 0; i < order.length; i++) {
-            id = order[i];
-            type = chunkIDs[id];
-            layout = layouts[id];
-            chunks[type] = flock.audio.decode.chunk(dv, id, type, headerLayout, layout, chunkIDs, metadata, isLittle, chunks);
-        }
-
-        return chunks;
-    };
-
-    flock.audio.decode.chunkFields = function (dv, layout, isLittle, offset) {
-        var decoded = {};
-
-        var order = layout.order,
-            fields = layout.fields,
-            i,
-            name,
-            spec;
-
-        dv.offsetState = typeof (offset) === "number" ? offset : dv.offsetState;
-
-        for (i = 0; i < order.length; i++) {
-            name = order[i];
-            spec = fields[name];
-
-            decoded[name] = typeof spec === "string" ? dv[spec](undefined, isLittle) :
-                dv[spec.getter](spec.length, spec.width, undefined, isLittle);
-        }
-
-        return decoded;
-    };
-
-    flock.audio.decode.chunkHeader = function (dv, headerLayout, isLittle) {
-        var metadata = {
-            offsets: {}
-        };
-
-        metadata.offsets.start = dv.offsetState;
-        metadata.header = flock.audio.decode.chunkFields(dv, headerLayout, isLittle);
-        metadata.offsets.fields = dv.offsetState;
-
-        return metadata;
-    };
-
-    flock.audio.decode.wavSampleDataType = function (chunks) {
-        var t = chunks.format.audioFormatType;
-        if (t !== 1 && t !== 3) {
-            throw new Error("Flocking decoder error: this file contains an unrecognized WAV format type.");
-        }
-
-        return t === 1 ? "Int" : "Float";
-    };
-
-    flock.audio.decode.aiffSampleDataType = function (chunks) {
-        var t = chunks.container.formatType;
-        if (t !== "AIFF" && t !== "AIFC") {
-            throw new Error("Flocking decoder error: this file contains an unrecognized AIFF format type.");
-        }
-
-        return t === "AIFF" ? "Int" : "Float";
-    };
-
-    flock.audio.decode.chunked = function (data, formatSpec) {
-        var dv = new PolyDataView(data, 0, data.byteLength),
-            isLittle = formatSpec.littleEndian,
-            headerLayout = formatSpec.headerLayout,
-            metadata,
-            chunks,
-            dataType;
-
-        metadata = flock.audio.decode.scanChunks(dv, dv.byteLength, headerLayout, isLittle);
-        chunks = flock.audio.decode.chunks(dv, headerLayout, formatSpec.chunkLayouts, formatSpec.chunkIDs, metadata, isLittle);
-
-        // Calculate the data type for the sample data.
-        dataType = formatSpec.findSampleDataType(chunks, metadata, dv);
-
-        // Once all the chunks have been read, decode the channel data.
-        flock.audio.decode.dataChunk(dv, chunks.format, dataType, chunks.data, isLittle);
-
-        return chunks;
-    };
-
-
-    /************************************
-     * Audio Format Decoding Strategies *
-     ************************************/
-
-    flock.audio.formats = {};
-
-    flock.audio.formats.wav = {
-        reader: flock.audio.decode.chunked,
-        littleEndian: true,
-
-        chunkIDs: {
-            "RIFF": "container",
-            "fmt ": "format",
-            "data": "data"
-        },
-
-        headerLayout: {
-            fields: {
-                id: {
-                    getter: "getString",
-                    length: 4,
-                    width: 1
-                },
-                size: "getUint32"
-            },
-            order: ["id", "size"]
-        },
-
-        chunkLayouts: {
-            "RIFF": {
-                fields: {
-                    formatType: {
-                        getter: "getString",
-                        length: 4,
-                        width: 1
-                    }
-                },
-
-                order: ["formatType"],
-
-                chunkLayouts: {
-                    "fmt ": {
-                        fields: {
-                            audioFormatType: "getUint16",
-                            numChannels: "getUint16",
-                            sampleRate: "getUint32",
-                            avgBytesPerSecond: "getUint32",
-                            blockAlign: "getUint16",
-                            bitRate: "getUint16"
-                        },
-                        order: ["audioFormatType", "numChannels", "sampleRate", "avgBytesPerSecond", "blockAlign", "bitRate"]
-                    },
-                    "data": {
-                        fields: {},
-                        order: []
-                    },
-
-                    order: ["fmt ", "data"]
-                }
-            },
-
-            order: ["RIFF"]
-        },
-
-        findSampleDataType: flock.audio.decode.wavSampleDataType
-    };
-
-
-    flock.audio.formats.aiff = {
-        reader: flock.audio.decode.chunked,
-        littleEndian: false,
-
-        chunkIDs: {
-            "FORM": "container",
-            "COMM": "format",
-            "SSND": "data"
-        },
-
-        headerLayout: {
-            fields: {
-                id: {
-                    getter: "getString",
-                    length: 4,
-                    width: 1
-                },
-                size: "getUint32"
-            },
-            order: ["id", "size"]
-        },
-
-        chunkLayouts: {
-            "FORM": {
-                fields: {
-                    formatType: {
-                        getter: "getString",
-                        length: 4,
-                        width: 1
-                    }
-                },
-
-                order: ["formatType"],
-
-                chunkLayouts: {
-                    "COMM": {
-                        fields: {
-                            numChannels: "getInt16",
-                            numSampleFrames: "getUint32",
-                            bitRate: "getUint16",
-                            sampleRate: "getFloat80"
-
-                        },
-                        order: ["numChannels", "numSampleFrames", "bitRate", "sampleRate"]
-                    },
-
-                    "SSND": {
-                        fields: {
-                            offset: "getUint32",
-                            blockSize: "getUint32"
-                        },
-                        order: ["offset", "blockSize"]
-                    },
-
-                    order: ["COMM", "SSND"]
-                }
-            },
-
-            order: ["FORM"]
-        },
-
-        findSampleDataType: flock.audio.decode.aiffSampleDataType
+        flock.audio.decoderStrategies[type] = strategy;
     };
 
 }());
@@ -23839,7 +23337,7 @@ var fluid = fluid || require("infusion"),
 * Dual licensed under the MIT and GPL Version 2 licenses.
 */
 
-/*global require*/
+/*global require, MediaStreamTrack, jQuery*/
 /*jshint white: false, newcap: true, regexp: true, browser: true,
     forin: false, nomen: true, bitwise: false, maxerr: 100,
     indent: 4, plusplus: false, curly: true, eqeqeq: true,
@@ -23853,250 +23351,749 @@ var fluid = fluid || require("infusion"),
 (function () {
     "use strict";
 
-    flock.shim.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-        navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    fluid.registerNamespace("flock.webAudio");
+
+    flock.webAudio.createNode = function (context, type, args, params) {
+        // Second argument is a NodeSpec object.
+        if (typeof type !== "string") {
+            args = type.args;
+            params = type.params;
+            type = type.node;
+        }
+
+        args = args === undefined || args === null ? [] :
+            fluid.isArrayable(args) ? args : [args];
+
+        var creatorName = "create" + type,
+            nodeStrIdx = creatorName.indexOf("Node");
+
+        // Trim off "Node" if it is present.
+        if (nodeStrIdx > -1) {
+            creatorName = creatorName.substring(0, nodeStrIdx);
+        }
+
+        var node = context[creatorName].apply(context, args);
+        flock.webAudio.initializeNodeInputs(node, params);
+
+        return node;
+    };
+
+    // TODO: Add support for other types of AudioParams.
+    flock.webAudio.initializeNodeInputs = function (node, paramSpec) {
+        if (!node || !paramSpec) {
+            return;
+        }
+
+        for (var inputName in paramSpec) {
+            node[inputName].value = paramSpec[inputName];
+        }
+
+        return node;
+    };
+
+
+    // TODO: Remove this when Chrome implements navigator.getMediaDevices().
+    fluid.registerNamespace("flock.webAudio.chrome");
+
+    flock.webAudio.chrome.getSources = function (callback) {
+        return MediaStreamTrack.getSources(function (infoSpecs) {
+            var normalized = fluid.transform(infoSpecs, function (infoSpec) {
+                infoSpec.deviceId = infoSpec.id;
+                return infoSpec;
+            });
+
+            callback(normalized);
+        });
+    };
+
+    flock.webAudio.mediaStreamFailure = function () {
+        flock.fail("Media Capture and Streams are not supported on this browser.");
+    };
+
+    var webAudioShims = {
+        AudioContext: window.AudioContext || window.webkitAudioContext,
+
+        getUserMediaImpl: navigator.getUserMedia || navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia || navigator.msGetUserMedia || flock.webAudio.mediaStreamFailure,
+
+        getUserMedia: function () {
+            flock.shim.getUserMediaImpl.apply(navigator, arguments);
+        },
+
+        getMediaDevicesImpl: navigator.getMediaDevices ? navigator.getMediaDevices :
+            typeof window.MediaStreamTrack !== "undefined" ?
+            flock.webAudio.chrome.getSources : flock.webAudio.mediaStreamFailure,
+
+        getMediaDevice: function () {
+            flock.shim.getMediaDevicesImpl.apply(navigator, arguments);
+        }
+    };
+
+    jQuery.extend(flock.shim, webAudioShims);
+
 
     /**
      * Web Audio API Audio Strategy
      */
-    fluid.defaults("flock.enviro.webAudio", {
-        gradeNames: ["flock.enviro.audioStrategy", "autoInit"],
+    fluid.defaults("flock.audioStrategy.web", {
+        gradeNames: ["flock.audioStrategy", "autoInit"],
 
         members: {
-            preNode: null,
-            jsNode: null,
-            postNode: null
+            context: "{contextWrapper}.context",
+            sampleRate: "{that}.context.sampleRate",
+            chans: {
+                expander: {
+                    funcName: "flock.audioStrategy.web.calculateChannels",
+                    args: ["{contextWrapper}.context", "{enviro}.options.audioSettings.chans"]
+                }
+            },
+            jsNode: {
+                expander: {
+                    funcName: "flock.audioStrategy.web.createScriptProcessor",
+                    args: [
+                        "{contextWrapper}.context",
+                        "{enviro}.options.audioSettings.bufferSize",
+                        "{enviro}.options.audioSettings.numInputBuses",
+                        "{that}.chans"
+                    ]
+                }
+            }
         },
 
         model: {
             isGenerating: false,
-            hasInput: false
+            shouldInitIOS: flock.platform.isIOS,
+            krPeriods: {
+                expander: {
+                    funcName: "flock.audioStrategy.web.calcNumKrPeriods",
+                    args: "{enviro}.options.audioSettings"
+                }
+            }
+        },
+
+        invokers: {
+            start: {
+                func: "{that}.events.onStart.fire"
+            },
+
+            stop: {
+                func: "{that}.events.onStop.fire"
+            },
+
+            reset: {
+                func: "{that}.events.onReset.fire"
+            }
+        },
+
+        components: {
+            contextWrapper: {
+                type: "flock.webAudio.contextWrapper"
+            },
+
+            nativeNodeManager: {
+                type: "flock.webAudio.nativeNodeManager"
+            },
+
+            inputDeviceManager: {
+                type: "flock.webAudio.inputDeviceManager"
+            }
+        },
+
+        events: {
+            onStart: null,
+            onStop: null,
+            onReset: null
+        },
+
+        listeners: {
+            onCreate: [
+                {
+                    funcName: "flock.audioStrategy.web.setChannelState",
+                    args: ["{that}.chans", "{contextWrapper}.context.destination"]
+                },
+                {
+                    funcName: "flock.audioStrategy.web.pushAudioSettings",
+                    args: ["{that}.sampleRate", "{that}.chans", "{enviro}.options.audioSettings"]
+                },
+                {
+                    funcName: "flock.audioStrategy.web.bindWriter",
+                    args: [
+                        "{that}.jsNode",
+                        "{nodeEvaluator}",
+                        "{nativeNodeManager}",
+                        "{that}.model",
+                        "{enviro}.options.audioSettings"
+                    ]
+                }
+            ],
+
+            onStart: [
+                {
+                    func: "{that}.applier.change",
+                    args: ["isGenerating", true]
+                },
+                {
+                    // TODO: Replace this with some progressive enhancement action.
+                    funcName: "flock.audioStrategy.web.iOSStart",
+                    args: ["{that}.model", "{that}.applier", "{contextWrapper}.context", "{that}.jsNode"]
+                },
+                {
+                    func: "{nativeNodeManager}.connect"
+                }
+            ],
+
+            onStop: [
+                {
+                    func: "{that}.applier.change",
+                    args: ["isGenerating", false]
+                },
+                {
+                    func: "{nativeNodeManager}.disconnect"
+                }
+            ],
+
+            onReset: [
+                {
+                    func: "{that}.stop"
+                },
+                {
+                    func: "{nativeNodeManager}.removeAllInputs"
+                },
+                {
+                    func: "{that}.applier.change",
+                    args: ["playState.written", 0]
+                }
+            ]
         }
     });
 
-    flock.enviro.webAudio.finalInit = function (that) {
-
-        that.startGeneratingSamples = function () {
-            var m = that.model;
-
-            if (that.preNode) {
-                that.preNode.connect(that.jsNode);
-            }
-
-            that.postNode.connect(that.context.destination);
-            if (that.postNode !== that.jsNode) {
-                that.jsNode.connect(that.postNode);
-            }
-
-            // Work around a bug in iOS Safari where it now requires a noteOn()
-            // message to be invoked before sound will work at all. Just connecting a
-            // ScriptProcessorNode inside a user event handler isn't sufficient.
-            if (m.shouldInitIOS) {
-                var s = that.context.createBufferSource();
-                s.connect(that.jsNode);
-                s.start(0);
-                s.stop(0);
-                s.disconnect(0);
-                m.shouldInitIOS = false;
-            }
-
-            m.isGenerating = true;
-        };
-
-        that.stopGeneratingSamples = function () {
-            that.jsNode.disconnect(0);
-            that.postNode.disconnect(0);
-            if (that.preNode) {
-                that.preNode.disconnect(0);
-            }
-
-            that.model.isGenerating = false;
-        };
-
-        that.writeSamples = function (e) {
-            var m = that.model,
-                hasInput = m.hasInput,
-                krPeriods = m.krPeriods,
-                evaluator = that.nodeEvaluator,
-                buses = evaluator.buses,
-                audioSettings = that.options.audioSettings,
-                blockSize = audioSettings.blockSize,
-                playState = m.playState,
-                chans = audioSettings.chans,
-                inBufs = e.inputBuffer,
-                inChans = e.inputBuffer.numberOfChannels,
-                outBufs = e.outputBuffer,
-                chan,
-                i,
-                samp;
-
-            // If there are no nodes providing samples, write out silence.
-            if (evaluator.nodes.length < 1) {
-                for (chan = 0; chan < chans; chan++) {
-                    flock.generate.silence(outBufs.getChannelData(chan));
-                }
-                return;
-            }
-
-            // TODO: Make a formal distinction between input buses,
-            // output buses, and interconnect buses in the environment!
-            for (i = 0; i < krPeriods; i++) {
-                var offset = i * blockSize;
-
-                evaluator.clearBuses();
-
-                // Read this ScriptProcessorNode's input buffers
-                // into the environment.
-                if (hasInput) {
-                    for (chan = 0; chan < inChans; chan++) {
-                        var inBuf = inBufs.getChannelData(chan),
-                            inBusNumber = chans + chan, // Input buses are located after output buses.
-                            targetBuf = buses[inBusNumber];
-
-                        for (samp = 0; samp < blockSize; samp++) {
-                            targetBuf[samp] = inBuf[samp + offset];
-                        }
-                    }
-                }
-
-                evaluator.gen();
-
-                // Output the environment's signal
-                // to this ScriptProcessorNode's output channels.
-                for (chan = 0; chan < chans; chan++) {
-                    var sourceBuf = buses[chan],
-                        outBuf = outBufs.getChannelData(chan);
-
-                    // And output each sample.
-                    for (samp = 0; samp < blockSize; samp++) {
-                        outBuf[samp + offset] = sourceBuf[samp];
-                    }
-                }
-            }
-
-            playState.written += audioSettings.bufferSize * chans;
-            if (playState.written >= playState.total) {
-                that.stop();
-            }
-        };
-
-        that.insertInputNode = function (node) {
-            var m = that.model;
-
-            if (that.preNode) {
-                that.removeInputNode(that.preNode);
-            }
-
-            that.preNode = node;
-            m.hasInput = true;
-
-            if (m.isGenerating) {
-                that.preNode.connect(that.jsNode);
-            }
-        };
-
-        that.insertOutputNode = function (node) {
-            if (that.postNode) {
-                that.removeOutputNode(that.postNode);
-            }
-
-            that.postNode = node;
-        };
-
-        that.removeInputNode = function () {
-            flock.enviro.webAudio.removeNode(that.preNode);
-            that.preNode = null;
-            that.model.hasInput = false;
-        };
-
-        that.removeOutputNode = function () {
-            flock.enviro.webAudio.removeNode(that.postNode);
-            that.postNode = that.jsNode;
-        };
-
-        that.startReadingAudioInput = function () {
-            flock.shim.getUserMedia.call(navigator, {
-                audio: true
-            },
-            function success (mediaStream) {
-                var mic = that.context.createMediaStreamSource(mediaStream);
-                that.insertInputNode(mic);
-            },
-            function error (err) {
-                fluid.log(fluid.logLevel.IMPORTANT,
-                    "An error occurred while trying to access the user's microphone. " +
-                    err);
-            });
-        };
-
-        that.stopReadingAudioInput = function () {
-            that.removeInputNode();
-        };
-
-        that.init = function () {
-            var m = that.model,
-                settings = that.options.audioSettings;
-
-            m.krPeriods = settings.bufferSize / settings.blockSize;
-
-            // Singleton AudioContext since the WebKit implementation
-            // freaks if we try to instantiate a new one.
-            if (!flock.enviro.webAudio.audioContext) {
-                flock.enviro.webAudio.audioContext = new flock.enviro.webAudio.contextConstructor();
-            }
-
-            that.context = flock.enviro.webAudio.audioContext;
-            // Override audio settings based on the capabilities of the environment.
-            // These values are "pulled" by the enviro in a hacky sort of way.
-            settings.rates.audio = that.context.sampleRate;
-
-            // TODO: This reduces the user's ability to easily control how many
-            // channels of their device are actually used. They can control
-            // how many non-silent channels there are by using the "expand"
-            // input of flock.ugen.output, but there will still be some extra
-            // overhead. The best way to solve this is to not override settings.chans,
-            // but to instead offer some kind of controls in the playground for adjusting this,
-            // or by providing some kind of "max channels" flag as a parameter to chans.
-
-            if (!flock.platform.browser.safari) {
-                // TODO: Fix this temporary workaround for the fact that iOS won't
-                // allow us to access the destination node until the user has
-                // touched something.
-                settings.chans = that.context.destination.maxChannelCount;
-                that.context.destination.channelCount = settings.chans;
-            }
-
-            that.jsNode = flock.enviro.webAudio.createScriptNode(that.context, settings);
-            that.insertOutputNode(that.jsNode);
-            that.jsNode.onaudioprocess = that.writeSamples;
-
-            m.shouldInitIOS = flock.platform.isIOS;
-        };
-
-        that.init();
+    flock.audioStrategy.web.calculateChannels = function (context, chans) {
+        // TODO: Remove this conditional when Safari adds support for multiple channels.
+        return flock.platform.browser.safari ?  context.destination.channelCount :
+            Math.min(chans, context.destination.maxChannelCount);
     };
 
-    flock.enviro.webAudio.createScriptNode = function (context, settings) {
-        // Create the script processor and setup the audio context's
-        // destination to the appropriate number of channels.
-        var creatorName = context.createScriptProcessor ?
-            "createScriptProcessor" : "createJavaScriptNode";
+    // TODO: Refactor into a shared environment-level model property.
+    flock.audioStrategy.web.pushAudioSettings = function (sampleRate, chans, audioSettings) {
+        audioSettings.rates.audio = sampleRate;
+        audioSettings.chans = chans;
+    };
 
-        var jsNode = context[creatorName](settings.bufferSize, settings.chans, settings.chans);
+    flock.audioStrategy.web.setChannelState = function (chans, destinationNode) {
+        // Safari will throw an InvalidStateError DOM Exception 11 when
+        // attempting to set channelCount on the audioContext's destination.
+        // TODO: Remove this conditional when Safari adds support for multiple channels.
+        if (!flock.platform.browser.safari) {
+            destinationNode.channelCount = chans;
+            destinationNode.channelCountMode = "explicit";
+            destinationNode.channelInterpretation = "discrete";
+        }
+    };
+
+    flock.audioStrategy.web.calcNumKrPeriods = function (s) {
+        return s.bufferSize / s.blockSize;
+    };
+
+    flock.audioStrategy.web.createScriptProcessor = function (ctx, bufferSize, numInputs, chans) {
+        var jsNodeName = ctx.createScriptProcessor ? "createScriptProcessor" : "createJavaScriptNode",
+            jsNode = ctx[jsNodeName](bufferSize, numInputs, chans);
+
         jsNode.channelCountMode = "explicit";
-        jsNode.channelCount = settings.chans;
 
         return jsNode;
     };
 
-    flock.enviro.webAudio.removeNode = function (node) {
+    flock.audioStrategy.web.bindWriter = function (jsNode, nodeEvaluator, nativeNodeManager, model, audioSettings) {
+        jsNode.model = model;
+        jsNode.evaluator = nodeEvaluator;
+        jsNode.audioSettings = audioSettings;
+        jsNode.inputNodes = nativeNodeManager.inputNodes;
+        jsNode.onaudioprocess = flock.audioStrategy.web.writeSamples;
+    };
+
+    /**
+     * Writes samples to the audio strategy's ScriptProcessorNode.
+     *
+     * This function must be bound as a listener to the node's
+     * onaudioprocess event. It expects to be called in the context
+     * of a "this" instance containing the following properties:
+     *  - model: the strategy's model object
+     *  - inputNodes: a list of native input nodes to be read into input buses
+     *  - nodeEvaluator: a nodeEvaluator instance
+     *  - audioSettings: the enviornment's audio settings
+     */
+    flock.audioStrategy.web.writeSamples = function (e) {
+        var m = this.model,
+            numInputNodes = this.inputNodes.length,
+            evaluator = this.evaluator,
+            s = this.audioSettings,
+            inBufs = e.inputBuffer,
+            outBufs = e.outputBuffer,
+            krPeriods = m.krPeriods,
+            buses = evaluator.buses,
+            blockSize = s.blockSize,
+            chans = s.chans,
+            inChans = inBufs.numberOfChannels,
+            chan,
+            i,
+            samp;
+
+        // If there are no nodes providing samples, write out silence.
+        if (evaluator.nodes.length < 1) {
+            for (chan = 0; chan < chans; chan++) {
+                flock.generate.silence(outBufs.getChannelData(chan));
+            }
+            return;
+        }
+
+        // TODO: Make a formal distinction between input buses,
+        // output buses, and interconnect buses in the environment!
+        for (i = 0; i < krPeriods; i++) {
+            var offset = i * blockSize;
+
+            evaluator.clearBuses();
+
+            // Read this ScriptProcessorNode's input buffers
+            // into the environment.
+            if (numInputNodes > 0) {
+                for (chan = 0; chan < inChans; chan++) {
+                    var inBuf = inBufs.getChannelData(chan),
+                        inBusNumber = chans + chan, // Input buses are located after output buses.
+                        targetBuf = buses[inBusNumber];
+
+                    for (samp = 0; samp < blockSize; samp++) {
+                        targetBuf[samp] = inBuf[samp + offset];
+                    }
+                }
+            }
+
+            evaluator.gen();
+
+            // Output the environment's signal
+            // to this ScriptProcessorNode's output channels.
+            for (chan = 0; chan < chans; chan++) {
+                var sourceBuf = buses[chan],
+                    outBuf = outBufs.getChannelData(chan);
+
+                // And output each sample.
+                for (samp = 0; samp < blockSize; samp++) {
+                    outBuf[samp + offset] = sourceBuf[samp];
+                }
+            }
+        }
+    };
+
+    flock.audioStrategy.web.iOSStart = function (model, applier, ctx, jsNode) {
+        // Work around a bug in iOS Safari where it now requires a noteOn()
+        // message to be invoked before sound will work at all. Just connecting a
+        // ScriptProcessorNode inside a user event handler isn't sufficient.
+        if (model.shouldInitIOS) {
+            var s = ctx.createBufferSource();
+            s.connect(jsNode);
+            s.start(0);
+            s.stop(0);
+            s.disconnect(0);
+            applier.change("shouldInitIOS", false);
+        }
+    };
+
+
+    /**
+     * An Infusion component wrapper for a Web Audio API AudioContext instance.
+     */
+    // TODO: Refactor this into an "audio system" component (with cross-platform base grade)
+    // that serves as the canonical source for shared audio settings such as
+    // sample rate, number of channels, etc.
+    fluid.defaults("flock.webAudio.contextWrapper", {
+        gradeNames: ["fluid.eventedComponent", "autoInit"],
+
+        members: {
+            context: "@expand:flock.webAudio.contextWrapper.create()"
+        },
+
+        listeners: {
+            onCreate: [
+                {
+                    funcName: "flock.webAudio.contextWrapper.registerSingleton",
+                    args: ["{that}"]
+                }
+            ]
+        }
+    });
+
+    flock.webAudio.contextWrapper.create = function () {
+        var singleton = fluid.staticEnvironment.webAudioContextWrapper;
+        return singleton ? singleton.context : new flock.shim.AudioContext();
+    };
+
+    flock.webAudio.contextWrapper.registerSingleton = function (that) {
+        fluid.staticEnvironment.webAudioContextWrapper = that;
+    };
+
+
+    /**
+     * Manages a collection of input nodes and an output node,
+     * with a JS node in between.
+     *
+     * Note: this component is slated for removal when Web Audio
+     * "islands" are implemented.
+     */
+    fluid.defaults("flock.webAudio.nativeNodeManager", {
+        gradeNames: ["fluid.eventedComponent", "autoInit"],
+
+        audioSettings: "{enviro}.options.audioSettings",
+
+        members: {
+            outputNode: undefined,
+            inputNodes: [],
+            merger: {
+                expander: {
+                    funcName: "flock.webAudio.nativeNodeManager.createInputMerger",
+                    args: [
+                        "{contextWrapper}.context",
+                        "{enviro}.options.audioSettings.numInputBuses",
+                        "{web}.jsNode"
+                    ]
+                }
+            }
+        },
+
+        invokers: {
+            connect: {
+                funcName: "flock.webAudio.nativeNodeManager.connect",
+                args: [
+                    "{that}.merger",
+                    "{web}.jsNode",
+                    "{that}.outputNode",
+                    "{contextWrapper}.context.destination"
+                ]
+            },
+
+            createNode: {
+                funcName: "flock.webAudio.createNode",
+                args: [
+                    "{contextWrapper}.context",
+                    "{arguments}.0", // Node type.
+                    "{arguments}.1", // Constructor args.
+                    "{arguments}.2"  // AudioParam connections.
+                ]
+            },
+
+            createInputNode: {
+                funcName: "flock.webAudio.nativeNodeManager.createInputNode",
+                args: [
+                    "{that}",
+                    "{arguments}.0", // Node type.
+                    "{arguments}.1", // Constructor args.
+                    "{arguments}.2", // AudioParam connections.
+                    "{arguments}.3"  // {optional} The input bus number to insert it at.
+                ]
+            },
+
+            createMediaStreamInput: {
+                funcName: "flock.webAudio.nativeNodeManager.createInputNode",
+                args: [
+                    "{that}",
+                    "MediaStreamSource",
+                    "{arguments}.0", // The MediaStream,
+                    undefined,
+                    "{arguments}.1"  // {optional} The input bus number to insert it at.
+                ]
+            },
+
+            createMediaElementInput: {
+                funcName: "flock.webAudio.nativeNodeManager.createInputNode",
+                args: [
+                    "{that}",
+                    "MediaElementSource",
+                    "{arguments}.0", // The HTMLMediaElement
+                    undefined,
+                    "{arguments}.1"  // {optional} The input bus number to insert it at.
+                ]
+            },
+
+            createOutputNode: {
+                funcName: "flock.webAudio.nativeNodeManager.createOutputNode",
+                args: [
+                    "{that}",
+                    "{arguments}.0", // Node type.
+                    "{arguments}.1", // Constructor args.
+                    "{arguments}.2"  // AudioParam connections.
+                ]
+            },
+
+            disconnect: {
+                funcName: "flock.webAudio.nativeNodeManager.disconnect",
+                args: ["{that}.merger", "{web}.jsNode", "{that}.outputNode"]
+            },
+
+            insertInput: {
+                funcName: "flock.webAudio.nativeNodeManager.insertInput",
+                args: [
+                    "{that}",
+                    "{enviro}",
+                    "{arguments}.0", // The node to insert.
+                    "{arguments}.1"  // {optional} The bus number to insert it at.
+                ]
+            },
+
+            removeInput: {
+                funcName: "flock.webAudio.nativeNodeManager.removeInput",
+                args: ["{arguments}.0", "{that}.inputNodes"]
+            },
+
+            removeAllInputs: {
+                funcName: "flock.webAudio.nativeNodeManager.removeAllInputs",
+                args: "{that}.inputNodes"
+            },
+
+            insertOutput: {
+                funcName: "flock.webAudio.nativeNodeManager.insertOutput",
+                args: ["{that}", "{arguments}.0"]
+            },
+
+            removeOutput: {
+                funcName: "flock.webAudio.nativeNodeManager.removeOutput",
+                args: ["{web}.jsNode"]
+            }
+        },
+
+        listeners: {
+            onCreate: {
+                func: "{that}.insertOutput",
+                args: "{web}.jsNode"
+            }
+        }
+    });
+
+    flock.webAudio.nativeNodeManager.createInputNode = function (that, type, args, params, busNum) {
+        var node = that.createNode(type, args, params);
+        return that.insertInput(node, busNum);
+    };
+
+    flock.webAudio.nativeNodeManager.createOutputNode = function (that, type, args, params) {
+        var node = that.createNode(type, args, params);
+        return that.insertOutput(node);
+    };
+
+    flock.webAudio.nativeNodeManager.createInputMerger = function (ctx, numInputBuses, jsNode) {
+        var merger = ctx.createChannelMerger(numInputBuses);
+        merger.channelInterpretation = "discrete";
+        merger.connect(jsNode);
+
+        return merger;
+    };
+
+    flock.webAudio.nativeNodeManager.connect = function (merger, jsNode, outputNode, destination) {
+        merger.connect(jsNode);
+        outputNode.connect(destination);
+        if (jsNode !== outputNode) {
+            jsNode.connect(outputNode);
+        }
+    };
+
+    flock.webAudio.nativeNodeManager.disconnect = function (merger, jsNode, outputNode) {
+        merger.disconnect(0);
+        jsNode.disconnect(0);
+        outputNode.disconnect(0);
+    };
+
+    flock.webAudio.nativeNodeManager.removeAllInputs = function (inputNodes) {
+        for (var i = 0; i < inputNodes.length; i++) {
+            var node = inputNodes[i];
+            node.disconnect(0);
+        }
+        inputNodes.length = 0;
+    };
+
+    flock.webAudio.nativeNodeManager.insertInput = function (that, enviro, node, busNum) {
+        var maxInputs = that.options.audioSettings.numInputBuses;
+        if (that.inputNodes.length >= maxInputs) {
+            flock.fail("There are too many input nodes connected to Flocking. " +
+                "The maximum number of input buses is currently set to " + maxInputs + ". " +
+                "Either remove an existing input node or increase Flockings numInputBuses option.");
+
+            return;
+        }
+
+        busNum = busNum === undefined ? enviro.acquireNextBus("input") : busNum;
+        var idx = busNum - enviro.audioSettings.chans;
+
+        that.inputNodes.push(node);
+        node.connect(that.merger, 0, idx);
+
+        return busNum;
+    };
+
+    flock.webAudio.nativeNodeManager.removeInput = function (node, inputNodes) {
+        var idx = inputNodes.indexOf(node);
+        if (idx > -1) {
+            inputNodes.splice(idx, 1);
+        }
+
         node.disconnect(0);
     };
 
-    flock.enviro.webAudio.contextConstructor = window.AudioContext || window.webkitAudioContext;
+    flock.webAudio.nativeNodeManager.insertOutput = function (that, node) {
+        if (that.outputNode) {
+            that.outputNode.disconnect(0);
+        }
 
-    fluid.demands("flock.enviro.audioStrategy", "flock.platform.webAudio", {
-        funcName: "flock.enviro.webAudio"
+        that.outputNode = node;
+
+        return node;
+    };
+
+    flock.webAudio.nativeNodeManager.removeOutput = function (jsNode) {
+        // Replace the current output node with the jsNode.
+        flock.webAudio.nativeNodeManager.insertOutput(jsNode);
+    };
+
+
+    /**
+     * Manages audio input devices using the Web Audio API.
+     */
+    // Add a means for disconnecting audio input nodes.
+    fluid.defaults("flock.webAudio.inputDeviceManager", {
+        gradeNames: ["fluid.eventedComponent", "autoInit"],
+
+        members: {
+            context: "{contextWrapper}.context"
+        },
+
+        invokers: {
+            /**
+             * Opens the specified audio device.
+             * If no device is specified, the default device is opened.
+             *
+             * @param {Object} deviceSpec a device spec containing, optionally, an 'id' or 'label' parameter
+             */
+            openAudioDevice: {
+                funcName: "flock.webAudio.inputDeviceManager.openAudioDevice",
+                args: [
+                    "{arguments}.0",
+                    "{that}.openAudioDeviceWithId",
+                    "{that}.openFirstAudioDeviceWithLabel",
+                    "{that}.openAudioDeviceWithConstraints"
+                ]
+            },
+
+            /**
+             * Opens an audio device with the specified WebRTC constraints.
+             * If no constraints are specified, the default audio device is opened.
+             *
+             * @param {Object} constraints a WebRTC-compatible constraints object
+             */
+            openAudioDeviceWithConstraints: {
+                funcName: "flock.webAudio.inputDeviceManager.openAudioDeviceWithConstraints",
+                args: [
+                    "{that}.context",
+                    "{enviro}",
+                    "{nativeNodeManager}.createMediaStreamInput",
+                    "{arguments}.0"
+                ]
+            },
+
+            /**
+             * Opens an audio device with the specified WebRTC device id.
+             *
+             * @param {string} id a device identifier
+             */
+            openAudioDeviceWithId: {
+                funcName: "flock.webAudio.inputDeviceManager.openAudioDeviceWithId",
+                args: ["{arguments}.0", "{that}.openAudioDeviceWithConstraints"]
+            },
+
+            /**
+             * Opens the first audio device found with the specified label.
+             * The label must be an exact, case-insensitive match.
+             *
+             * @param {string} label a device label
+             */
+            openFirstAudioDeviceWithLabel: {
+                funcName: "flock.webAudio.inputDeviceManager.openFirstAudioDeviceWithLabel",
+                args: ["{arguments}.0", "{that}.openAudioDeviceWithId"]
+            }
+        }
+    });
+
+    flock.webAudio.inputDeviceManager.openAudioDevice = function (sourceSpec, idOpener, labelOpener, specOpener) {
+        if (sourceSpec) {
+            if (sourceSpec.id) {
+                return idOpener(sourceSpec.id);
+            } else if (sourceSpec.label) {
+                return labelOpener(sourceSpec.label);
+            }
+        }
+
+        return specOpener();
+    };
+
+
+    flock.webAudio.inputDeviceManager.openAudioDeviceWithId = function (id, deviceOpener) {
+        var options = {
+            audio: {
+                optional: [
+                    {
+                        sourceId: id
+                    }
+                ]
+            }
+        };
+
+        deviceOpener(options);
+    };
+
+    flock.webAudio.inputDeviceManager.openFirstAudioDeviceWithLabel = function (label, deviceOpener) {
+        if (!label) {
+            return;
+        }
+
+        // TODO: Can't access device labels until the user agrees
+        // to allow access to the current device.
+        flock.shim.getMediaDevices(function (deviceInfoSpecs) {
+            var matches = deviceInfoSpecs.filter(function (device) {
+                if (device.label.toLowerCase() === label.toLowerCase()) {
+                    return true;
+                }
+            });
+
+            if (matches.length > 0) {
+                deviceOpener(matches[0].deviceId);
+            } else {
+                fluid.log(fluid.logLevel.IMPORTANT,
+                    "An audio device named '" + label + "' could not be found.");
+            }
+        });
+    };
+
+    flock.webAudio.inputDeviceManager.openAudioDeviceWithConstraints = function (context, enviro, openMediaStream, options) {
+        options = options || {
+            audio: true
+        };
+
+        // Acquire an input bus ahead of time so we can synchronously
+        // notify the client where its output will be.
+        var busNum = enviro.acquireNextBus("input");
+
+        function error (err) {
+            fluid.log(fluid.logLevel.IMPORTANT,
+                "An error occurred while trying to access the user's microphone. " +
+                err);
+        }
+
+        function success (mediaStream) {
+            openMediaStream(mediaStream, busNum);
+        }
+
+
+        flock.shim.getUserMedia(options, success, error);
+
+        return busNum;
+    };
+
+    fluid.demands("flock.audioStrategy.platform", "flock.platform.webAudio", {
+        funcName: "flock.audioStrategy.web"
     });
 
 }());
@@ -24130,6 +24127,10 @@ var fluid = fluid || require("infusion"),
      * Utilities *
      *************/
 
+    flock.isUGen = function (obj) {
+        return obj && obj.tags && obj.tags.indexOf("flock.ugen") > -1;
+    };
+
     // TODO: Check API; write unit tests.
     flock.aliasUGen = function (sourcePath, aliasName, inputDefaults, defaultOptions) {
         var root = flock.get(sourcePath);
@@ -24154,6 +24155,7 @@ var fluid = fluid || require("infusion"),
     flock.krMul = function (numSamps, output, mulInput) {
         var mul = mulInput.output[0],
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] * mul;
         }
@@ -24162,6 +24164,7 @@ var fluid = fluid || require("infusion"),
     flock.mul = function (numSamps, output, mulInput) {
         var mul = mulInput.output,
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] * mul[i];
         }
@@ -24170,6 +24173,7 @@ var fluid = fluid || require("infusion"),
     flock.krAdd = function (numSamps, output, mulInput, addInput) {
         var add = addInput.output[0],
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] + add;
         }
@@ -24178,6 +24182,7 @@ var fluid = fluid || require("infusion"),
     flock.add = function (numSamps, output, mulInput, addInput) {
         var add = addInput.output,
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] + add[i];
         }
@@ -24187,6 +24192,7 @@ var fluid = fluid || require("infusion"),
         var mul = mulInput.output[0],
             add = addInput.output,
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] * mul + add[i];
         }
@@ -24196,6 +24202,7 @@ var fluid = fluid || require("infusion"),
         var mul = mulInput.output,
             add = addInput.output[0],
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] * mul[i] + add;
         }
@@ -24205,6 +24212,7 @@ var fluid = fluid || require("infusion"),
         var mul = mulInput.output[0],
             add = addInput.output[0],
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] * mul + add;
         }
@@ -24214,6 +24222,7 @@ var fluid = fluid || require("infusion"),
         var mul = mulInput.output,
             add = addInput.output,
             i;
+
         for (i = 0; i < numSamps; i++) {
             output[i] = output[i] * mul[i] + add[i];
         }
@@ -24226,7 +24235,7 @@ var fluid = fluid || require("infusion"),
 
         // If we have no mul or add inputs, bail immediately.
         if (!mul && !add) {
-            that.mulAdd = fluid.identity;
+            that.mulAdd = flock.noOp;
             return;
         }
 
@@ -24257,10 +24266,14 @@ var fluid = fluid || require("infusion"),
             inputs: inputs,
             output: output,
             options: options,
-            model: options.model || {},
+            model: options.model || {
+                unscaledValue: 0.0,
+                value: 0.0
+            },
             multiInputs: {},
             tags: ["flock.ugen"]
         };
+        that.lastOutputIdx = that.output.length - 1;
 
         that.get = function (path) {
             return flock.input.get(that.inputs, path);
@@ -24306,7 +24319,8 @@ var fluid = fluid || require("infusion"),
                 strideNames = that.options.strideInputs,
                 inputs = that.inputs,
                 i,
-                name;
+                name,
+                input;
 
             m.strides = m.strides || {};
 
@@ -24316,7 +24330,14 @@ var fluid = fluid || require("infusion"),
 
             for (i = 0; i < strideNames.length; i++) {
                 name = strideNames[i];
-                m.strides[name] = inputs[name].rate === flock.rates.AUDIO ? 1 : 0;
+                input = inputs[name];
+
+                if (input) {
+                    m.strides[name] = input.rate === flock.rates.AUDIO ? 1 : 0;
+                } else {
+                    fluid.log(fluid.logLevel.WARN, "An invalid input ('" +
+                        name + "') was found on a unit generator: " + that);
+                }
             }
         };
 
@@ -24378,9 +24399,17 @@ var fluid = fluid || require("infusion"),
 
             // Assigns an interpolator function to the UGen.
             // This is inactive by default, but can be used in custom gen() functions.
-            // Will be undefined if no interpolation default or option has been set,
-            // or if it is set to "none"--make sure you check before invoking it.
-            that.interpolate = flock.interpolate[o.interpolation];
+            that.interpolate = flock.interpolate.none;
+            if (o.interpolation) {
+                var fn = flock.interpolate[o.interpolation];
+                if (!fn) {
+                    fluid.log(fluid.logLevel.IMPORTANT,
+                        "An invalid interpolation type of '" + o.interpolation +
+                        "' was specified. Defaulting to none.");
+                } else {
+                    that.interpolate = fn;
+                }
+            }
 
             if (that.rate === flock.rates.DEMAND && that.inputs.freq) {
                 valueDef = flock.parse.ugenDefForConstantValue(1.0);
@@ -24429,26 +24458,35 @@ var fluid = fluid || require("infusion"),
         return inputChannelCache;
     };
 
+    flock.ugen.lastOutputValue = function (numSamps, out) {
+        return out[numSamps - 1];
+    };
+
 
     flock.ugen.value = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
+
+        that.value = function () {
+            return that.model.value;
+        };
 
         that.dynamicGen = function (numSamps) {
             var out = that.output,
                 m = that.model;
 
             for (var i = 0; i < numSamps; i++) {
-                out[i] = m.value;
+                out[i] = m.unscaledValue;
             }
 
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
             var inputs = that.inputs,
                 m = that.model;
 
-            m.value = inputs.value;
+            m.value = m.unscaledValue = inputs.value;
 
             if (that.rate !== "constant") {
                 that.gen = that.dynamicGen;
@@ -24474,6 +24512,11 @@ var fluid = fluid || require("infusion"),
         },
 
         ugenOptions: {
+            model: {
+                unscaledValue: 1.0,
+                value: 1.0
+            },
+
             tags: ["flock.ugen.valueType"]
         }
     });
@@ -24484,7 +24527,7 @@ var fluid = fluid || require("infusion"),
 
         that.onInputChanged = function () {
             for (var i = 0; i < that.output.length; i++) {
-                that.output[i] = 0;
+                that.output[i] = 0.0;
             }
         };
 
@@ -24501,20 +24544,23 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var source = that.inputs.source.output,
+            var m = that.model,
+                source = that.inputs.source.output,
                 out = that.output,
-                i;
+                i,
+                val;
 
             for (i = 0; i < source.length; i++) {
-                out[i] = source[i];
+                out[i] = val = source[i];
             }
 
             for (; i < numSamps; i++) {
-                out[i] = 0.0;
-
+                out[i] = val = 0.0;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -24530,6 +24576,116 @@ var fluid = fluid || require("infusion"),
             add: null
         }
     });
+
+
+    /**
+     * Changes from the <code>initial</code> input to the <code>target</code> input
+     * at the specified <code>time</code>. An optional <code>crossfade</code> duration
+     * may be specified to linearly crossfade between the two inputs.
+     *
+     * Can be used to schedule sample-accurate changes.
+     * Note that the <code>target</code> input will be evaluated from the beginning,
+     * even if its value isn't yet output.
+     *
+     */
+    flock.ugen.change = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                initial = that.inputs.initial.output,
+                initialInc = m.strides.initial,
+                target = that.inputs.target.output,
+                targetInc = m.strides.target,
+                out = that.output,
+                samplesLeft = m.samplesLeft,
+                crossfadeLevel = m.crossfadeLevel,
+                val;
+
+            for (var i = 0, j = 0, k = 0; i < numSamps; i++, j += initialInc, k += targetInc) {
+                if (samplesLeft > 0) {
+                    // We haven't hit the scheduled time yet.
+                    val = initial[j];
+                    samplesLeft--;
+                } else if (crossfadeLevel > 0.0) {
+                    // We've hit the scheduled time, but we still need to peform the crossfade.
+                    val = (initial[j] * crossfadeLevel) + (target[k] * (1.0 - crossfadeLevel));
+                    crossfadeLevel -= m.crossfadeStepSize;
+                } else {
+                    // We're done.
+                    val = target[k];
+                }
+
+                out[i] = val;
+            }
+
+            m.samplesLeft = samplesLeft;
+            m.crossfadeLevel = crossfadeLevel;
+            m.value = m.unscaledValue = val;
+        };
+
+        that.onInputChanged = function (inputName) {
+            var m = that.model,
+                inputs = that.inputs;
+
+            if (inputName === "time" || !inputName) {
+                m.samplesLeft = Math.round(inputs.time.output[0] * m.sampleRate);
+            }
+
+            if (inputName === "crossfade" || !inputName) {
+                m.crossfadeStepSize = 1.0 / Math.round(inputs.crossfade.output[0] * m.sampleRate);
+                m.crossfadeLevel = inputs.crossfade.output[0] > 0.0 ? 1.0 : 0.0;
+            }
+
+            that.calculateStrides();
+        };
+
+        that.onInputChanged();
+
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.change", {
+        rate: "audio",
+
+        inputs: {
+            /**
+             * An input unit generator to output initially.
+             * Can be audio, control, or constant rate.
+             */
+            initial: 0.0,
+
+            /**
+             * The unit generator to output after the specified time.
+             * Can be audio, control, or constant rate.
+             */
+            target: 0.0,
+
+            /**
+             * The sample-accurate time (in seconds) at which the
+             * the change should occur.
+             */
+            time: 0.0,
+
+            /**
+             * The duration of the optional linear crossfade between
+             * the two values.
+             */
+            crossfade: 0.0
+        },
+
+        ugenOptions: {
+            model: {
+                samplesLeft: 0.0,
+                crossfadeStepSize: 0,
+                crossfadeLevel: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
+            },
+            strideInputs: ["initial", "target"]
+        }
+    });
+
 
     flock.ugen.valueChangeTrigger = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
@@ -24547,6 +24703,8 @@ var fluid = fluid || require("infusion"),
                 out[i] = val !== m.prevVal ? 1.0 : 0.0;
                 m.prevVal = val;
             }
+
+            m.value = m.unscaledValue = val;
         };
 
         that.onInputChanged = function (inputName) {
@@ -24571,6 +24729,8 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
+                value: 0.0,
                 prevVal: 0.0
             },
 
@@ -24612,6 +24772,8 @@ var fluid = fluid || require("infusion"),
                     out[i] = 0.0;
                 }
             }
+
+            m.value = m.unscaledValue = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
@@ -24636,6 +24798,8 @@ var fluid = fluid || require("infusion"),
 
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
+                value: 0.0,
                 prevDuration: 0,
                 remainingOpenSamples: 0
             },
@@ -24684,6 +24848,7 @@ var fluid = fluid || require("infusion"),
             }
 
             m.prevTrig = prevTrig;
+            m.value = m.unscaledValue = sourceVal;
         };
 
         that.onInputChanged = function () {
@@ -24720,6 +24885,8 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
+                value: 0.0,
                 funcName: undefined,
                 lastArgIdx: 0
             },
@@ -24738,30 +24905,46 @@ var fluid = fluid || require("infusion"),
         that.expandedSource = new Float32Array(that.options.audioSettings.blockSize);
 
         that.krSourceKrInputGen = function () {
-            var op = that.activeInput,
+            var m = that.model,
+                op = that.activeInput,
                 input = that.inputs[op],
+                out = that.output,
                 sourceBuf = flock.generate(that.expandedSource, that.inputs.source.output[0]);
-            DSP[op](that.output, sourceBuf, input.output[0]);
+
+            DSP[op](out, sourceBuf, input.output[0]);
+            m.value = m.unscaledValue = out[out.length - 1];
         };
 
         that.krSourceArInputGen = function () {
-            var op = that.activeInput,
+            var m = that.model,
+                op = that.activeInput,
                 input = that.inputs[op],
+                out = that.output,
                 sourceBuf = flock.generate(that.expandedSource, that.inputs.source.output[0]);
-            DSP[op](that.output, sourceBuf, input.output);
+
+            DSP[op](out, sourceBuf, input.output);
+            m.value = m.unscaledValue = out[out.length - 1];
         };
 
         that.arSourceKrInputGen = function () {
-            var op = that.activeInput,
+            var m = that.model,
+                op = that.activeInput,
                 input = that.inputs[op],
+                out = that.output,
                 sourceBuf = that.inputs.source.output;
-            DSP[op](that.output, sourceBuf, input.output[0]);
+
+            DSP[op](out, sourceBuf, input.output[0]);
+            m.value = m.unscaledValue = out[out.length - 1];
         };
 
         that.arSourceArInputGen = function () {
-            var op = that.activeInput,
-                input = that.inputs[op];
+            var m = that.model,
+                op = that.activeInput,
+                input = that.inputs[op],
+                out = that.output;
+
             DSP[op](that.output, that.inputs.source.output, input.output);
+            m.value = m.unscaledValue = out[out.length - 1];
         };
 
         that.onInputChanged = function () {
@@ -24809,17 +24992,21 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.copyGen = function (numSamps) {
-            var out = that.output,
+            var m = that.model,
+                out = that.output,
                 source = that.inputs.sources.output,
                 i;
 
             for (i = 0; i < numSamps; i++) {
                 out[i] = source[i];
             }
+
+            m.value = m.unscaledValue = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.sumGen = function (numSamps) {
-            var sources = that.inputs.sources,
+            var m = that.model,
+                sources = that.inputs.sources,
                 out = that.output,
                 i,
                 sourceIdx,
@@ -24832,6 +25019,8 @@ var fluid = fluid || require("infusion"),
                 }
                 out[i] = sum;
             }
+
+            m.value = m.unscaledValue = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -24876,7 +25065,8 @@ var fluid = fluid || require("infusion"),
                 i,
                 j,
                 k,
-                idx;
+                idx,
+                val;
 
             for (i = 0, j = 0, k = 0; i < numSamps; i++, j += m.strides.phase, k += m.strides.freq) {
                 idx = phase + phaseOffset[j] * tableIncRad;
@@ -24885,7 +25075,7 @@ var fluid = fluid || require("infusion"),
                 } else if (idx < 0) {
                     idx += tableLen;
                 }
-                out[i] = that.interpolate ? that.interpolate(idx, table) : table[idx | 0];
+                out[i] = val = that.interpolate(idx, table);
                 phase += freq[k] * tableIncHz;
                 if (phase >= tableLen) {
                     phase -= tableLen;
@@ -24895,22 +25085,34 @@ var fluid = fluid || require("infusion"),
             }
 
             m.phase = phase;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
-        that.onInputChanged = function () {
+        that.onInputChanged = function (inputName) {
             flock.ugen.osc.onInputChanged(that);
 
             // Precalculate table-related values.
-            var m = that.model;
-            m.tableLen = that.inputs.table.length;
-            m.tableIncHz = m.tableLen / m.sampleRate;
-            m.tableIncRad =  m.tableLen / flock.TWOPI;
+            if (!inputName || inputName === "table") {
+                var m = that.model,
+                    table = that.inputs.table;
+
+                if (table.length < 1) {
+                    table = that.inputs.table = flock.ugen.osc.emptyTable;
+                }
+
+                m.tableLen = table.length;
+                m.tableIncHz = m.tableLen / m.sampleRate;
+                m.tableIncRad =  m.tableLen / flock.TWOPI;
+            }
         };
 
         that.onInputChanged();
         return that;
     };
+
+    flock.ugen.osc.emptyTable = new Float32Array([0, 0, 0]);
 
     flock.ugen.osc.onInputChanged = function (that) {
         that.calculateStrides();
@@ -24929,7 +25131,9 @@ var fluid = fluid || require("infusion"),
         ugenOptions: {
             interpolation: "linear",
             model: {
-                phase: 0
+                phase: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             },
             strideInputs: [
                 "freq",
@@ -24975,15 +25179,18 @@ var fluid = fluid || require("infusion"),
                 sampleRate = m.sampleRate,
                 i,
                 j,
-                k;
+                k,
+                val;
 
             for (i = 0, j = 0, k = 0; i < numSamps; i++, j += m.strides.phase, k += m.strides.freq) {
-                out[i] = Math.sin(phase + phaseOffset[j]);
+                out[i] = val = Math.sin(phase + phaseOffset[j]);
                 phase += freq[k] / sampleRate * flock.TWOPI;
             }
 
             m.phase = phase;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -25004,7 +25211,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                phase: 0
+                phase: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             },
             strideInputs: [
                 "freq",
@@ -25025,10 +25234,11 @@ var fluid = fluid || require("infusion"),
                 phaseOffset = that.inputs.phase.output[0], // Phase is control rate
                 phase = m.phase, // TODO: Prime synth graph on instantiation.
                 i,
-                j;
+                j,
+                val;
 
             for (i = 0, j = 0; i < numSamps; i++, j += m.strides.freq) {
-                out[i] = phase + phaseOffset;
+                out[i] = val = phase + phaseOffset;
                 phase += freq[j] * scale;
                 if (phase >= 1.0) {
                     phase -= 2.0;
@@ -25038,7 +25248,9 @@ var fluid = fluid || require("infusion"),
             }
 
             m.phase = phase;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -25067,6 +25279,12 @@ var fluid = fluid || require("infusion"),
             add: null
         },
         ugenOptions: {
+            model: {
+                phase: 0.0,
+                freqInc: 1,
+                unscaledValue: 0.0,
+                value: 0.0
+            },
             strideInputs: ["freq"]
         }
     });
@@ -25085,20 +25303,23 @@ var fluid = fluid || require("infusion"),
                 scale = m.scale,
                 phase = m.phase !== undefined ? m.phase : inputs.phase.output[0], // TODO: Unnecessary if we knew the synth graph had been primed.
                 i,
-                j;
+                j,
+                val;
 
             for (i = 0, j = 0; i < numSamps; i++, j += freqInc) {
                 if (phase >= 1.0) {
                     phase -= 1.0;
-                    out[i] = width < 0.5 ? 1.0 : -1.0;
+                    out[i] = val = width < 0.5 ? 1.0 : -1.0;
                 } else {
-                    out[i] = phase < width ? 1.0 : -1.0;
+                    out[i] = val = phase < width ? 1.0 : -1.0;
                 }
                 phase += freq[j] * scale;
             }
 
             m.phase = phase;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -25123,6 +25344,14 @@ var fluid = fluid || require("infusion"),
             width: 0.5,
             mul: null,
             add: null
+        },
+        ugenOptions: {
+            model: {
+                phase: 0.0,
+                freqInc: 1,
+                unscaledValue: 0.0,
+                value: 0.0
+            }
         }
     });
 
@@ -25157,7 +25386,9 @@ var fluid = fluid || require("infusion"),
             }
 
             m.phase = phase - phaseOffset;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -25184,7 +25415,10 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                phase: 0.0
+                phase: 0.0,
+                scale: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             },
             strideInputs: ["freq"]
         }
@@ -25198,19 +25432,21 @@ var fluid = fluid || require("infusion"),
             var m = that.model,
                 trig = that.inputs.source.output[0],
                 offset = that.inputs.offset.output[0] | 0,
-                out = that.output;
+                out = that.output,
+                val;
 
             // Clear the output buffer.
             for (var i = 0; i < out.length; i++) {
-                out[i] = 0.0;
+                out[i] = val = 0.0;
             }
 
             // Write the trigger value to the audio stream if it's open.
             if (trig > 0.0 && m.prevTrig <= 0.0) {
-                out[offset] = trig;
+                out[offset] = val = trig;
             }
 
             m.prevTrig = trig;
+            m.value = m.unscaledValue = val;
         };
 
         return that;
@@ -25224,7 +25460,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                prevTrig: 0.0
+                prevTrig: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -25241,7 +25479,8 @@ var fluid = fluid || require("infusion"),
                 sourceInc = m.strides.source,
                 out = that.output,
                 i, j,
-                currTrig;
+                currTrig,
+                val;
 
             if (m.holdVal === undefined) {
                 m.holdVal = source[0];
@@ -25249,15 +25488,18 @@ var fluid = fluid || require("infusion"),
 
             for (i = 0, j = 0; i < numSamps; i++, j += sourceInc) {
                 currTrig = trig.output[i];
-                out[i] = (currTrig > 0.0 && m.prevTrig <= 0.0) ? m.holdVal = source[j] : m.holdVal;
+                out[i] = val = (currTrig > 0.0 && m.prevTrig <= 0.0) ? m.holdVal = source[j] : m.holdVal;
                 m.prevTrig = currTrig;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.krGen = function (numSamps) {
             var m = that.model,
+                out = that.output,
                 currTrig = that.inputs.trigger.output[0],
                 i;
 
@@ -25267,10 +25509,12 @@ var fluid = fluid || require("infusion"),
             m.prevTrig = currTrig;
 
             for (i = 0; i < numSamps; i++) {
-                that.output[i] = m.holdVal;
+                out[i] = m.holdVal;
             }
 
+            m.unscaledValue = m.holdVal;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -25294,7 +25538,9 @@ var fluid = fluid || require("infusion"),
         ugenOptions: {
             strideInputs: ["source"],
             model: {
-                prevTrig: 0.0
+                prevTrig: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -25342,92 +25588,103 @@ var fluid = fluid || require("infusion"),
     flock.ugen.playBuffer = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
 
-        // Optimized gen function for constant regular-speed playback.
-        that.crRegularSpeedGen = function (numSamps) {
+        that.defaultKrTriggerGen = function (numSamps) {
             var m = that.model,
                 out = that.output,
                 chan = that.inputs.channel.output[0],
                 source = that.buffer.data.channels[chan],
-                trig = inputs.trigger.output,
                 bufIdx = m.idx,
-                bufLen = source.length,
                 loop = that.inputs.loop.output[0],
-                start = (that.inputs.start.output[0] * bufLen) | 0,
-                end = (that.inputs.end.output[0] * bufLen) | 0,
+                trigVal = inputs.trigger.output[0],
                 i,
-                j,
                 samp;
 
-            for (i = 0, j = 0; i < numSamps; i++, j += m.strides.trigger) {
-                if (trig[j] > 0.0 && m.prevTrig <= 0.0) {
-                    bufIdx = start;
-                } else if (bufIdx >= end) {
-                    if (loop > 0) {
-                        bufIdx = start;
+            if (trigVal > 0.0 && m.prevTrig <= 0.0) {
+                bufIdx = 0;
+            }
+            m.prevTrig = trigVal;
+
+            for (i = 0; i < numSamps; i++) {
+                if (bufIdx > m.lastIdx) {
+                    if (loop > 0.0 && trigVal > 0.0) {
+                        bufIdx = 0;
                     } else {
-                        out[i] = 0.0;
+                        out[i] = samp = 0.0;
                         continue;
                     }
                 }
-                m.prevTrig = trig[j];
 
-                samp = that.interpolate ? that.interpolate(bufIdx, source) : source[bufIdx | 0];
+                samp = that.interpolate(bufIdx, source);
                 out[i] = samp;
-                bufIdx += m.stepSize;
+                bufIdx++;
             }
 
             m.idx = bufIdx;
-
+            m.unscaledValue = samp;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
-        that.krSpeedGen = function (numSamps) {
+        that.otherwiseGen = function (numSamps) {
             var m = that.model,
                 out = that.output,
                 chan = that.inputs.channel.output[0],
-                speedInc = that.inputs.speed.output[0],
+                speed = that.inputs.speed.output,
                 source = that.buffer.data.channels[chan],
                 trig = inputs.trigger.output,
                 bufIdx = m.idx,
-                bufLen = source.length,
                 loop = that.inputs.loop.output[0],
-                start = (that.inputs.start.output[0] * bufLen) | 0,
-                end = (that.inputs.end.output[0] * bufLen) | 0,
+                start = (that.inputs.start.output[0] * m.lastIdx) | 0,
+                end = (that.inputs.end.output[0] * m.lastIdx) | 0,
                 i,
                 j,
+                k,
+                trigVal,
+                speedVal,
                 samp;
 
-            for (i = 0, j = 0; i < numSamps; i++, j += m.strides.trigger) {
-                if (trig[j] > 0.0 && m.prevTrig <= 0.0) {
-                    bufIdx = start;
-                } else if (bufIdx >= end) {
-                    if (loop > 0) {
-                        bufIdx = start;
+            for (i = 0, j = 0, k = 0; i < numSamps; i++, j += m.strides.trigger, k += m.strides.speed) {
+                trigVal = trig[j];
+                speedVal = speed[k];
+
+                if (trigVal > 0.0 && m.prevTrig <= 0.0) {
+                    bufIdx = flock.ugen.playBuffer.resetIndex(speedVal, start, end);
+                } else if (bufIdx < start || bufIdx > end) {
+                    if (loop > 0.0 && trigVal > 0.0) {
+                        bufIdx = flock.ugen.playBuffer.resetIndex(speedVal, start, end);
                     } else {
-                        out[i] = 0.0;
+                        out[i] = samp = 0.0;
                         continue;
                     }
                 }
                 m.prevTrig = trig[j];
 
-                samp = that.interpolate ? that.interpolate(bufIdx, source) : source[bufIdx | 0];
+                samp = that.interpolate(bufIdx, source);
                 out[i] = samp;
-                bufIdx += m.stepSize * speedInc;
+                bufIdx += m.stepSize * speedVal;
             }
 
             m.idx = bufIdx;
+            m.unscaledValue = samp;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
             var inputs = that.inputs,
-                speed = inputs.speed;
+                speed = inputs.speed,
+                start = inputs.start,
+                end = inputs.end,
+                trig = inputs.trigger;
 
             that.onBufferInputChanged(inputName);
 
             // TODO: Optimize for non-regular speed constant rate input.
-            that.gen = (speed.rate === flock.rates.CONSTANT && speed.output[0] === 1.0) ?
-                that.crRegularSpeedGen : that.krSpeedGen;
+            that.gen = (speed.rate === flock.rates.CONSTANT && speed.output[0] === 1.0) &&
+                (start.rate === flock.rates.CONSTANT && start.output[0] === 0.0) &&
+                (end.rate === flock.rates.CONSTANT && end.output[0] === 1.0) &&
+                (trig.rate !== flock.rates.AUDIO) ?
+                that.defaultKrTriggerGen : that.otherwiseGen;
 
             that.calculateStrides();
             flock.onMulAddInputChanged(that);
@@ -25437,9 +25694,11 @@ var fluid = fluid || require("infusion"),
             var m = that.model,
                 end = that.inputs.end.output[0],
                 chan = that.inputs.channel.output[0],
-                buf = that.buffer.data.channels[chan];
+                buf = that.buffer.data.channels[chan],
+                len = buf.length;
 
-            m.idx = (end * buf.length) | 0;
+            m.idx = (end * len) | 0;
+            m.lastIdx = len - 1;
             m.stepSize = that.buffer.format.sampleRate / m.sampleRate;
         };
 
@@ -25451,6 +25710,10 @@ var fluid = fluid || require("infusion"),
 
         that.init();
         return that;
+    };
+
+    flock.ugen.playBuffer.resetIndex = function (speed, start, end) {
+        return speed > 0 ? start : end;
     };
 
     fluid.defaults("flock.ugen.playBuffer", {
@@ -25468,14 +25731,15 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                finished: false,
+                unscaledValue: 0.0,
+                value: 0.0,
                 idx: 0,
                 stepSize: 0,
                 prevTrig: 0,
                 channel: undefined
             },
-            strideInputs: [
-                "trigger"
-            ],
+            strideInputs: ["trigger", "speed"],
             interpolation: "linear"
         }
     });
@@ -25509,11 +25773,13 @@ var fluid = fluid || require("infusion"),
 
             for (i = j = 0; i < numSamps; i++, j += phaseS) {
                 bufIdx = phase[j] * sourceLen;
-                val = that.interpolate ? that.interpolate(bufIdx, source) : source[bufIdx | 0];
+                val = that.interpolate(bufIdx, source);
                 out[i] = val;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
@@ -25545,7 +25811,9 @@ var fluid = fluid || require("infusion"),
 
         ugenOptions: {
             model: {
-                channel: undefined
+                channel: undefined,
+                unscaledValue: 0.0,
+                value: 0.0
             },
             strideInputs: [
                 "phase"
@@ -25566,29 +25834,31 @@ var fluid = fluid || require("infusion"),
 
         that.krGen = function (numSamps) {
             var m = that.model,
+                out = that.output,
                 chan = that.inputs.channel.output[0],
                 source = that.buffer.data.channels[chan],
                 rate = that.buffer.format.sampleRate,
                 i;
 
             for (i = 0; i < numSamps; i++) {
-                that.output[i] = m.value = source.length / rate;
+                out[i] = source.length / rate;
             }
+
+            m.unscaledValue = m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
             that.onBufferInputChanged(inputName);
         };
 
-        that.onBufferReady = function (buffer) {
-            var chan = that.inputs.channel.output[0];
-            that.output[0] = that.model.value = buffer.data.channels[chan].length / that.buffer.format.sampleRate;
+        that.onBufferReady = function () {
+            that.krGen(1);
         };
 
         that.init = function () {
             var r = that.rate;
             that.gen = (r === flock.rates.CONTROL || r === flock.rates.AUDIO) ? that.krGen : undefined;
-            that.output[0] = that.model.value = 0.0;
+            that.output[0] = 0.0;
             flock.ugen.buffer(that);
             that.initBuffer();
             that.onInputChanged();
@@ -25606,6 +25876,7 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
                 value: 0.0
             }
         }
@@ -25623,28 +25894,31 @@ var fluid = fluid || require("infusion"),
 
         that.krGen = function (numSamps) {
             var m = that.model,
+                out = that.output,
                 chan = that.inputs.channel.output[0],
                 source = that.buffer.data.channels[chan],
+                len = source.length,
                 i;
 
             for (i = 0; i < numSamps; i++) {
-                that.output[i] = m.value = source.length;
+                out[i] = len;
             }
+
+            m.value = m.unscaledValue = len;
         };
 
         that.onInputChanged = function (inputName) {
             that.onBufferInputChanged(inputName);
         };
 
-        that.onBufferReady = function (buffer) {
-            var chan = that.inputs.channel.output[0];
-            that.output[0] = that.model.value = buffer.data.channels[chan].length;
+        that.onBufferReady = function () {
+            that.krGen(1);
         };
 
         that.init = function () {
             var r = that.rate;
             that.gen = (r === flock.rates.CONTROL || r === flock.rates.AUDIO) ? that.krGen : undefined;
-            that.output[0] = that.model.value = 0.0;
+            that.output[0] = 0.0;
             flock.ugen.buffer(that);
             that.initBuffer();
             that.onInputChanged();
@@ -25662,6 +25936,7 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
                 value: 0.0
             }
         }
@@ -25669,7 +25944,7 @@ var fluid = fluid || require("infusion"),
 
     /**
      * Outputs a phase step value for playing the specified buffer at its normal playback rate.
-     * This unit generator takes into account any differences betwee the sound file's sample rate and
+     * This unit generator takes into account any differences between the sound file's sample rate and
      * the environment's audio rate.
      *
      * Inputs:
@@ -25679,8 +25954,9 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.krGen = function (numSamps) {
-            var out = that.output,
-                val = that.model.value,
+            var m = that.model,
+                out = that.output,
+                val = m.unscaledValue,
                 i;
 
             for (i = 0; i < numSamps; i++) {
@@ -25688,6 +25964,7 @@ var fluid = fluid || require("infusion"),
             }
 
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
@@ -25703,13 +25980,13 @@ var fluid = fluid || require("infusion"),
                 bufferRate = that.buffer.format.sampleRate || enviroRate;
 
             m.scale = bufferRate / enviroRate;
-            that.output[0] = m.value = 1 / (source.length * m.scale);
+            that.output[0] = m.unscaledValue = 1 / (source.length * m.scale);
         };
 
         that.init = function () {
             var r = that.rate;
             that.gen = (r === flock.rates.CONTROL || r === flock.rates.AUDIO) ? that.krGen : undefined;
-            that.output[0] = that.model.value = 0.0;
+            that.output[0] = 0.0;
             flock.ugen.buffer(that);
             that.initBuffer();
             that.onInputChanged();
@@ -25727,8 +26004,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                scale: 1,
-                value: 0
+                scale: 1.0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -25737,8 +26015,11 @@ var fluid = fluid || require("infusion"),
      * Constant-rate unit generator that outputs the environment's current audio sample rate.
      */
     flock.ugen.sampleRate = function (inputs, output, options) {
-        var that = flock.ugen(inputs, output, options);
-        that.output[0] = that.options.audioSettings.rates.audio;
+        var that = flock.ugen(inputs, output, options),
+            m = that.model;
+
+        that.output[0] = m.value = m.unscaledValue = that.options.audioSettings.rates.audio;
+
         return that;
     };
 
@@ -25757,9 +26038,11 @@ var fluid = fluid || require("infusion"),
 
         that.gen = function (numSamps) {
             var m = that.model,
+                out = that.output,
                 density = inputs.density.output[0], // Density is kr.
                 threshold,
                 scale,
+                rand,
                 val,
                 i;
 
@@ -25773,11 +26056,14 @@ var fluid = fluid || require("infusion"),
             }
 
             for (i = 0; i < numSamps; i++) {
-                val = Math.random();
-                output[i] = (val < threshold) ? val * scale : 0.0;
+                rand = Math.random();
+                val = (rand < threshold) ? rand * scale : 0.0;
+                out[i] = val;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -25795,7 +26081,9 @@ var fluid = fluid || require("infusion"),
             model: {
                 density: 0.0,
                 scale: 0.0,
-                threshold: 0.0
+                threshold: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -25805,14 +26093,18 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var out = that.output,
-                i;
+            var m = that.model,
+                out = that.output,
+                i,
+                val;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = Math.random();
+                out[i] = val = Math.random();
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -25838,10 +26130,11 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var state = that.model.state,
+            var m = that.model,
+                state = m.state,
                 a = that.a,
                 p = that.p,
-                offset = that.model.offset,
+                offset = m.offset,
                 out = that.output,
                 i,
                 j,
@@ -25855,10 +26148,13 @@ var fluid = fluid || require("infusion"),
                     state[j] = p[j] * (state[j] - rand) + rand;
                     val += a[j] * state[j];
                 }
-                out[i] = val * 2 - offset;
+                val = val * 2 - offset;
+                out[i] = val;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.init = function () {
@@ -25885,6 +26181,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                state: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0,
                 offset: 0
             },
             coeffs: {
@@ -25912,11 +26211,11 @@ var fluid = fluid || require("infusion"),
                     m.counter = m.sampleRate / freq;
                     m.counter = m.counter > 1 ? m.counter : 1;
                     if (that.options.interpolation === "linear") {
-                        m.start = m.value = m.end;
+                        m.start = m.unscaledValue = m.end;
                         m.end = Math.random();
                         m.ramp = m.ramp = (m.end - m.start) / m.counter;
                     } else {
-                        m.start = m.value = Math.random();
+                        m.start = m.unscaledValue = Math.random();
                         m.ramp = 0;
                     }
                 }
@@ -25924,14 +26223,17 @@ var fluid = fluid || require("infusion"),
                 remain -= sampsForLevel;
                 m.counter -= sampsForLevel;
                 for (i = 0; i < sampsForLevel; i++) {
-                    out[currSamp] = m.value;
-                    m.value += m.ramp;
+                    out[currSamp] = m.unscaledValue;
+                     // TODO: This reuse of "unscaledValue" will cause the model to be out of sync
+                     // with the actual output of the unit generator.
+                    m.unscaledValue += m.ramp;
                     currSamp++;
                 }
 
             } while (remain);
 
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.input = function () {
@@ -25953,7 +26255,9 @@ var fluid = fluid || require("infusion"),
         ugenOptions: {
             model: {
                 counter: 0,
-                level: 0
+                level: 0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -25967,15 +26271,19 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var generator = that.generator,
+            var m = that.model,
+                generator = that.generator,
                 out = that.output,
-                i;
+                i,
+                val;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = generator.uniform(-1, 1);
+                out[i] = val = generator.uniform(-1, 1);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
@@ -26014,18 +26322,22 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen.random(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var generator = that.generator,
+            var m = that.model,
+                generator = that.generator,
                 out = that.output,
                 lambda = that.inputs.lambda.output,
                 lambdaInc = that.model.strides.lambda,
                 i,
-                j;
+                j,
+                val;
 
             for (i = j = 0; i < numSamps; i++, j += lambdaInc) {
-                out[i] = generator.exponential(lambda[j]);
+                out[i] = val = generator.exponential(lambda[j]);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         return that;
@@ -26060,13 +26372,16 @@ var fluid = fluid || require("infusion"),
                 beta = inputs.beta.output,
                 i,
                 j,
-                k;
+                k,
+                val;
 
             for (i = j = k = 0; i < numSamps; i++, j += alphaInc, k += betaInc) {
-                out[i] = generator.gamma(alpha[j], beta[k]);
+                out[i] = val = generator.gamma(alpha[j], beta[k]);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         return that;
@@ -26102,13 +26417,16 @@ var fluid = fluid || require("infusion"),
                 sigma = inputs.sigma.output,
                 i,
                 j,
-                k;
+                k,
+                val;
 
             for (i = j = k = 0; i < numSamps; i++, j += muInc, k += sigmaInc) {
-                out[i] = generator.normal(mu[j], sigma[k]);
+                out[i] = val = generator.normal(mu[j], sigma[k]);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         return that;
@@ -26134,18 +26452,22 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen.random(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var generator = that.generator,
+            var m = that.model,
+                generator = that.generator,
                 out = that.output,
                 alphaInc = that.model.strides.alpha,
                 alpha = that.inputs.alpha.output,
                 i,
-                j;
+                j,
+                val;
 
             for (i = j = 0; i < numSamps; i++, j += alphaInc) {
-                out[i] = generator.pareto(alpha[j]);
+                out[i] = val = generator.pareto(alpha[j]);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         return that;
@@ -26170,18 +26492,22 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen.random(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var generator = that.generator,
+            var m = that.model,
+                generator = that.generator,
                 out = that.output,
                 modeInc = that.model.strides.mode,
                 mode = that.inputs.mode.output,
                 i,
-                j;
+                j,
+                val;
 
             for (i = j = 0; i < numSamps; i++, j += modeInc) {
-                out[i] = generator.triangular(-1, 1, mode[j]);
+                out[i] = val = generator.triangular(-1, 1, mode[j]);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         return that;
@@ -26216,13 +26542,16 @@ var fluid = fluid || require("infusion"),
                 beta = inputs.beta.output,
                 i,
                 j,
-                k;
+                k,
+                val;
 
             for (i = j = k = 0; i < numSamps; i++, j += alphaInc, k += betaInc) {
-                out[i] = generator.weibull(alpha[j], beta[k]);
+                out[i] = val = generator.weibull(alpha[j], beta[k]);
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         return that;
@@ -26243,140 +26572,6 @@ var fluid = fluid || require("infusion"),
         }
     });
 
-
-    /**************************************
-     * Envelopes and Amplitude Processors *
-     **************************************/
-
-    flock.ugen.line = function (inputs, output, options) {
-        var that = flock.ugen(inputs, output, options);
-
-        that.gen = function (numSamps) {
-            var m = that.model,
-                stepSize = m.stepSize,
-                numSteps = m.numSteps,
-                numLevelVals = numSteps >= numSamps ? numSamps : numSteps,
-                numEndVals = numSamps - numLevelVals,
-                level = m.level,
-                out = that.output,
-                i;
-
-            for (i = 0; i < numLevelVals; i++) {
-                out[i] = level;
-                numSteps--;
-                level += stepSize;
-            }
-
-            // TODO: Implement a more efficient gen algorithm when the line has finished.
-            if (numEndVals > 0) {
-                for (i = 0; i < numEndVals; i++) {
-                    out[i] = level;
-                }
-            }
-
-            m.level = level;
-            m.numSteps = numSteps;
-
-            that.mulAdd(numSamps);
-        };
-
-        that.onInputChanged = function () {
-            var m = that.model;
-
-            // Any change in input value will restart the line.
-            m.start = that.inputs.start.output[0];
-            m.end = that.inputs.end.output[0];
-            m.numSteps = Math.round(that.inputs.duration.output[0] * m.sampleRate); // Duration is seconds.
-            if (m.numSteps === 0) {
-                m.stepSize = 0.0;
-                m.level = m.end;
-            } else {
-                m.stepSize = (m.end - m.start) / m.numSteps;
-                m.level = m.start;
-            }
-
-            flock.onMulAddInputChanged(that);
-        };
-
-        that.onInputChanged();
-        return that;
-    };
-
-    fluid.defaults("flock.ugen.line", {
-        rate: "control",
-        inputs: {
-            start: 0.0,
-            end: 1.0,
-            duration: 1.0,
-            mul: null,
-            add: null
-        }
-    });
-
-
-    flock.ugen.xLine = function (inputs, output, options) {
-        var that = flock.ugen(inputs, output, options);
-
-        that.gen = function (numSamps) {
-            var m = that.model,
-                multiplier = m.multiplier,
-                numSteps = m.numSteps,
-                numLevelVals = numSteps >= numSamps ? numSamps : numSteps,
-                numEndVals = numSamps - numLevelVals,
-                level = m.level,
-                out = that.output,
-                i;
-
-            for (i = 0; i < numLevelVals; i++) {
-                out[i] = level;
-                numSteps--;
-                level *= multiplier;
-            }
-
-            // TODO: Implement a more efficient gen algorithm when the line has finished.
-            if (numEndVals > 0) {
-                for (i = 0; i < numEndVals; i++) {
-                    out[i] = level;
-                }
-            }
-
-            m.level = level;
-            m.numSteps = numSteps;
-
-            that.mulAdd(numSamps);
-        };
-
-        that.onInputChanged = function () {
-            var m = that.model;
-
-            flock.onMulAddInputChanged(that);
-
-            // Any change in input value will restart the line.
-            m.start = that.inputs.start.output[0];
-            if (m.start === 0.0) {
-                m.start = Number.MIN_VALUE; // Guard against divide by zero by using the smallest possible number.
-            }
-
-            m.end = that.inputs.end.output[0];
-            m.numSteps = Math.round(that.inputs.duration.output[0] * m.sampleRate);
-            m.multiplier = Math.pow(m.end / m.start, 1.0 / m.numSteps);
-            m.level = m.start;
-        };
-
-        that.onInputChanged();
-        return that;
-    };
-
-    fluid.defaults("flock.ugen.xLine", {
-        rate: "control",
-        inputs: {
-            start: 0.0,
-            end: 1.0,
-            duration: 1.0,
-            mul: null,
-            add: null
-        }
-    });
 
     /**
      * Loops through a linear ramp from start to end, incrementing the output by step.
@@ -26403,25 +26598,26 @@ var fluid = fluid || require("infusion"),
                 k;
 
             // TODO: Add sample priming to the ugen graph to remove this conditional.
-            if (m.value === undefined) {
-                m.value = inputs.start.output[0];
+            if (m.unscaledValue === undefined) {
+                m.unscaledValue = inputs.start.output[0];
             }
 
             for (i = 0, j = 0, k = 0; i < numSamps; i++, j += m.strides.trigger, k += m.strides.step) {
                 if ((trig[j] > 0.0 && m.prevTrig <= 0.0)) {
-                    m.value = inputs.reset.output[0];
+                    m.unscaledValue = inputs.reset.output[0];
                 }
                 m.prevTrig = trig[j];
 
-                if (m.value >= inputs.end.output[0]) {
-                    m.value = inputs.start.output[0];
+                if (m.unscaledValue >= inputs.end.output[0]) {
+                    m.unscaledValue = inputs.start.output[0];
                 }
 
-                out[i] = m.value;
-                m.value += step[k];
+                out[i] = m.unscaledValue;
+                m.unscaledValue += step[k]; // TODO: Model out of sync with last output sample.
             }
 
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -26441,6 +26637,11 @@ var fluid = fluid || require("infusion"),
             add: null
         },
         ugenOptions: {
+            model: {
+                unscaledValue: undefined,
+                value: 0.0
+            },
+
             strideInputs: [
                 "trigger",
                 "step"
@@ -26448,97 +26649,6 @@ var fluid = fluid || require("infusion"),
         }
     });
 
-    flock.ugen.env = {};
-
-    // TODO: Better names for these inputs; harmonize them with flock.ugen.line
-    // TODO: Make this a mul/adder.
-    flock.ugen.env.simpleASR = function (inputs, output, options) {
-        var that = flock.ugen(inputs, output, options);
-
-        that.gen = function (numSamps) {
-            var m = that.model,
-                out = that.output,
-                prevGate = m.previousGate,
-                gate = that.inputs.gate.output[0],
-                level = m.level,
-                stage = m.stage,
-                currentStep = stage.currentStep,
-                stepInc = stage.stepInc,
-                numSteps = stage.numSteps,
-                targetLevel = m.targetLevel,
-                stepsNeedRecalc = false,
-                stageTime,
-                i;
-
-            // Recalculate the step state if necessary.
-            if (prevGate <= 0 && gate > 0) {
-                // Starting a new attack stage.
-                targetLevel = that.inputs.sustain.output[0];
-                stageTime = that.inputs.attack.output[0];
-                stepsNeedRecalc = true;
-            } else if (gate <= 0 && currentStep >= numSteps) {
-                // Starting a new release stage.
-                targetLevel = that.inputs.start.output[0];
-                stageTime = that.inputs.release.output[0];
-                stepsNeedRecalc = true;
-            }
-
-            // TODO: Can we get rid of this extra branch without introducing code duplication?
-            if (stepsNeedRecalc) {
-                numSteps = Math.round(stageTime * m.sampleRate);
-                stepInc = (targetLevel - level) / numSteps;
-                currentStep = 0;
-            }
-
-            // Output the the envelope's sample data.
-            for (i = 0; i < numSamps; i++) {
-                out[i] = level;
-                currentStep++;
-                // Hold the last value if the stage is complete, otherwise increment.
-                level = currentStep < numSteps ?
-                    level + stepInc : currentStep === numSteps ?
-                    targetLevel : level;
-            }
-
-            // Store instance state.
-            m.level = level;
-            m.targetLevel = targetLevel;
-            m.previousGate = gate;
-            stage.currentStep = currentStep;
-            stage.stepInc = stepInc;
-            stage.numSteps = numSteps;
-        };
-
-        that.init = function () {
-            var m = that.model;
-            m.level = that.inputs.start.output[0];
-            m.targetLevel = that.inputs.sustain.output[0];
-        };
-
-        that.init();
-        return that;
-    };
-
-    fluid.defaults("flock.ugen.env.simpleASR", {
-        rate: "control",
-        inputs: {
-            start: 0.0,
-            attack: 0.01,
-            sustain: 1.0,
-            release: 1.0,
-            gate: 0.0
-        },
-        ugenOptions: {
-            model: {
-                previousGate: 0.0,
-                stage: {
-                    currentStep: 0,
-                    stepInc: 0,
-                    numSteps: 0
-                }
-            }
-        }
-    });
 
     flock.ugen.amplitude = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
@@ -26577,9 +26687,9 @@ var fluid = fluid || require("infusion"),
                 out[i] = prevVal = val + (prevVal - val) * coef;
             }
 
-            m.prevVal = prevVal;
-
+            m.unscaledValue = m.prevVal = prevVal;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -26597,7 +26707,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                prevVal: 0.0
+                prevVal: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -26606,12 +26718,14 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function () {
-            var out = that.output,
+            var m = that.model,
+                out = that.output,
                 max = that.inputs.max.output[0], // Max is kr.
                 source = that.inputs.source.output;
 
             // Note, this normalizes the source input ugen's output buffer directly in place.
             flock.normalize(source, max, out);
+            m.value = m.unscaledValue = out[out.length - 1];
         };
 
         that.onInputChanged();
@@ -26659,19 +26773,22 @@ var fluid = fluid || require("infusion"),
                 lastValue = m.lastValue,
                 i,
                 j,
-                k;
+                k,
+                val;
 
             for (i = j = k = 0; i < numSamps; i++, j += sideChainInc, k += thresholdInc) {
                 if (sideChain[j] >= threshold[k]) {
-                    out[i] = lastValue = source[i];
+                    out[i] = val = lastValue = source[i];
                 } else {
                     // TODO: Don't check holdLast on each sample.
-                    out[i] = holdLast ? lastValue : 0;
+                    out[i] = val = holdLast ? lastValue : 0;
                 }
             }
 
             m.lastValue = lastValue;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -26698,6 +26815,8 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
+                value: 0.0,
                 lastValue: 0.0
             },
             holdLastValue: false,
@@ -26744,9 +26863,17 @@ var fluid = fluid || require("infusion"),
             }
 
             // TODO: Add multichannel support for mul/add.
+            var lastIdx = numSamps - 1;
+            m.value[0] = outputs[0][lastIdx];
+            m.value[1] = outputs[1][lastIdx];
         };
 
-        that.onInputChanged();
+        that.init = function () {
+            that.onInputChanged();
+            that.model.unscaledValue = that.model.value;
+        };
+
+        that.init();
         return that;
     };
 
@@ -26759,6 +26886,10 @@ var fluid = fluid || require("infusion"),
         },
 
         ugenOptions: {
+            model: {
+                unscaledValue: [0.0, 0.0],
+                value: [0.0, 0.0]
+            },
             tags: ["flock.ugen.multiChannelOutput"],
             strideInputs: [
                 "pan"
@@ -26776,8 +26907,10 @@ var fluid = fluid || require("infusion"),
 
         // TODO: Implement a "straight out" gen function for cases where the number
         // of sources matches the number of output buses (i.e. where no expansion is necessary).
+        // TODO: This function is marked as unoptimized by the Chrome profiler.
         that.gen = function (numSamps) {
-            var sources = that.multiInputs.sources,
+            var m = that.model,
+                sources = that.multiInputs.sources,
                 buses = that.options.audioSettings.buses,
                 bufStart = that.inputs.bus.output[0],
                 expand = that.inputs.expand.output[0],
@@ -26814,7 +26947,11 @@ var fluid = fluid || require("infusion"),
                 }
             }
 
-            that.mulAdd(numSamps);
+            // TODO: Consider how we should handle "value" when the number
+            // of input channels for "sources" can be variable.
+            // In the meantime, we just output the last source's last sample.
+            m.value = m.unscaledValue = source.output[outIdx];
+            that.mulAdd(numSamps); // TODO: Does this even work?
         };
 
         that.init = function () {
@@ -26845,23 +26982,27 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.arraySourceGen = function () {
-            var sources = that.inputs.sources,
+            var m = that.model,
+                sources = that.inputs.sources,
                 i;
 
             for (i = 0; i < sources.length; i++) {
-                that.model.value[i] = sources[i].output[0];
+                m.value[i] = sources[i].output[0];
             }
         };
 
         that.ugenSourceGen = function () {
-            that.model.value = that.inputs.sources.output[0];
+            that.model.value = that.model.unscaledValue = that.inputs.sources.output[0];
         };
 
         that.onInputChanged = function () {
-            var sources = that.inputs.sources;
+            var m = that.model,
+                sources = that.inputs.sources;
+
             if (flock.isIterable(sources)) {
                 that.gen = that.arraySourceGen;
-                that.model.value = new Float32Array(sources.length);
+                m.value = new Float32Array(sources.length);
+                m.unscaledValue = m.value;
             } else {
                 that.gen = that.ugenSourceGen;
             }
@@ -26880,6 +27021,7 @@ var fluid = fluid || require("infusion"),
 
         ugenOptions: {
             model: {
+                unscaledValue: null,
                 value: null
             },
 
@@ -26892,35 +27034,39 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.singleBusGen = function (numSamps) {
-            var out = that.output,
-                busNum = that.inputs.bus.output[0] | 0,
-                bus = that.options.audioSettings.buses[busNum],
-                i;
+            var m = that.model,
+                out = that.output;
 
-            for (i = 0; i < numSamps; i++) {
-                out[i] = bus[i];
-            }
+            flock.ugen.in.readBus(numSamps, out, that.inputs.bus,
+                that.options.audioSettings.buses);
 
+            m.unscaledValue = flock.ugen.lastOutputValue(numSamps, out);
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.multiBusGen = function (numSamps) {
-            var busesInput = that.inputs.bus,
+            var m = that.model,
+                busesInput = that.inputs.bus,
                 enviroBuses = that.options.audioSettings.buses,
                 out = that.output,
                 i,
                 j,
-                busIdx;
+                busIdx,
+                val;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = 0; // Clear previous output values before summing a new set.
+                val = 0; // Clear previous output values before summing a new set.
                 for (j = 0; j < busesInput.length; j++) {
                     busIdx = busesInput[j].output[0] | 0;
-                    out[i] += enviroBuses[busIdx][i];
+                    val += enviroBuses[busIdx][i];
                 }
+                out[i] = val;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -26932,6 +27078,16 @@ var fluid = fluid || require("infusion"),
         return that;
     };
 
+    flock.ugen.in.readBus = function (numSamps, out, busInput, buses) {
+        var busNum = busInput.output[0] | 0,
+            bus = buses[busNum],
+            i;
+
+        for (i = 0; i < numSamps; i++) {
+            out[i] = bus[i];
+        }
+    };
+
     fluid.defaults("flock.ugen.in", {
         rate: "audio",
         inputs: {
@@ -26941,21 +27097,24 @@ var fluid = fluid || require("infusion"),
         }
     });
 
+
     flock.ugen.audioIn = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
 
-        // TODO: Complete cut and paste of flock.ugen.in.singleBusGen().
         that.gen = function (numSamps) {
-            var out = that.output,
-                busNum = that.inputs.bus.output[0] | 0,
-                bus = that.options.audioSettings.buses[busNum],
-                i;
+            var m = that.model,
+                out = that.output,
+                bus = that.bus,
+                i,
+                val;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = bus[i];
+                out[i] = val = bus[i];
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -26964,7 +27123,9 @@ var fluid = fluid || require("infusion"),
 
         that.init = function () {
             // TODO: Direct reference to the shared environment.
-            flock.enviro.shared.audioStrategy.startReadingAudioInput();
+            var busNum = flock.enviro.shared.audioStrategy.inputDeviceManager.openAudioDevice(options);
+            that.bus = that.options.audioSettings.buses[busNum];
+
             that.onInputChanged();
         };
 
@@ -26975,7 +27136,6 @@ var fluid = fluid || require("infusion"),
     fluid.defaults("flock.ugen.audioIn", {
         rate: "audio",
         inputs: {
-            bus: 2,
             mul: null,
             add: null
         }
@@ -26995,6 +27155,7 @@ var fluid = fluid || require("infusion"),
 
         that.gen = function () {
             var m = that.model,
+                out = that.output,
                 inputs = that.inputs,
                 q = inputs.q.output[0],
                 freq = inputs.freq.output[0];
@@ -27003,10 +27164,11 @@ var fluid = fluid || require("infusion"),
                 that.updateCoefficients(m, freq, q);
             }
 
-            that.filterEngine.filter(that.output, that.inputs.source.output);
+            that.filterEngine.filter(out, that.inputs.source.output);
 
             m.prevQ = q;
             m.prevFreq = freq;
+            m.value = m.unscaledValue = out[out.length - 1];
         };
 
         that.init = function () {
@@ -27072,6 +27234,7 @@ var fluid = fluid || require("infusion"),
 
             m.prevQ = q;
             m.prevFreq = freq;
+            m.value = m.unscaledValue = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -27385,7 +27548,9 @@ var fluid = fluid || require("infusion"),
                 out[i] = m.out4;
             }
 
+            m.unscaledValue = m.out4;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -27401,21 +27566,23 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                in1: 0,
-                in2: 0,
-                in3: 0,
-                in4: 0,
-                out1: 0,
-                out2: 0,
-                out3: 0,
-                out4: 0,
+                in1: 0.0,
+                in2: 0.0,
+                in3: 0.0,
+                in4: 0.0,
+                out1: 0.0,
+                out2: 0.0,
+                out3: 0.0,
+                out4: 0.0,
                 prevCutoff: undefined,
                 prevResonance: undefined,
                 f: undefined,
                 fSq: undefined,
                 fSqSq: undefined,
                 oneMinusF: undefined,
-                fb: undefined
+                fb: undefined,
+                unscaledValue: 0.0,
+                value: 0.0
             },
             strideInputs: ["source", "cutoff", "resonance"]
         }
@@ -27431,7 +27598,8 @@ var fluid = fluid || require("infusion"),
                 source = inputs.source.output,
                 time = inputs.time.output[0],
                 delayBuffer = that.delayBuffer,
-                i;
+                i,
+                val;
 
             if (time !== m.time) {
                 m.time = time;
@@ -27442,12 +27610,14 @@ var fluid = fluid || require("infusion"),
                 if (m.pos >= m.delaySamps) {
                     m.pos = 0;
                 }
-                out[i] = delayBuffer[m.pos];
+                out[i] = val = delayBuffer[m.pos];
                 delayBuffer[m.pos] = source[i];
                 m.pos++;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function (inputName) {
@@ -27472,7 +27642,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                pos: 0
+                pos: 0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -27487,14 +27659,19 @@ var fluid = fluid || require("infusion"),
                 inputs = that.inputs,
                 out = that.output,
                 source = inputs.source.output,
-                i;
+                prevVal = m.prevVal,
+                i,
+                val;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = m.prevVal;
-                m.prevVal = source[i];
+                out[i] = val = prevVal;
+                prevVal = source[i];
             }
 
+            m.prevVal = prevVal;
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -27512,7 +27689,9 @@ var fluid = fluid || require("infusion"),
         },
         ugenOptions: {
             model: {
-                prevVal: 0
+                prevVal: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
             }
         }
     });
@@ -27520,23 +27699,24 @@ var fluid = fluid || require("infusion"),
 
     flock.ugen.freeverb = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
+        that.tunings = that.options.tunings;
+        that.allpassTunings = that.options.allpassTunings;
 
         that.gen = function (numSamps) {
-            var o = that.options,
+            var m = that.model,
                 inputs = that.inputs,
                 out = that.output,
-                tunings = o.tunings,
-                allPassTunings = o.allPassTunings,
                 source = inputs.source.output,
                 mix = inputs.mix.output[0],
-                roomSize = inputs.roomSize.output[0],
-                damp = inputs.damp.output[0],
                 dry = 1 - mix,
-                room_scaled = roomSize * 0.28 + 0.7,
+                roomsize = inputs.room.output[0],
+                room_scaled = roomsize * 0.28 + 0.7,
+                damp = inputs.damp.output[0],
                 damp1 = damp * 0.4,
                 damp2 = 1.0 - damp1,
                 i,
-                j;
+                j,
+                val;
 
             for (i = 0; i < numSamps; i++) {
                 // read inputs
@@ -27545,7 +27725,7 @@ var fluid = fluid || require("infusion"),
 
                 // read samples from the allpasses
                 for (j = 0; j < that.buffers_a.length; j++) {
-                    if (++that.bufferindices_a[j] === allPassTunings[j]) {
+                    if (++that.bufferindices_a[j] === that.allpassTunings[j]) {
                         that.bufferindices_a[j] = 0;
                     }
                     that.readsamp_a[j] = that.buffers_a[j][that.bufferindices_a[j]];
@@ -27553,24 +27733,26 @@ var fluid = fluid || require("infusion"),
 
                 // foreach comb buffer, we perform same filtering (only bufferlen differs)
                 for (j = 0; j < that.buffers_c.length; j++) {
-                    if (++that.bufferindices_c[j] === tunings[j]) {
+                    if (++that.bufferindices_c[j] === that.tunings[j]) {
                         that.bufferindices_c[j] = 0;
                     }
-                    var readsamp_c = that.buffers_c[j][that.bufferindices_c[j]];
+                    var bufIdx_c = that.bufferindices_c[j],
+                        readsamp_c = that.buffers_c[j][bufIdx_c];
                     that.filterx_c[j] = (damp2 * that.filtery_c[j]) + (damp1 * that.filterx_c[j]);
-                    that.buffers_c[j][that.bufferindices_c[j]] = inp_scaled + (room_scaled * that.filterx_c[j]);
+                    that.buffers_c[j][bufIdx_c] = inp_scaled + (room_scaled * that.filterx_c[j]);
                     that.filtery_c[j] = readsamp_c;
                 }
 
-                // each allpass is handled individually, with different calculations made and stored into the delaylines
+                // each allpass is handled individually,
+                // with different calculations made and stored into the delaylines
                 var ftemp8 = (that.filtery_c[6] + that.filtery_c[7]);
 
                 that.buffers_a[3][that.bufferindices_a[3]] = ((((0.5 * that.filterx_a[3]) + that.filtery_c[0]) +
                     (that.filtery_c[1] + that.filtery_c[2])) +
                     ((that.filtery_c[3] + that.filtery_c[4]) + (that.filtery_c[5] + ftemp8)));
                 that.filterx_a[3] = that.readsamp_a[3];
-                that.filtery_a[3] = (that.filterx_a[3] -
-                    (((that.filtery_c[0] + that.filtery_c[1]) + (that.filtery_c[2] + that.filtery_c[3])) +
+                that.filtery_a[3] = (that.filterx_a[3] - (((that.filtery_c[0] + that.filtery_c[1]) +
+                    (that.filtery_c[2] + that.filtery_c[3])) +
                     ((that.filtery_c[4] + that.filtery_c[5]) + ftemp8)));
                 that.buffers_a[2][that.bufferindices_a[2]] = ((0.5 * that.filterx_a[2]) + that.filtery_a[3]);
                 that.filterx_a[2] = that.readsamp_a[2];
@@ -27583,56 +27765,50 @@ var fluid = fluid || require("infusion"),
                 that.buffers_a[0][that.bufferindices_a[0]] = ((0.5 * that.filterx_a[0]) + that.filtery_a[1]);
                 that.filterx_a[0] = that.readsamp_a[0];
                 that.filtery_a[0] = (that.filterx_a[0] - that.filtery_a[1]);
-                out[i] = ((dry * inp) + (mix * that.filtery_a[0]));
+                val = ((dry * inp) + (mix * that.filtery_a[0]));
+                out[i] = val;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
-        };
-
-        that.onInputChanged = function () {
-            flock.onMulAddInputChanged(that);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.initDelayLines = function () {
-            var o = that.options,
-                tunings = o.tunings,
-                allPassTunings = o.allPassTunings;
-
             // Initialise the delay lines
-            that.buffers_c = [];
+            that.buffers_c = new Array(8);
             that.bufferindices_c = new Int32Array(8);
             that.filterx_c = new Float32Array(8);
             that.filtery_c = new Float32Array(8);
             var spread = that.model.spread;
             var i, j;
-            for (i = 0; i < that.buffers_c.length; i++) {
-                that.buffers_c[i] = new Float32Array(tunings[i] + spread);
+            for(i = 0; i < that.buffers_c.length; i++) {
+                that.buffers_c[i] = new Float32Array(that.tunings[i]+spread);
                 that.bufferindices_c[i] = 0;
                 that.filterx_c[i] = 0;
                 that.filtery_c[i] = 0;
-                for (j = 0; j < tunings[i] + spread; j++) {
+                for(j = 0; j < that.tunings[i]+spread; j++) {
                     that.buffers_c[i][j] = 0;
                 }
             }
-            that.buffers_a = [];
+            that.buffers_a = new Array(4);
             that.bufferindices_a = new Int32Array(4);
             that.filterx_a = new Float32Array(4);
             that.filtery_a = new Float32Array(4);
             // "readsamp" vars are temporary values read back from the delay lines,
-            // not stored but only used in the gen loop.
+            // not stored but only used in the gen loop
             that.readsamp_a = new Float32Array(4);
-
-            for (i = 0; i < 4; i++) {
+            for (i = 0; i < that.buffers_a.length; i++) {
                 that.bufferindices_a[i] = 0;
                 that.filterx_a[i] = 0;
                 that.filtery_a[i] = 0;
                 that.readsamp_a[i] = 0;
                 // TODO is this what the spread is meant to do?
-                for (j = 0; j < allPassTunings.length; j++) {
-                    allPassTunings[j] += spread;
+                for (j = 0; j < that.allpassTunings.length; j++) {
+                    that.allpassTunings[j] += spread;
                 }
-                that.buffers_a[i] = new Float32Array(allPassTunings[i]);
-                for (j = 0; j < allPassTunings[i]; j++) {
+                that.buffers_a[i] = new Float32Array(that.allpassTunings[i]);
+                for (j = 0; j < that.allpassTunings[i]; j++) {
                     that.buffers_a[i][j] = 0;
                 }
             }
@@ -27650,20 +27826,20 @@ var fluid = fluid || require("infusion"),
     fluid.defaults("flock.ugen.freeverb", {
         rate: "audio",
         inputs: {
-            mix: 0.5,
-            roomSize: 0.6,
-            damp: 0.1,
             source: null,
-            mul: null,
-            add: null
+            mix: 0.33,
+            room: 0.5,
+            damp: 0.5
         },
         ugenOptions: {
             model: {
-                spread: 0
+                spread: 0,
+                unscaledValue: 0.0,
+                value: 0.0
             },
 
             tunings: [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617],
-            allPassTunings: [556, 441, 341, 225]
+            allpassTunings: [556, 441, 341, 225]
         }
     });
 
@@ -27681,11 +27857,12 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var out = that.output,
+            var m = that.model,
+                out = that.output,
                 source = that.inputs.source.output,
-                sourceInc = that.model.strides.source,
+                sourceInc = m.strides.source,
                 gain = that.inputs.gain.output,
-                gainInc = that.model.strides.gain,
+                gainInc = m.strides.gain,
                 val,
                 dist,
                 i,
@@ -27698,7 +27875,9 @@ var fluid = fluid || require("infusion"),
                 out[i] = dist;
             }
 
+            m.unscaledValue = dist;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -27731,11 +27910,12 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var out = that.output,
+            var m = that.model,
+                out = that.output,
                 source = that.inputs.source.output,
-                sourceInc = that.model.strides.source,
+                sourceInc = m.strides.source,
                 amount = that.inputs.amount.output,
-                amountInc = that.model.strides.amount,
+                amountInc = m.strides.amount,
                 x,
                 a,
                 absX,
@@ -27752,7 +27932,9 @@ var fluid = fluid || require("infusion"),
                 out[i] = dist;
             }
 
+            m.unscaledValue = dist;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -27785,11 +27967,12 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var out = that.output,
+            var m = that.model,
+                out = that.output,
                 source = that.inputs.source.output,
-                sourceInc = that.model.strides.source,
+                sourceInc = m.strides.source,
                 amount = that.inputs.amount.output,
-                amountInc = that.model.strides.amount,
+                amountInc = m.strides.amount,
                 x,
                 a,
                 dist,
@@ -27815,7 +27998,9 @@ var fluid = fluid || require("infusion"),
                 out[i] = dist;
             }
 
+            m.unscaledValue = dist;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -27847,11 +28032,12 @@ var fluid = fluid || require("infusion"),
         var that = flock.ugen(inputs, output, options);
 
         that.gen = function (numSamps) {
-            var out = that.output,
+            var m = that.model,
+                out = that.output,
                 source = that.inputs.source.output,
-                sourceInc = that.model.strides.source,
+                sourceInc = m.strides.source,
                 gain = that.inputs.gain.output,
-                gainInc = that.model.strides.gain,
+                gainInc = m.strides.gain,
                 val,
                 dist,
                 i,
@@ -27870,7 +28056,9 @@ var fluid = fluid || require("infusion"),
                 out[i] = dist;
             }
 
+            m.unscaledValue = dist;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -27899,7 +28087,8 @@ var fluid = fluid || require("infusion"),
                 out = that.output,
                 source = inputs.source.output,
                 time = inputs.time.output[0],
-                i;
+                i,
+                val;
 
             if (time !== m.time) {
                 m.time = time;
@@ -27909,16 +28098,18 @@ var fluid = fluid || require("infusion"),
             // TODO: Optimize this conditional.
             if (m.coeff === 0.0) {
                 for (i = 0; i < numSamps; i++) {
-                    out[i] = source[i];
+                    out[i] = val = source[i];
                 }
             } else {
                 for (i = 0; i < numSamps; i++) {
                     m.lastSamp = source[i] + m.coeff * m.lastSamp;
-                    out[i] = m.lastSamp;
+                    out[i] = val = m.lastSamp;
                 }
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged();
@@ -27935,7 +28126,8 @@ var fluid = fluid || require("infusion"),
             model: {
                 time: 0,
                 lastSamp: 0,
-                coeff: 0
+                coeff: 0,
+                value: 0.0
             }
         }
     });
@@ -27968,11 +28160,14 @@ var fluid = fluid || require("infusion"),
                 out = that.output,
                 chan = inputs.channel.output[0],
                 buf = that.buffer.data.channels[chan],
+                bufRate = that.buffer.format.sampleRate,
                 dur = inputs.dur.output[0],
                 amp = inputs.amp.output,
                 centerPos = inputs.centerPos.output,
                 trigger = inputs.trigger.output,
                 speed = inputs.speed.output,
+                grainEnv = that.options.grainEnv,
+                lastOutIdx = numSamps - 1,
                 posIdx = 0,
                 trigIdx = 0,
                 ampIdx = 0,
@@ -27982,37 +28177,28 @@ var fluid = fluid || require("infusion"),
                 k,
                 grain,
                 start,
-                samp;
-
-            // Update the grain envelope if the grain duration input has changed.
-            // TODO: What happens when this changes while older grains are still sounding?
-            if (dur !== m.dur) {
-                m.dur = dur > m.maxDur ? m.maxDur : dur;
-                m.numGrainSamps = Math.round(m.sampleRate * m.dur);
-                m.grainCenter = Math.round(m.numGrainSamps / 2);
-                for (i = 0; i < m.numGrainSamps; i++) {
-                    m.env[i] = Math.sin(Math.PI * i / m.numGrainSamps);
-                }
-            }
+                samp,
+                env;
 
             // Trigger new grains.
-            // TODO: Why does this constantly trigger new grains with an audio rate trigger signal,
-            //       rarely or never cleaning old ones up?
             for (i = 0; i < numSamps; i++) {
                 if (trigger[trigIdx] > 0.0 && m.prevTrigger <= 0.0 && m.activeGrains.length < m.maxNumGrains) {
                     grain = m.freeGrains.pop();
+                    grain.numSamps = m.sampleRate * dur;
+                    grain.centerIdx = (grain.numSamps / 2) * m.stepSize;
+                    grain.envScale = that.options.grainEnv.length / grain.numSamps;
                     grain.sampIdx = 0;
-                    grain.envIdx = 0;
                     grain.amp = amp[ampIdx];
-                    start = (centerPos[posIdx] * m.sampleRate) - m.grainCenter;
+                    start = (centerPos[posIdx] * bufRate) - grain.centerIdx;
                     while (start < 0) {
                         start += buf.length;
                     }
-                    grain.readPos = Math.round(start);
+                    grain.readPos = start;
                     grain.writePos = i;
                     grain.speed = speed[speedIdx];
                     m.activeGrains.push(grain);
                 }
+
                 m.prevTrigger = trigger[trigIdx];
                 out[i] = 0.0;
 
@@ -28025,23 +28211,30 @@ var fluid = fluid || require("infusion"),
             // Output samples for all active grains.
             for (j = 0; j < m.activeGrains.length;) {
                 grain = m.activeGrains[j];
-                for (k = grain.writePos; k < Math.min(m.numGrainSamps - grain.sampIdx, numSamps); k++) {
-                    samp = that.interpolate ? that.interpolate(grain.readPos, buf) : buf[grain.readPos | 0];
-                    out[k] += samp * m.env[grain.envIdx] * grain.amp;
-                    grain.readPos = (grain.readPos + grain.speed) % buf.length;
+                for (k = grain.writePos; k < Math.min(k + (grain.numSamps - grain.sampIdx), numSamps); k++) {
+                    samp = that.interpolate(grain.readPos, buf);
+                    env = flock.interpolate.linear(grain.sampIdx * grain.envScale, grainEnv);
+                    out[k] += samp * env * grain.amp;
+                    grain.readPos = (grain.readPos + (m.stepSize * grain.speed)) % buf.length;
                     grain.sampIdx++;
-                    grain.envIdx++;
                 }
-                if (grain.sampIdx >= m.numGrainSamps) {
+                if (grain.sampIdx >= grain.numSamps) {
                     m.freeGrains.push(grain);
                     m.activeGrains.splice(j, 1);
                 } else {
                     j++;
-                    grain.writePos = grain.writePos % that.options.audioSettings.blockSize;
+                    grain.writePos = k % numSamps;
                 }
             }
 
+            m.unscaledValue = out[lastOutIdx];
             that.mulAdd(numSamps);
+            m.value = out[lastOutIdx];
+        };
+
+        that.onBufferReady = function () {
+            var m = that.model;
+            m.stepSize = that.buffer.format.sampleRate / m.sampleRate;
         };
 
         that.onInputChanged = function (inputName) {
@@ -28055,19 +28248,20 @@ var fluid = fluid || require("infusion"),
 
             for (var i = 0; i < numGrains; i++) {
                 that.model.freeGrains.push({
+                    numSamps: 0,
+                    centerIdx: 0.0,
+                    envScale: 0.0,
                     sampIdx: 0,
-                    envIdx: 0,
-                    readPos: 0
+                    amp: 0.0,
+                    readPos: 0.0,
+                    writePos: 0,
+                    speed: 0.0
                 });
             }
         };
 
         that.init = function () {
-            var m = that.model,
-                maxGrainLength = Math.round(m.maxDur * m.sampleRate);
-
             flock.ugen.buffer(that);
-            that.model.env = new Float32Array(maxGrainLength);
             that.allocateGrains();
             that.initBuffer();
             that.onInputChanged();
@@ -28085,13 +28279,16 @@ var fluid = fluid || require("infusion"),
             amp: 1.0,
             dur: 0.1,
             speed: 1.0,
+            trigger: 0.0,
             buffer: null,
             mul: null,
             add: null
         },
         ugenOptions: {
+            grainEnv: flock.fillTable(8192, flock.tableGenerators.hann),
             model: {
-                maxDur: 30,
+                unscaledValue: 0.0,
+                value: 0.0,
                 maxNumGrains: 512,
                 activeGrains: [],
                 freeGrains: [],
@@ -28105,66 +28302,6 @@ var fluid = fluid || require("infusion"),
                 "speed"
             ],
             interpolation: "cubic"
-        }
-    });
-
-
-    // TODO: Unit tests.
-    flock.ugen.print = function (input, output, options) {
-        var that = flock.ugen(input, output, options);
-
-        that.gen = function (numSamps) {
-            var inputs = that.inputs,
-                m = that.model,
-                label = m.label,
-                chan = inputs.channel,
-                // Basic multichannel support. This should be inproved
-                // by factoring the multichannel input code out of flock.ugen.out.
-                source = chan ? inputs.source.output[chan.output[0]] : inputs.source.output,
-                trig = inputs.trigger.output[0],
-                freq = inputs.freq.output[0],
-                i;
-
-            if (trig > 0.0 && m.prevTrig <= 0.0) {
-                fluid.log(fluid.logLevel.IMPORTANT, label + source);
-            }
-
-            if (m.freq !== freq) {
-                m.sampInterval = Math.round(m.sampleRate / freq);
-                m.freq = freq;
-                m.counter = m.sampInterval;
-            }
-
-            for (i = 0; i < numSamps; i++) {
-                if (m.counter >= m.sampInterval) {
-                    fluid.log(fluid.logLevel.IMPORTANT, label + source[i]);
-                    m.counter = 0;
-                }
-                m.counter++;
-                that.output[i] = source[i];
-            }
-        };
-
-        that.init = function () {
-            var o = that.options;
-            that.model.label = o.label ? o.label + ": " : "";
-        };
-
-        that.init();
-        return that;
-    };
-
-    fluid.defaults("flock.ugen.print", {
-        rate: "audio",
-        inputs: {
-            source: null,
-            trigger: 0.0,
-            freq: 1.0
-        },
-        ugenOptions: {
-            model: {
-                counter: 0
-            }
         }
     });
 
@@ -28187,85 +28324,117 @@ var fluid = fluid || require("infusion"),
 
         that.gen = function (numSamps) {
             var m = that.model,
+                o = that.options,
                 inputs = that.inputs,
                 out = that.output,
+                delayLine = that.delayLine,
                 grainDur = inputs.grainDur.output[0],
                 delayDur = inputs.delayDur.output[0],
                 numGrains = inputs.numGrains.output[0],
                 source = inputs.source.output,
+                maxDelayDur = o.maxDelayDur,
+                grainEnv = o.grainEnv,
                 i,
                 j,
-                grainPos,
+                val,
+                grainIdx,
+                delayLineReadIdx,
+                samp,
                 windowPos,
                 amp;
 
-            // TODO: Probably too expensive to modulate delayDur at control rate.
-            // Perhaps either move this into onInputChanged() and treat it as a constant input parameter
-            // or introduce a maximum delay length and reuse the same array throughout (just changing indices).
+            // Update and clamp the delay line length.
             if (m.delayDur !== delayDur) {
                 m.delayDur = delayDur;
-                m.delayLength = (m.sampleRate * m.delayDur) | 0;
-                that.delayLine = new Float32Array(that.model.delayLength);
+
+                if (delayDur > maxDelayDur) {
+                    delayDur = maxDelayDur;
+                }
+
+                m.delayLength = (delayDur * m.sampleRate) | 0;
+                m.writePos = m.writePos % m.delayLength;
             }
 
+            // Update the grain duration.
             if (m.grainDur !== grainDur) {
                 m.grainDur = grainDur;
                 m.grainLength = (m.sampleRate * m.grainDur) | 0;
-                for (i = 0; i < m.grainLength; i++) {
-                    m.windowFunction[i] = Math.sin(Math.PI * i / m.grainLength);
-                }
+                m.envScale = grainEnv.length / m.grainLength;
             }
 
-            // If numGrains has changed, zero the extra buffers.
-            // Need to hold on to "raw" input so we can compare unrounded values.
-            if (m.rawNumGrains !== numGrains) {
-                m.rawNumGrains = numGrains;
-                numGrains = Math.round(numGrains);
-                for (i = m.numGrains; i < numGrains; i++) {
-                    m.currentGrainPosition[i] = 0;
-                    m.currentGrainWindowPosition[i] = (Math.random() * m.grainLength) | 0;
-                }
-                m.numGrains = numGrains;
-            }
+            // TODO: This implementation will cause currently-sounding grains
+            // to be stopped immediately, rather than being allowed to finish.
+            numGrains = numGrains > o.maxNumGrains ? o.maxNumGrains : Math.round(numGrains);
 
             for (i = 0; i < numSamps; i++) {
-                // Update the delay line's write position
-                that.delayLine[m.writePos] = source[i];
-                m.writePos = (m.writePos + 1) % m.delayLength;
+                // Write into the delay line and update the write position.
+                delayLine[m.writePos] = source[i];
+                m.writePos = ++m.writePos % m.delayLength;
 
                 // Clear the previous output.
-                out[i] = 0;
+                val = 0;
 
                 // Now fill with grains
-                for (j = 0; j < m.numGrains; j++) {
-                    grainPos = m.currentGrainPosition[j];
-                    windowPos = m.currentGrainWindowPosition[j];
-                    amp = m.windowFunction[windowPos];
-                    out[i] += that.delayLine[grainPos] * amp;
+                for (j = 0; j < numGrains; j++) {
+                    grainIdx = m.grainIdx[j];
+                    delayLineReadIdx = m.delayLineIdx[j];
+
+                    // Randomize the reset position of finished grains.
+                    if (grainIdx > m.grainLength) {
+                        grainIdx = 0;
+                        delayLineReadIdx = (Math.random() * m.delayLength) | 0;
+                    }
+
+                    samp = delayLine[delayLineReadIdx];
+                    windowPos = grainIdx * m.envScale;
+                    amp = flock.interpolate.linear(windowPos, grainEnv);
+                    val += samp * amp;
 
                     // Update positions in the delay line and grain envelope arrays for next time.
-                    m.currentGrainPosition[j] = (grainPos + 1) % m.delayLength;
-                    m.currentGrainWindowPosition[j] = (windowPos + 1) % m.grainLength;
-
-                    // Randomize the reset position of grains.
-                    if (m.currentGrainWindowPosition[j] === 0) {
-                        m.currentGrainPosition[j] = (Math.random() * m.delayLength) | 0;
-                    }
+                    m.delayLineIdx[j] = ++delayLineReadIdx % m.delayLength;
+                    m.grainIdx[j] = ++grainIdx;
                 }
 
-                // Normalize the output amplitude.
-                out[i] /= m.numGrains;
+                val = val / numGrains;
+                out[i] = val;
             }
 
+            m.unscaledValue = val;
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
-        that.onInputChanged();
+        that.initGrains = function () {
+            var m = that.model;
+
+            for (var i = 0; i < that.options.maxNumGrains; i++) {
+                m.grainIdx[i] = 0;
+                m.delayLineIdx[i] = Math.random() * m.delayLength;
+            }
+        };
+
+        that.init = function () {
+            var m = that.model,
+                o = that.options,
+                delayLineLen = (o.maxDelayDur * m.sampleRate) | 0;
+
+            that.delayLine = new Float32Array(delayLineLen);
+            m.delayLength = delayLineLen;
+            m.delayLineIdx = new Uint32Array(o.maxNumGrains);
+            m.grainIdx = new Uint32Array(o.maxNumGrains);
+
+            that.initGrains();
+            that.onInputChanged();
+        };
+
+        that.init();
+
         return that;
     };
 
     fluid.defaults("flock.ugen.granulator", {
         rate: "audio",
+
         inputs: {
             source: null,
             grainDur: 0.1,
@@ -28274,17 +28443,89 @@ var fluid = fluid || require("infusion"),
             mul: null,
             add: null
         },
+
         ugenOptions: {
+            maxNumGrains: 512,
+            maxDelayDur: 30,
+            grainEnv: flock.fillTable(8192, flock.tableGenerators.sinWindow),
             model: {
+                unscaledValue: 0.0,
+                value: 0.0,
                 grainLength: 0,
-                numGrains: 0,
-                currentGrainPosition: [],
-                currentGrainWindowPosition: [],
-                windowFunction: [],
                 writePos: 0
             }
         }
     });
+
+
+    // TODO: Unit tests.
+    flock.ugen.print = function (input, output, options) {
+        var that = flock.ugen(input, output, options);
+
+        that.gen = function (numSamps) {
+            var inputs = that.inputs,
+                out = that.output,
+                m = that.model,
+                label = m.label,
+                chan = inputs.channel,
+                // Basic multichannel support. This should be inproved
+                // by factoring the multichannel input code out of flock.ugen.out.
+                source = chan ? inputs.source.output[chan.output[0]] : inputs.source.output,
+                trig = inputs.trigger.output[0],
+                freq = inputs.freq.output[0],
+                i,
+                j,
+                val;
+
+            if (trig > 0.0 && m.prevTrig <= 0.0) {
+                fluid.log(fluid.logLevel.IMPORTANT, label + source);
+            }
+
+            if (m.freq !== freq) {
+                m.sampInterval = Math.round(m.sampleRate / freq);
+                m.freq = freq;
+                m.counter = m.sampInterval;
+            }
+
+            for (i = 0, j = 0 ; i < numSamps; i++, j += m.strides.source) {
+                if (m.counter >= m.sampInterval) {
+                    fluid.log(fluid.logLevel.IMPORTANT, label + source[j]);
+                    m.counter = 0;
+                }
+                m.counter++;
+                out[i] = val = source[i];
+            }
+
+            m.value = m.unscaledValue = val;
+        };
+
+        that.init = function () {
+            var o = that.options;
+            that.model.label = o.label ? o.label + ": " : "";
+            that.onInputChanged();
+        };
+
+        that.init();
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.print", {
+        rate: "audio",
+        inputs: {
+            source: null,
+            trigger: 0.0,
+            freq: 1.0
+        },
+        ugenOptions: {
+            model: {
+                unscaledValue: 0.0,
+                value: 0.0,
+                counter: 0
+            },
+            strideInputs: ["source"]
+        }
+    });
+
 
     flock.ugen.sequence = function (inputs, output, options) {
         var that = flock.ugen(inputs, output, options);
@@ -28303,9 +28544,9 @@ var fluid = fluid || require("infusion"),
                 i,
                 j;
 
-            if (m.value === undefined) {
+            if (m.unscaledValue === undefined) {
                 startItem = list[start];
-                m.value = (startItem === undefined) ? 0.0 : startItem;
+                m.unscaledValue = (startItem === undefined) ? 0.0 : startItem;
             }
 
             if (m.nextIdx === undefined) {
@@ -28317,12 +28558,12 @@ var fluid = fluid || require("infusion"),
                     if (loop > 0.0) {
                         m.nextIdx = start;
                     } else {
-                        out[i] = m.value;
+                        out[i] = m.unscaledValue;
                         continue;
                     }
                 }
 
-                out[i] = m.value = list[m.nextIdx];
+                out[i] = m.unscaledValue = list[m.nextIdx];
                 m.phase += freq[j] * scale;
 
                 if (m.phase >= 1.0) {
@@ -28332,6 +28573,7 @@ var fluid = fluid || require("infusion"),
             }
 
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.onInputChanged = function () {
@@ -28365,11 +28607,12 @@ var fluid = fluid || require("infusion"),
 
         ugenOptions: {
             model: {
+                unscaledValue: undefined,
+                value: 0.0,
                 phase: 0
             },
 
-            strideInputs: ["freq"],
-            noExpand: ["list"]
+            strideInputs: ["freq"]
         }
     });
 
@@ -28385,11 +28628,16 @@ var fluid = fluid || require("infusion"),
                 noteNum = that.inputs.source.output,
                 out = that.output,
                 i,
-                j;
+                j,
+                val;
 
             for (i = 0, j = 0; i < numSamps; i++, j += m.strides.source) {
-                out[i] = flock.midiFreq(noteNum[j], a4Freq, a4NoteNum, notesPerOctave);
+                out[i] = val = flock.midiFreq(noteNum[j], a4Freq, a4NoteNum, notesPerOctave);
             }
+
+            m.unscaledValue = val;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.init = function () {
@@ -28404,10 +28652,12 @@ var fluid = fluid || require("infusion"),
     fluid.defaults("flock.ugen.midiFreq", {
         rate: "control",
         inputs: {
-            source: null
+            source: null // TODO: This input should be named "note"
         },
         ugenOptions: {
             model: {
+                unscaledValue: 0.0,
+                value: 0.0,
                 a4: {
                     noteNum: 69,
                     freq: 440
@@ -28419,6 +28669,1441 @@ var fluid = fluid || require("infusion"),
             ]
         }
     });
+}());
+;/*
+* Flocking Bandlimited UGens
+* http://github.com/colinbdclark/flocking
+*
+* Copyright 2015, Colin Clark
+* Dual licensed under the MIT and GPL Version 2 licenses.
+*/
+
+/*global require*/
+/*jshint white: false, newcap: true, regexp: true, browser: true,
+    forin: false, nomen: true, bitwise: false, maxerr: 100,
+    indent: 4, plusplus: false, curly: true, eqeqeq: true,
+    freeze: true, latedef: true, noarg: true, nonew: true, quotmark: double, undef: true,
+    unused: true, strict: true, asi: false, boss: false, evil: false, expr: false,
+    funcscope: false*/
+
+var fluid = fluid || require("infusion"),
+    flock = fluid.registerNamespace("flock");
+
+(function () {
+    "use strict";
+
+    flock.blit = function (p) {
+        var val,
+            t;
+
+        if (p >= 2.0) {
+            val = 0.0;
+        } else if (p >= 1.0) {
+            t = 2.0 - p;
+            val = 0.16666666666666666 * t * t * t;
+        } else if (p >= 0.0) {
+            t = p * p;
+            val = (0.6666666666666666 - t) + (0.5 * t * p);
+        } else if (p >= -1.0) {
+            t = p * p;
+            val = (0.6666666666666666 - t) - (0.5 * t * p);
+        } else if (p >= -2.0) {
+            t = 2 + p;
+            val = 0.16666666666666666 * t * t * t;
+        } else {
+            val = 0.0;
+        }
+
+        return val;
+    };
+
+    flock.blit.period = function (sampleRate, freq) {
+        var d0 = sampleRate / freq;
+        return d0 < 1.0 ? 1.0 : d0;
+    };
+
+    flock.blit.updatePeriodState = function (m, freq) {
+        m.freq = freq < 0.000001 ? 0.000001 : freq;
+        m.d0 = flock.blit.period(m.sampleRate, m.freq);
+    };
+
+    /**
+     * A band-limited impulse train.
+     *
+     * This unit generator is based on the BLIT-FDF method documented in:
+     * "Efficient Antialiasing Oscillator Algorithms Using Low-Order Fractional Delay Filters"
+     * Juhan Nam, Vesa Valimaki, Jonathan S. Able, and Julius O. Smith
+     * in IEEE Transactions on Audio, Speech, and Language Processing, Vol. 18, No. 4, May 2010.
+     *
+     * Inputs:
+     *  - freq: the frequency of the impulse train;
+     *          this can only be modulated every period,
+     *          so there may be a delay before the frequency is updated at low frequencies
+     *  - mul: the amplitude of the impulses
+     *  - add: the amplitude offset of the impulses
+     */
+    flock.ugen.blit = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                freq = that.inputs.freq.output[0],
+                p = m.phase,
+                i,
+                val;
+
+            for (i = 0; i < numSamps; i++) {
+                p -= 1.0;
+                if (p < -2.0) {
+                    // We've hit the end of the period.
+                    flock.blit.updatePeriodState(m, freq);
+                    p += m.d0;
+                }
+
+                val = flock.blit(p);
+                out[i] = val;
+            }
+
+            m.phase = p;
+            m.unscaledValue = val;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.init = function () {
+            that.onInputChanged();
+        };
+
+        that.init();
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.blit", {
+        rate: "audio",
+
+        inputs: {
+            freq: 440.0,
+            mul: null,
+            add: null
+        },
+
+        ugenOptions: {
+            model: {
+                phase: -2.0,
+                unscaledValue: 0.0,
+                value: 0.0
+            }
+        }
+    });
+
+    /**
+     * Generates a band-limited sawtooth wavefrom.
+     *
+     * This unit generator is based on the BLIT-FDF method documented in:
+     * "Efficient Antialiasing Oscillator Algorithms Using Low-Order Fractional Delay Filters"
+     * Juhan Nam, Vesa Valimaki, Jonathan S. Able, and Julius O. Smith
+     * in IEEE Transactions on Audio, Speech, and Language Processing, Vol. 18, No. 4, May 2010.
+     *
+     * This unit generator is based on an algorithm that integrates bandlimited impulse trains,
+     * and as a result can only change frequencies at the end of each waveform period.
+     *
+     * Inputs:
+     *  - freq: the frequency of the saw;
+     *          this can only be modulated every period,
+     *          so there may be a delay before the frequency is updated at low frequencies
+     *  - leakRate: the leak rate of the leaky integrator (between >0.0 and 1.0)
+     *  - mul: the amplitude of the impulses
+     *  - add: the amplitude offset of the impulses
+     */
+    flock.ugen.saw = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                freq = that.inputs.freq.output[0],
+                leak = 1.0 - that.inputs.leakRate.output[0],
+                p = m.phase,
+                unscaledValue = m.unscaledValue,
+                i;
+
+            // TODO: This can be moved to init() when
+            // we have ugen graph priming implemented.
+            if (p === undefined) {
+                flock.ugen.saw.updatePeriodState(m, freq);
+                p = m.d0 / 2;
+            }
+
+            for (i = 0; i < numSamps; i++) {
+                p -= 1.0;
+                if (p < -2.0) {
+                    // We've hit the end of the period.
+                    flock.ugen.saw.updatePeriodState(m, freq);
+                    p += m.d0;
+                }
+
+                // Saw is BLIT - dcOffset + (1 - leakRate) * prevVal
+                out[i] = unscaledValue = flock.blit(p) - m.dcOffset + leak * unscaledValue;
+            }
+
+            m.phase = p;
+            m.unscaledValue = unscaledValue;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.init = function () {
+            that.onInputChanged();
+        };
+
+        that.init();
+        return that;
+    };
+
+    flock.ugen.saw.updatePeriodState = function (m, freq) {
+        flock.blit.updatePeriodState(m, freq);
+        m.dcOffset = 1.0 / m.d0; // DC offset at steady state is 1 / d0.
+    };
+
+    fluid.defaults("flock.ugen.saw", {
+        rate: "audio",
+
+        inputs: {
+            freq: 440.0,
+            leakRate: 0.01,
+            mul: null,
+            add: null
+        },
+
+        ugenOptions: {
+            model: {
+                phase: undefined,
+                dcOffset: undefined,
+                unscaledValue: 0.0,
+                value: 0.0
+            }
+        }
+    });
+
+    /**
+     * Generates a band-limited square wave.
+     *
+     * This unit generator is based on the BLIT-FDF method documented in:
+     * "Efficient Antialiasing Oscillator Algorithms Using Low-Order Fractional Delay Filters"
+     * Juhan Nam, Vesa Valimaki, Jonathan S. Able, and Julius O. Smith
+     * in IEEE Transactions on Audio, Speech, and Language Processing, Vol. 18, No. 4, May 2010.
+     *
+     * This unit generator is based on an algorithm that integrates bandlimited impulse trains,
+     * and as a result can only change frequencies at the end of each waveform period.
+     *
+     * Inputs:
+     *  - freq: the frequency of the square;
+     *          this can only be modulated every period,
+     *          so there may be a delay before the frequency is updated at low frequencies
+     *  - leakRate: the leak rate of the leaky integrator (between >0.0 and 1.0)
+     *  - mul: the amplitude of the impulses
+     *  - add: the amplitude offset of the impulses
+     */
+    flock.ugen.square = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                freq = that.inputs.freq.output[0],
+                leak = 1.0 - that.inputs.leakRate.output[0],
+                p = m.phase,
+                unscaledValue = m.unscaledValue,
+                i;
+
+            // TODO: This can be moved to init() when
+            // we have ugen graph priming implemented.
+            if (p === undefined) {
+                flock.ugen.square.updatePeriodState(m, freq);
+                p = m.phaseResetValue;
+            }
+
+            for (i = 0; i < numSamps; i++) {
+                out[i] = unscaledValue = (flock.blit(p) * m.sign) + leak * unscaledValue;
+
+                if (p < -2.0) {
+                    flock.ugen.square.updatePeriodState(m, freq);
+                    // We've hit the end of the period.
+                    p += m.phaseResetValue;
+                }
+
+                p -= 1.0;
+            }
+
+            m.phase = p;
+            m.unscaledValue = unscaledValue;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.init = function () {
+            that.onInputChanged();
+        };
+
+        that.init();
+        return that;
+    };
+
+    flock.ugen.square.updatePeriodState = function (m, freq) {
+        flock.blit.updatePeriodState(m, freq);
+        m.phaseResetValue = m.d0 / 2;
+        // Flip the sign of the output.
+        m.sign *= -1.0;
+    };
+
+    fluid.defaults("flock.ugen.square", {
+        rate: "audio",
+
+        inputs: {
+            freq: 440.0,
+            leakRate: 0.01,
+            mul: null,
+            add: null
+        },
+
+        ugenOptions: {
+            model: {
+                phase: undefined,
+                unscaledValue: 0.5,
+                value: 0.5,
+                sign: 1.0
+            }
+        }
+    });
+
+
+    /**
+     * Generates a band-limited triangle wave.
+     *
+     * This unit generator is based on the BLIT-FDF method documented in:
+     * "Efficient Antialiasing Oscillator Algorithms Using Low-Order Fractional Delay Filters"
+     * Juhan Nam, Vesa Valimaki, Jonathan S. Able, and Julius O. Smith
+     * in IEEE Transactions on Audio, Speech, and Language Processing, Vol. 18, No. 4, May 2010.
+     *
+     * This unit generator is based on an algorithm that integrates bandlimited impulse trains,
+     * and as a result can only change frequencies at the end of each waveform period.
+     *
+     * It will noticeably distort at frequencies above 6000 Hz unless you adjust the
+     * leakRate accordingly.
+     *
+     * Inputs:
+     *  - freq: the frequency of the square;
+     *          this can only be modulated every period,
+     *          so there may be a delay before the frequency is updated at low frequencies
+     *  - leakRate: the leak rate of the leaky integrator (between >0.0 and 1.0)
+     *  - mul: the amplitude of the impulses
+     *  - add: the amplitude offset of the impulses
+     */
+    flock.ugen.tri = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                freq = that.inputs.freq.output[0],
+                leak = 1.0 - that.inputs.leakRate.output[0],
+                p = m.phase,
+                unscaledValue = m.unscaledValue,
+                secondPrevVal = m.secondPrevVal,
+                i,
+                firstIntegrate,
+                secondIntegrate;
+
+            // TODO: This can be moved to init() when
+            // we have ugen graph priming implemented.
+            if (p === undefined) {
+                flock.ugen.tri.updatePeriodState(m, freq);
+                p = m.d0 / 4;
+            }
+
+            for (i = 0; i < numSamps; i++) {
+                firstIntegrate = (flock.blit(p) * m.sign) + leak * unscaledValue;
+                unscaledValue = firstIntegrate;
+                secondIntegrate = firstIntegrate + leak * secondPrevVal;
+                secondPrevVal = secondIntegrate;
+                out[i] = secondIntegrate * m.ampScale;
+
+                p -= 1.0;
+                if (p < -2.0) {
+                    flock.ugen.tri.updatePeriodState(m, freq);
+                    p += m.phaseResetValue;
+                }
+            }
+
+            m.phase = p;
+            m.unscaledValue = unscaledValue;
+            m.secondPrevVal = secondPrevVal;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.init = function () {
+            that.onInputChanged();
+        };
+
+        that.init();
+        return that;
+    };
+
+    flock.ugen.tri.updatePeriodState = function (m, freq) {
+        flock.blit.updatePeriodState(m, freq);
+        m.phaseResetValue = m.d0 / 2;
+        m.ampScale = 2 / m.d0;
+        // Flip the sign of the output.
+        m.sign *= -1.0;
+    };
+
+    fluid.defaults("flock.ugen.tri", {
+        rate: "audio",
+
+        inputs: {
+            freq: 440.0,
+            leakRate: 0.01,
+            mul: null,
+            add: null
+        },
+
+        ugenOptions: {
+            model: {
+                phase: undefined,
+                value: 0.5,
+                unscaledValue: 0.5,
+                secondPrevVal: 0.0,
+                sign: 1.0,
+                ampScale: undefined,
+                phaseResetValue: undefined
+            }
+        }
+    });
+}());
+;/*
+* Flocking Envelopes
+* http://github.com/colinbdclark/flocking
+*
+* Copyright 2011-2014, Colin Clark
+* Dual licensed under the MIT and GPL Version 2 licenses.
+*/
+
+/*global require, DSP*/
+/*jshint white: false, newcap: true, regexp: true, browser: true,
+    forin: false, nomen: true, bitwise: false, maxerr: 100,
+    indent: 4, plusplus: false, curly: true, eqeqeq: true,
+    freeze: true, latedef: true, noarg: true, nonew: true, quotmark: double, undef: true,
+    unused: true, strict: true, asi: false, boss: false, evil: false, expr: false,
+    funcscope: false*/
+
+var fluid = fluid || require("infusion"),
+    flock = fluid.registerNamespace("flock");
+
+(function () {
+    "use strict";
+
+    var $ = fluid.registerNamespace("jQuery");
+
+    /*********************
+     * Envelope Creators *
+     *********************/
+
+    flock.envelope = {};
+
+    // Unsupported API.
+    flock.envelope.makeCreator = function (name, envelopeOptionsTransformer) {
+        return function (options) {
+            var defaults = fluid.defaults(name),
+                merged = $.extend(true, {}, defaults, options);
+
+            return envelopeOptionsTransformer(merged);
+        };
+    };
+
+    // Unsupported API.
+    flock.envelope.registerCreators = function (inNamespace, creatorSpecs) {
+        var path, creatorSpec;
+
+        for (var pathSuffix in creatorSpecs) {
+            path = fluid.pathUtil.composePath(inNamespace, pathSuffix);
+            creatorSpec = creatorSpecs[pathSuffix];
+
+            fluid.defaults(path, creatorSpec.defaults);
+            fluid.setGlobalValue(path, flock.envelope.makeCreator(path, creatorSpec.transformer));
+        }
+    };
+
+    // Unsupported API.
+    flock.envelope.creatorSpecs = {
+        line: {
+            transformer: function (o) {
+                return {
+                    levels: [o.start, o.end],
+                    times: [o.duration]
+                };
+            },
+
+            defaults: {
+                start: 0.0,
+                end: 1.0,
+                duration: 1.0
+            }
+        },
+
+        linear: {
+            transformer: function (o) {
+                return {
+                    levels: [0, o.level, o.level, 0],
+                    times: [o.attack, o.sustain, o.release]
+                };
+            },
+
+            defaults: {
+                level: 1.0,
+                attack: 0.01,
+                sustain: 1.0,
+                release: 1.0
+            }
+        },
+
+        tri: {
+            transformer: function (o) {
+                return {
+                    levels: [0, o.level, 0],
+                    times: [o.duration, o.duration]
+                };
+            },
+
+            defaults: {
+                level: 1.0,
+                duration: 1.0
+            }
+        },
+
+        sin: {
+            transformer: function (o) {
+                return {
+                    levels: [0, o.level, 0],
+                    times: [o.duration, o.duration],
+                    curve: "sin"
+                };
+            },
+
+            defaults: {
+                level: 1.0,
+                duration: 1.0
+            }
+        },
+
+        asr: {
+            transformer: function (o) {
+                return {
+                    levels: [0, o.sustain, 0],
+                    times: [o.attack, o.release],
+                    sustainPoint: 1,
+                    curve: -4.0
+                };
+            },
+
+            defaults: {
+                sustain: 1.0,
+                attack: 0.01,
+                release: 1.0
+            }
+        },
+
+        dadsr: {
+            transformer: function (o) {
+                var levels = [0, 0, o.peak, o.peak * o.sustain, 0];
+                DSP.add(levels, levels, o.bias);
+
+                return {
+                    levels: levels,
+                    times: [o.delay, o.attack, o.decay, o.release],
+                    sustainPoint: 3,
+                    curve: -4.0
+                };
+            },
+
+            defaults: {
+                delay: 0.1,
+                attack: 0.01,
+                decay: 0.3,
+                sustain: 0.5,
+                release: 1.0,
+                peak: 1.0,
+                bias: 0.0
+            }
+        },
+
+        adsr: {
+            transformer: function (o) {
+                var levels = [0, o.peak, o.peak * o.sustain, 0];
+                DSP.add(levels, levels, o.bias);
+
+                return {
+                    levels: levels,
+                    times: [o.attack, o.decay, o.release],
+                    sustainPoint: 2,
+                    curve: -4.0
+                };
+            },
+
+            defaults: {
+                attack: 0.01,
+                decay: 0.3,
+                sustain: 0.5,
+                release: 1.0,
+                peak: 1.0,
+                bias: 0.0
+            }
+        }
+    };
+
+    flock.envelope.registerCreators("flock.envelope", flock.envelope.creatorSpecs);
+
+    flock.envelope.validate = function (envelope, failOnError) {
+        var levels = envelope.levels,
+            report = {};
+
+        if (!envelope.times) {
+            report.times = "An array containing at least one time value must be specified.";
+        } else if (!levels || levels.length < 2) {
+            report.levels = "An array containing at least two levels must be specified.";
+        } else {
+            flock.envelope.validate.times(envelope.times, levels, report);
+            flock.envelope.validate.levels(levels, report);
+            flock.envelope.validate.curves(envelope.curve, levels, report);
+            flock.envelope.validate.sustainPoint(envelope.sustainPoint, levels, report);
+        }
+
+        if (failOnError !== false) {
+            for (var errorProp in report) {
+                flock.fail(report[errorProp]);
+            }
+        }
+
+        return report;
+    };
+
+    flock.envelope.validate.times = function (times, levels, report) {
+        if (times.length !== levels.length - 1) {
+            report.times = "The envelope specification should provide one fewer time value " +
+                "than the number of level values. times: " + times + " levels: " + levels;
+        }
+
+        for (var i = 0; i < times.length; i++) {
+            var time = times[i];
+
+            if (isNaN(time)) {
+                report.times = "A NaN time value was specified at index " +
+                    i + ". times: " + times;
+            }
+
+            if (time < 0) {
+                report.times = "All times should be positive values. times: " + times;
+            }
+        }
+    };
+
+    flock.envelope.validate.levels = function (levels, report) {
+        for (var i = 0; i < levels.length; i++) {
+            if (isNaN(levels[i])) {
+                report.levels = "A NaN level value was specified at index " +
+                    i + ". levels: " + levels;
+            }
+        }
+    };
+
+    flock.envelope.validate.curves = function (curve, levels, report) {
+        if (!curve) {
+            return report;
+        }
+
+        if (flock.isIterable(curve)) {
+            if (curve.length !== levels.length - 1) {
+                report.curve = "When curve is specified as an array, " +
+                    "there should be one fewer curve value " +
+                    "than the number of level values. curve: " +
+                    curve + " levels: " + levels;
+            }
+
+            fluid.each(curve, function (curveName) {
+                var lineGen = flock.line.generator(curveName);
+                if (!lineGen) {
+                    report.curve = "'" + curveName + "' is not a valid curve type. curve: " + curve;
+                }
+            });
+        }
+
+        var lineGen = flock.line.generator(curve);
+        if (!lineGen) {
+            report.curve = "'" + curve + "' is not a valid curve type.";
+        }
+    };
+
+    flock.envelope.validate.sustainPoint = function (sustainPoint, levels, report) {
+        if (sustainPoint < 0 || sustainPoint >= levels.length) {
+            report.sustainPoint = "The specified sustainPoint index is out range for the levels array. " +
+                "sustainPoint: " + sustainPoint + " levels: " + levels;
+        }
+    };
+
+    /**
+     * Takes an envelope specification and expands it,
+     * producing an envelope object.
+     */
+    flock.envelope.expand = function (envSpec) {
+        var envelope = typeof envSpec === "string" ? fluid.invokeGlobalFunction(envSpec) :
+            envSpec.type ? fluid.invokeGlobalFunction(envSpec.type, [envSpec]) : envSpec;
+
+        // Catch a common naming mistake and alias it to the correct name.
+        if (envelope.curves && !envelope.curve) {
+            envelope.curve = envelope.curves;
+        }
+
+        if (!flock.isIterable(envelope.curve)) {
+            var numCurves = envelope.levels.length - 1;
+            envelope.curve = flock.generate(new Array(numCurves), envelope.curve);
+        }
+
+        flock.envelope.validate(envelope, true);
+
+        return envelope;
+    };
+
+
+    /****************************
+     * Line Generator Functions *
+     ****************************/
+
+    flock.line = {
+        // TODO: Unit tests!
+        // e.g. flock.line.fill("linear", new Float32Array(64), 0, 1);
+        fill: function (type, buffer, start, end, startIdx, endIdx) {
+            startIdx = startIdx === undefined ? 0 : startIdx;
+            endIdx = endIdx === undefined ? buffer.length : endIdx;
+
+            var numSamps = endIdx - startIdx,
+                m = flock.line.fill.model;
+
+            m.unscaledValue = start;
+            m.destination = end;
+            m.numSegmentSamps = numSamps - 1;
+
+            if (typeof type === "number") {
+                m.currentCurve = type;
+                type = "curve";
+            }
+
+            var generator = flock.line[type];
+            if (!generator) {
+                flock.fail("No line generator could be found for type " + type);
+            }
+            generator.init(m);
+
+            return generator.gen(numSamps, startIdx, buffer, m);
+        },
+
+        generator: function (curve) {
+            var type = typeof curve;
+
+            return type === "string" ? flock.line[curve] :
+                type === "number" ? flock.line.curve : flock.line.linear;
+        },
+
+        constant: {
+            init: function (m) {
+                m.stepSize = 0;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue;
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                }
+
+                return buffer;
+            }
+        },
+
+        step: {
+            init: function (m) {
+                m.arrived = false;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = m.unscaledValue;
+                    if (!m.arrived) {
+                        m.arrived = true;
+                        m.unscaledValue = m.destination;
+                    }
+                }
+
+                return buffer;
+            }
+        },
+
+        linear: {
+            init: function (m) {
+                m.stepSize = (m.destination - m.unscaledValue) / m.numSegmentSamps;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    stepSize = m.stepSize;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    val += stepSize;
+                }
+
+                m.unscaledValue = val;
+                m.stepSize = stepSize;
+
+                return buffer;
+            }
+        },
+
+        exponential: {
+            init: function (m) {
+                if (m.unscaledValue === 0) {
+                    m.unscaledValue = 0.0000000000000001;
+                }
+                m.stepSize = m.numSegmentSamps === 0 ? 0 :
+                    Math.pow(m.destination / m.unscaledValue, 1.0 / m.numSegmentSamps);
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    stepSize = m.stepSize;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    val *= stepSize;
+                }
+
+                m.unscaledValue = val;
+                m.stepSize = stepSize;
+
+                return buffer;
+            }
+        },
+
+        curve: {
+            init: function (m) {
+                if (Math.abs(m.currentCurve) < 0.001) {
+                    // A curve value this small might as well be linear.
+                    return flock.line.linear.init(m);
+                } else {
+                    var a1 = (m.destination - m.unscaledValue) / (1.0 - Math.exp(m.currentCurve));
+                    m.a2 = m.unscaledValue + a1;
+                    m.b1 = a1;
+                    m.stepSize = Math.exp(m.currentCurve / m.numSegmentSamps);
+                }
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    b1 = m.b1;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    b1 *= m.stepSize;
+                    val = m.a2 - b1;
+                }
+
+                m.unscaledValue = val;
+                m.b1 = b1;
+
+                return buffer;
+            }
+        },
+
+        sin: {
+            init: function (m) {
+                var w = Math.PI / m.numSegmentSamps;
+                m.a2 = (m.destination + m.unscaledValue) * 0.5;
+                m.b1 = 2.0 * Math.cos(w);
+                m.y1 = (m.destination - m.unscaledValue) * 0.5;
+                m.y2 = m.y1 * Math.sin(flock.HALFPI - w);
+                m.unscaledValue = m.a2 - m.y1;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    y1 = m.y1,
+                    y2 = m.y2,
+                    y0;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    y0 = m.b1 * y1 - y2;
+                    val = m.a2 - y0;
+                    y2 = y1;
+                    y1 = y0;
+                }
+
+                m.unscaledValue = val;
+                m.y1 = y1;
+                m.y2 = y2;
+
+                return buffer;
+            }
+        },
+
+        welsh: {
+            init: function (m) {
+                var w = flock.HALFPI / m.numSegmentSamps,
+                    cosW = Math.cos(w);
+
+                m.b1 = 2.0 * cosW;
+
+                if (m.destination >= m.unscaledValue) {
+                    m.a2 = m.unscaledValue;
+                    m.y1 = 0.0;
+                    m.y2 = -Math.sin(w) * (m.destination - m.unscaledValue);
+                } else {
+                    m.a2 = m.destination;
+                    m.y1 = m.unscaledValue - m.destination;
+                    m.y2 = cosW * (m.unscaledValue - m.destination);
+                }
+
+                m.unscaledValue = m.a2 + m.y1;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    y1 = m.y1,
+                    y2 = m.y2,
+                    y0;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    y0 = m.b1 * y1 - y2;
+                    y2 = y1;
+                    y1 = y0;
+                    val = m.a2 + y0;
+                }
+
+                m.unscaledValue = val;
+                m.y1 = y1;
+                m.y2 = y2;
+
+                return buffer;
+            }
+        },
+
+        squared: {
+            init: function (m) {
+                m.y1 = Math.sqrt(m.unscaledValue);
+                m.y2 = Math.sqrt(m.destination);
+                m.stepSize = (m.y2 - m.y1) / m.numSegmentSamps;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    y1 = m.y1;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    y1 += m.stepSize;
+                    val = y1 * y1;
+                }
+
+                m.y1 = y1;
+                m.unscaledValue = val;
+
+                return buffer;
+            }
+        },
+
+        cubed: {
+            init: function (m) {
+                var third = 0.3333333333333333;
+                m.y1 = Math.pow(m.unscaledValue, third);
+                m.y2 = Math.pow(m.destination, third);
+                m.stepSize = (m.y2 - m.y1) / m.numSegmentSamps;
+            },
+
+            gen: function (numSamps, idx, buffer, m) {
+                var val = m.unscaledValue,
+                    y1 = m.y1;
+
+                for (var i = idx; i < numSamps + idx; i++) {
+                    buffer[i] = val;
+                    y1 += m.stepSize;
+                    val = y1 * y1 * y1;
+                }
+
+                m.y1 = y1;
+                m.unscaledValue = val;
+
+                return buffer;
+            }
+        }
+    };
+
+    // Unsupported API.
+    flock.line.fill.model = {
+        unscaledValue: 0.0,
+        value: 0.0,
+        destination: 1.0
+    };
+
+    /****************************
+     * Envelope Unit Generators *
+     ****************************/
+
+    flock.ugen.line = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                stepSize = m.stepSize,
+                numSteps = m.numSteps,
+                numLevelVals = numSteps >= numSamps ? numSamps : numSteps,
+                numEndVals = numSamps - numLevelVals,
+                level = m.level,
+                out = that.output,
+                i;
+
+            for (i = 0; i < numLevelVals; i++) {
+                out[i] = level;
+                numSteps--;
+                level += stepSize;
+            }
+
+            // TODO: Implement a more efficient gen algorithm when the line has finished.
+            if (numEndVals > 0) {
+                for (i = 0; i < numEndVals; i++) {
+                    out[i] = level;
+                }
+            }
+
+            // TODO: "level" should be deprecated in favour of "unscaledValue"
+            m.level = m.unscaledValue = level;
+            m.numSteps = numSteps;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.onInputChanged = function () {
+            var m = that.model;
+
+            // Any change in input value will restart the line.
+            m.start = that.inputs.start.output[0];
+            m.end = that.inputs.end.output[0];
+            m.numSteps = Math.round(that.inputs.duration.output[0] * m.sampleRate);
+            if (m.numSteps === 0) {
+                m.stepSize = 0.0;
+                m.level = m.end;
+            } else {
+                m.stepSize = (m.end - m.start) / m.numSteps;
+                m.level = m.start;
+            }
+
+            flock.onMulAddInputChanged(that);
+        };
+
+        that.onInputChanged();
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.line", {
+        rate: "control",
+        inputs: {
+            start: 0.0,
+            end: 1.0,
+            duration: 1.0,
+            mul: null,
+            add: null
+        },
+        ugenOptions: {
+            model: {
+                start: 0.0,
+                end: 1.0,
+                numSteps: 0,
+                stepSize: 0,
+                level: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
+            }
+        }
+    });
+
+
+    flock.ugen.xLine = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                multiplier = m.multiplier,
+                numSteps = m.numSteps,
+                numLevelVals = numSteps >= numSamps ? numSamps : numSteps,
+                numEndVals = numSamps - numLevelVals,
+                level = m.level,
+                out = that.output,
+                i;
+
+            for (i = 0; i < numLevelVals; i++) {
+                out[i] = level;
+                numSteps--;
+                level *= multiplier;
+            }
+
+            // TODO: Implement a more efficient gen algorithm when the line has finished.
+            if (numEndVals > 0) {
+                for (i = 0; i < numEndVals; i++) {
+                    out[i] = level;
+                }
+            }
+
+            // TODO: "level" should be deprecated in favour of "unscaledValue"
+            m.level = m.unscaledValue = level;
+            m.numSteps = numSteps;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.onInputChanged = function () {
+            var m = that.model;
+
+            flock.onMulAddInputChanged(that);
+
+            // Any change in input value will restart the line.
+            m.start = that.inputs.start.output[0];
+            if (m.start === 0.0) {
+                m.start = Number.MIN_VALUE; // Guard against divide by zero by using the smallest possible number.
+            }
+
+            m.end = that.inputs.end.output[0];
+            m.numSteps = Math.round(that.inputs.duration.output[0] * m.sampleRate);
+            m.multiplier = Math.pow(m.end / m.start, 1.0 / m.numSteps);
+            m.level = m.start;
+        };
+
+        that.onInputChanged();
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.xLine", {
+        rate: "control",
+        inputs: {
+            start: 0.0,
+            end: 1.0,
+            duration: 1.0,
+            mul: null,
+            add: null
+        },
+        ugenOptions: {
+            model: {
+                start: 0.0,
+                end: 1.0,
+                numSteps: 0,
+                multiplier: 0,
+                level: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0
+            }
+        }
+    });
+
+    flock.ugen.asr = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                prevGate = m.previousGate,
+                gate = that.inputs.gate.output[0],
+                level = m.level,
+                stage = m.stage,
+                currentStep = stage.currentStep,
+                stepInc = stage.stepInc,
+                numSteps = stage.numSteps,
+                targetLevel = m.targetLevel,
+                stepsNeedRecalc = false,
+                stageTime,
+                i;
+
+            // Recalculate the step state if necessary.
+            if (prevGate <= 0 && gate > 0) {
+                // Starting a new attack stage.
+                targetLevel = that.inputs.sustain.output[0];
+                stageTime = that.inputs.attack.output[0];
+                stepsNeedRecalc = true;
+            } else if (gate <= 0 && currentStep >= numSteps) {
+                // Starting a new release stage.
+                targetLevel = that.inputs.start.output[0];
+                stageTime = that.inputs.release.output[0];
+                stepsNeedRecalc = true;
+            }
+
+            // TODO: Can we get rid of this extra branch without introducing code duplication?
+            if (stepsNeedRecalc) {
+                numSteps = Math.round(stageTime * m.sampleRate);
+                stepInc = (targetLevel - level) / numSteps;
+                currentStep = 0;
+            }
+
+            // Output the the envelope's sample data.
+            for (i = 0; i < numSamps; i++) {
+                out[i] = level;
+                currentStep++;
+                // Hold the last value if the stage is complete, otherwise increment.
+                level = currentStep < numSteps ?
+                    level + stepInc : currentStep === numSteps ?
+                    targetLevel : level;
+            }
+
+            // Store instance state.
+            // TODO: "level" should be deprecated in favour of "unscaledValue"
+            m.level = m.unscaledValue = level;
+            m.targetLevel = targetLevel;
+            m.previousGate = gate;
+            stage.currentStep = currentStep;
+            stage.stepInc = stepInc;
+            stage.numSteps = numSteps;
+
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.init = function () {
+            var m = that.model;
+            m.level = m.unscaledValue = that.inputs.start.output[0];
+            m.targetLevel = that.inputs.sustain.output[0];
+
+            that.onInputChanged();
+        };
+
+        that.init();
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.asr", {
+        rate: "control",
+        inputs: {
+            start: 0.0,
+            attack: 0.01,
+            sustain: 1.0,
+            release: 1.0,
+            gate: 0.0,
+            mul: null,
+            add: null
+        },
+        ugenOptions: {
+            model: {
+                level: 0.0,
+                targetLevel: 0.0,
+                previousGate: 0.0,
+                unscaledValue: 0.0,
+                value: 0.0,
+                stage: {
+                    currentStep: 0,
+                    stepInc: 0,
+                    numSteps: 0
+                }
+            }
+        }
+    });
+
+    // Included for backwards compatibility.
+    // The name "flock.ugen.env.simpleASR is deprecated.
+    // Please use flock.ugen.asr instead.
+    // This will be removed before Flocking 1.0.
+    flock.ugen.env = {};
+    flock.ugen.env.simpleASR  = flock.ugen.asr;
+    fluid.defaults("flock.ugen.env.simpleASR", fluid.copy(fluid.defaults("flock.ugen.asr")));
+
+    flock.ugen.envGen = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.krGen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                inputs = that.inputs,
+                gate = inputs.gate.output[0],
+                timeScale = inputs.timeScale.output[0],
+                i = 0,
+                sampsToGen;
+
+            flock.ugen.envGen.checkGate(that, gate, timeScale);
+
+            while (i < numSamps) {
+                sampsToGen = Math.min(numSamps - i, m.numSegmentSamps);
+                that.lineGen.gen(sampsToGen, i, out, m);
+                i += sampsToGen;
+                m.numSegmentSamps -= sampsToGen;
+
+                if (m.numSegmentSamps === 0) {
+                    flock.ugen.envGen.nextStage(that, timeScale);
+                }
+            }
+
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.arGen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                inputs = that.inputs,
+                gate = inputs.gate.output,
+                timeScale = inputs.timeScale.output[0],
+                i;
+
+            for (i = 0; i < numSamps; i++) {
+                flock.ugen.envGen.checkGate(that, gate[i], timeScale);
+
+                that.lineGen.gen(1, i, out, m);
+                m.numSegmentSamps--;
+
+                if (m.numSegmentSamps === 0) {
+                    flock.ugen.envGen.nextStage(that, timeScale);
+                }
+            }
+
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.onInputChanged = function (inputName) {
+            if (!inputName || inputName === "envelope") {
+                that.envelope = flock.ugen.envGen.initEnvelope(that, that.inputs.envelope);
+            }
+
+            if (!inputName || inputName === "gate") {
+                that.gen = that.inputs.gate.rate === flock.rates.AUDIO ? that.arGen : that.krGen;
+            }
+
+            flock.onMulAddInputChanged(that);
+        };
+
+        that.onInputChanged();
+
+        return that;
+    };
+
+    // Unsupported API.
+    flock.ugen.envGen.initEnvelope = function (that, envSpec) {
+        var m = that.model,
+            envelope = flock.envelope.expand(envSpec);
+
+        m.stage = 0;
+        m.numStages = envelope.times.length;
+        that.lineGen = flock.line.constant;
+
+        flock.ugen.envGen.lineGenForStage(that.inputs.timeScale.output[0], envelope, m);
+        m.unscaledValue = envelope.levels[m.stage];
+
+        return envelope;
+    };
+
+    // Unsupported API.
+    flock.ugen.envGen.checkGate = function (that, gate, timeScale) {
+        var m = that.model,
+            envelope = that.envelope;
+
+        if (gate !== m.previousGate) {
+            if (gate > 0.0 && m.previousGate <= 0.0) {
+                // Gate has opened.
+                m.stage = 1;
+                that.lineGen = flock.ugen.envGen.lineGenForStage(timeScale, envelope, m);
+            } else if (gate <= 0.0 && m.previousGate > 0) {
+                // Gate has closed.
+                m.stage = m.numStages;
+                that.lineGen = flock.ugen.envGen.lineGenForStage(timeScale, envelope, m);
+            }
+        }
+        m.previousGate = gate;
+    };
+
+    // Unsupported API.
+    flock.ugen.envGen.nextStage = function (that, timeScale) {
+        var m = that.model,
+            envelope = that.envelope;
+
+        // We've hit the end of the current transition.
+        if (m.stage === envelope.sustainPoint) {
+            // We're at the sustain point.
+            // Output a constant value.
+            that.lineGen = flock.line.constant;
+            m.numSegmentSamps = Infinity;
+            m.destination = m.unscaledValue;
+        } else {
+            // Move on to the next breakpoint stage.
+            m.stage++;
+            that.lineGen = flock.ugen.envGen.lineGenForStage(timeScale, envelope, m);
+        }
+    };
+
+    // Unsupported API.
+    flock.ugen.envGen.setupStage = function (timeScale, envelope, m) {
+        var dest = envelope.levels[m.stage],
+            dur,
+            durSamps;
+
+        if (m.stage === 0 || m.stage > m.numStages) {
+            durSamps = Infinity;
+        } else {
+            dur = envelope.times[m.stage - 1] * timeScale;
+            durSamps = Math.max(1, dur * m.sampleRate);
+        }
+
+        m.numSegmentSamps = durSamps;
+        m.destination = dest;
+    };
+
+    // Unsupported API.
+    flock.ugen.envGen.lineGenForStage = function (timeScale, envelope, m) {
+        var curve = envelope.curve,
+            lineGen,
+            curveValue;
+
+        if (m.stage === 0 || m.stage > m.numStages) {
+            lineGen = flock.line.constant;
+        } else {
+            curveValue = curve[m.stage - 1];
+            m.currentCurve = curveValue;
+            lineGen = flock.line.generator(curveValue);
+        }
+
+        flock.ugen.envGen.setupStage(timeScale, envelope, m);
+        lineGen.init(m);
+
+        return lineGen;
+    };
+
+    fluid.defaults("flock.ugen.envGen", {
+        rate: "audio",
+
+        inputs: {
+            envelope: "flock.envelope.adsr",
+            gate: 0.0,
+            timeScale: 1.0,     // Timescale is control-rate (or lower) only.
+            mul: null,          // This is equivalent to SC's levelScale parameter.
+            add: null           // And this to SC's levelBias.
+        },
+
+        ugenOptions: {
+            model: {
+                previousGate: 0.0,
+                stepSize: 0.0,
+                destination: 0.0,
+                numSegmentSamps: 1.0,
+                unscaledValue: 0.0,
+                value: 0.0,
+                stage: 0.0,
+                numStages: 0.0
+            }
+        }
+    });
+
 }());
 ;/*
 * Flocking Browser-Dependent Unit Generators
@@ -28455,13 +30140,14 @@ var fluid = fluid || require("infusion"),
 
         that.gen = function (numSamps) {
             var m = that.model,
+                source = that.inputs.source.output,
                 spf = m.spf,
                 bufIdx = m.bufIdx,
                 buf = m.scope.values,
                 i;
 
             for (i = 0; i < numSamps; i++) {
-                buf[bufIdx] = that.inputs.source.output[i];
+                buf[bufIdx] = source[i];
                 if (bufIdx < spf) {
                     bufIdx += 1;
                 } else {
@@ -28469,7 +30155,9 @@ var fluid = fluid || require("infusion"),
                     that.scopeView.refreshView();
                 }
             }
+
             m.bufIdx = bufIdx;
+            m.value = m.unscaledValue = flock.ugen.lastOutputValue(numSamps, source);
         };
 
         that.onInputChanged = function () {
@@ -28526,14 +30214,13 @@ var fluid = fluid || require("infusion"),
          */
         that.exponentialGen = function (numSamps) {
             var m = that.model,
-                scaledMouse = m.mousePosition / m.size,
+                val = flock.ugen.mouse.cursor.normalize(that.target, m),
                 movingAvg = m.movingAvg,
                 lag = that.inputs.lag.output[0],
                 add = that.inputs.add.output[0],
                 mul = that.inputs.mul.output[0],
                 lagCoef = m.lagCoef,
                 out = that.output,
-                pow = Math.pow,
                 i,
                 max;
 
@@ -28544,17 +30231,18 @@ var fluid = fluid || require("infusion"),
 
             for (i = 0; i < numSamps; i++) {
                 max = mul + add;
-                scaledMouse = pow(max  / add, scaledMouse) * add;
-                movingAvg = scaledMouse + lagCoef * (movingAvg - scaledMouse); // 1-pole filter averages mouse values.
+                val = Math.pow(max  / add, val) * add;
+                movingAvg = val + lagCoef * (movingAvg - val); // 1-pole filter averages mouse values.
                 out[i] = movingAvg;
             }
 
             m.movingAvg = movingAvg;
+            m.value = m.unscaledValue = movingAvg;
         };
 
         that.linearGen = function (numSamps) {
             var m = that.model,
-                scaledMouse = m.mousePosition / m.size,
+                val = flock.ugen.mouse.cursor.normalize(that.target, m),
                 movingAvg = m.movingAvg,
                 lag = that.inputs.lag.output[0],
                 add = that.inputs.add.output[0],
@@ -28569,38 +30257,30 @@ var fluid = fluid || require("infusion"),
             }
 
             for (i = 0; i < numSamps; i++) {
-                movingAvg = scaledMouse + lagCoef * (movingAvg - scaledMouse);
+                movingAvg = val + lagCoef * (movingAvg - val);
                 out[i] = movingAvg * mul + add;
             }
 
-            m.movingAvg = movingAvg;
+            m.movingAvg = m.unscaledValue = movingAvg;
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.noInterpolationGen = function (numSamps) {
             var m = that.model,
-                scaledMouse = m.mousePosition / m.size,
-                add = that.inputs.add.output[0],
-                mul = that.inputs.mul.output[0],
                 out = that.output,
+                val = flock.ugen.mouse.cursor.normalize(that.target, m),
                 i;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = scaledMouse * mul + add;
+                out[i] = val * that.inputs.mul.output[0] + that.inputs.add.output[0];
             }
+
+            m.value = m.unscaledValue = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.moveListener = function (e) {
-            var m = that.model,
-                pos = e[m.eventProp],
-                off;
-
-            if (pos === undefined) {
-                off = $(e.target).offset();
-                e.offsetX = e.clientX - off.left;
-                e.offsetY = e.clientY - off.top;
-                pos = e[m.eventProp];
-            }
-            m.mousePosition = m.isWithinTarget ? pos : 0.0;
+            var m = that.model;
+            m.mousePosition = e[m.eventProp];
         };
 
         that.overListener = function () {
@@ -28630,8 +30310,7 @@ var fluid = fluid || require("infusion"),
         };
 
         that.bindEvents = function () {
-            var m = that.model,
-                target = m.target,
+            var target = that.target,
                 moveListener = that.moveListener;
 
             if (that.options.onlyOnMouseDown) {
@@ -28649,8 +30328,8 @@ var fluid = fluid || require("infusion"),
             flock.onMulAddInputChanged(that);
 
             var interp = that.options.interpolation;
-            that.gen = interp === "none" ? that.noInterpolationGen : interp === "exponential" ? that.exponentialGen : that.linearGen;
-            that.model.exponential = interp === "exponential";
+            that.gen = interp === "none" ? that.noInterpolationGen :
+                interp === "exponential" ? that.exponentialGen : that.linearGen;
         };
 
         that.init = function () {
@@ -28660,16 +30339,18 @@ var fluid = fluid || require("infusion"),
                 target = $(options.target || window);
 
             if (axis === "x" || axis === "width" || axis === "horizontal") {
-                m.eventProp = "offsetX";
-                m.size = target.width();
+                m.eventProp = "clientX";
+                m.offsetProp = "left";
+                m.dimension = "width";
             } else {
-                m.eventProp = "offsetY";
-                m.size = target.height();
+                m.eventProp = "clientY";
+                m.offsetProp = "top";
+                m.dimension = "height";
             }
 
+            that.target = target;
             m.mousePosition = 0;
             m.movingAvg = 0;
-            m.target = target;
 
             that.bindEvents();
             that.onInputChanged();
@@ -28677,6 +30358,22 @@ var fluid = fluid || require("infusion"),
 
         that.init();
         return that;
+    };
+
+    flock.ugen.mouse.cursor.normalize = function (target, m) {
+        if (!m.isWithinTarget) {
+            return 0.0;
+        }
+
+        var size = target[m.dimension](),
+            offset = target.offset(),
+            pos = m.mousePosition;
+
+        if (offset) {
+            pos -= offset[m.offsetProp];
+        }
+
+        return pos / size;
     };
 
     fluid.defaults("flock.ugen.mouse.cursor", {
@@ -28688,7 +30385,13 @@ var fluid = fluid || require("infusion"),
         },
 
         ugenOptions: {
-            axis: "x"
+            axis: "x",
+            interpolation: "linear",
+            model: {
+                mousePosition: 0,
+                movingAvg: 0,
+                value: 0.0
+            }
         }
     });
 
@@ -28702,25 +30405,25 @@ var fluid = fluid || require("infusion"),
                 i;
 
             for (i = 0; i < numSamps; i++) {
-                out[i] = m.value;
+                out[i] = m.unscaledValue;
             }
 
             that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
         };
 
         that.mouseDownListener = function () {
-            that.model.value = 1.0;
+            that.model.unscaledValue = 1.0;
         };
 
         that.mouseUpListener = function () {
-            that.model.value = 0.0;
+            that.model.unscaledValue = 0.0;
         };
 
         that.init = function () {
             var m = that.model;
             m.target = typeof (that.options.target) === "string" ?
                 document.querySelector(that.options.target) : that.options.target || window;
-            m.value = 0.0;
             m.target.addEventListener("mousedown", that.mouseDownListener, false);
             m.target.addEventListener("mouseup", that.mouseUpListener, false);
 
@@ -28739,6 +30442,64 @@ var fluid = fluid || require("infusion"),
         rate: "control"
     });
 
+
+    flock.ugen.mediaIn = function (inputs, output, options) {
+        var that = flock.ugen(inputs, output, options);
+
+        that.gen = function (numSamps) {
+            var m = that.model,
+                out = that.output,
+                bus = that.bus,
+                val;
+
+            for (var i = 0; i < numSamps; i++) {
+                out[i] = val = bus[i];
+            }
+
+            m.unscaledValue = val;
+            that.mulAdd(numSamps);
+            m.value = flock.ugen.lastOutputValue(numSamps, out);
+        };
+
+        that.onInputChanged = function () {
+            flock.onMulAddInputChanged(that);
+        };
+
+        that.init = function () {
+            var enviro = flock.enviro.shared,
+                mediaEl = $(that.options.element),
+                // TODO: Direct reference to the shared environment.
+                busNum = enviro.audioStrategy.nativeNodeManager.createMediaElementInput(mediaEl[0]);
+
+            that.bus = that.options.audioSettings.buses[busNum];
+            that.onInputChanged();
+
+            // TODO: Remove this warning when Safari and Android
+            // fix their MediaElementAudioSourceNode implementations.
+            if (flock.platform.browser.safari) {
+                flock.log.warn("MediaElementSourceNode does not work on Safari. " +
+                    "For more information, see https://bugs.webkit.org/show_bug.cgi?id=84743 " +
+                    "and https://bugs.webkit.org/show_bug.cgi?id=125031");
+            } else if (flock.platform.isAndroid) {
+                flock.log.warn("MediaElementSourceNode does not work on Android. " +
+                    "For more information, see https://code.google.com/p/chromium/issues/detail?id=419446");
+            }
+        };
+
+        that.init();
+        return that;
+    };
+
+    fluid.defaults("flock.ugen.mediaIn", {
+        rate: "audio",
+        inputs: {
+            mul: null,
+            add: null
+        },
+        ugenOptions: {
+            element: "audio"
+        }
+    });
 }());
 ;/*!
 * Flocking - Creative audio synthesis for the Web!
@@ -28858,14 +30619,37 @@ var fluid = fluid || require("infusion"),
     };
 
     flock.midi.getPorts = function (access) {
-        var ports = {};
+        var ports = {},
+            portCollector = typeof access.inputs === "function" ?
+                flock.midi.collectPortsLegacy : flock.midi.collectPorts;
 
-        if (access.inputs) {
-            ports.inputs = access.inputs();
+        portCollector("inputs", access, ports);
+        portCollector("outputs", access, ports);
+
+        return ports;
+    };
+
+    flock.midi.collectPorts = function (type, access, ports) {
+        var portsForType = ports[type] = ports[type] || [],
+            iterator = access[type].values();
+
+        // TODO: Switch to ES6 for..of syntax when it's safe to do so
+        // across all supported Flocking environments
+        // (i.e. when Node.js and eventually IE support it).
+        var next = iterator.next();
+        while (!next.done) {
+            portsForType.push(next.value);
+            next = iterator.next();
         }
 
-        if (access.outputs) {
-            ports.outputs = access.outputs();
+        return ports;
+    };
+
+    // TODO: Remove this when the new Web MIDI API makes it
+    // into the Chrome release channel.
+    flock.midi.collectPortsLegacy = function (type, access, ports) {
+        if (access[type]) {
+            ports[type] = access[type]();
         }
 
         return ports;
