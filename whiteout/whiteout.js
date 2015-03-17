@@ -260,8 +260,12 @@
                     ugen: "flock.ugen.lfNoise",
                     rate: "control",
                     freq: 20,
-                    mul: 250,
-                    add: 255,
+                    // TODO: This is preferably
+                    //      mul: 250,
+                    //      add: 255,
+                    // but Chrome can't handle that many grains.
+                    mul: 100,
+                    add: 105,
                     options: {
                         interpolation: "linear"
                     }
