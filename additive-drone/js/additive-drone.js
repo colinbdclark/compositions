@@ -2,6 +2,8 @@ var colin = colin || {};
 
 (function () {
 
+    // TODO: Provide an easier means for components
+    // to configure their own environment/audioSystem instances via IoC.
     flock.init({
         chans: 2,
         numBuses: 2,
@@ -10,10 +12,11 @@ var colin = colin || {};
     });
 
     // A bank of oscillators added together.
+    // TODO: Remove all these globals.
     var harmonics = [1, 2, 3, 5, 6, 7, 9, 11, 13, 14, 15, 17, 19, 21, 24, 29, 44],
         ugenTypes = ["flock.ugen.sin", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
         fundamentalMultiplier = 60,
-        maxFreq = 11025,
+        maxFreq = 11025 * 1.5,
         maxAmp = 0.3,
         intervals = [
             1.0192443785950769, // 33 cents
@@ -68,147 +71,159 @@ var colin = colin || {};
         return sources;
     };
 
-    // TODO: Completely refactor this as a flock.band.
-    colin.additiveDrone = function () {
-        var that = {
-            intervalCap: 1
-        };
+    fluid.defaults("colin.additiveDrone", {
+        gradeNames: ["fluid.viewRelayComponent", "autoInit"],
 
-        that.synth = flock.synth({
-            synthDef: [{
-                ugen: "flock.ugen.sum",
-                sources: makeHarmonics(fundamentalMultiplier)
-            },{
-                id: "adder",
-                ugen: "flock.ugen.sum",
-                sources: makeHarmonics(fundamentalMultiplier)
-            }]
+        model: {
+            intervalCap: 1
+        },
+
+        invokers: {
+            periodicHarmonicShift: "colin.additiveDrone.periodicHarmonicShift({synth})",
+            changeFundamental: "colin.additiveDrone.changeFundamental({synth}, {that}.model)",
+            emphasizeHarmonics: "colin.additiveDrone.emphasizeHarmonics({that})"
+        },
+
+        components: {
+            synth: {
+                type: "colin.additiveDrone.synth"
+            },
+
+            clock: "{environment}.asyncScheduler",
+
+            playButton: {
+                type: "flock.ui.enviroPlayButton",
+                container: "{that}.dom.playButton",
+                options: {
+                    fadeDuration: 2.0
+                }
+            }
+        },
+
+        events: {
+            onPlay: "{playButton}.events.onPlay",
+            onPause: "{playButton}.events.afterFadeOut"
+        },
+
+        listeners: {
+            onPlay: [
+                // Every 1/10 of a second, change the pitch of one harmonic.
+                "{that}.clock.repeat(0.1, {that}.periodicHarmonicShift)",
+
+                // Every half minute or so, change the fundamental pitch of the whole instrument.
+                "{that}.clock.repeat(31, {that}.changeFundamental)",
+
+                "colin.additiveDrone.scheduleEmphasis({that})",
+
+                "{synth}.play()"
+            ],
+
+            onPause: [
+                "{that}.clock.clearAll()",
+                "{synth}.pause()"
+            ]
+        },
+
+        selectors: {
+            playButton: ".playButton"
+        }
+    });
+
+    colin.additiveDrone.periodicHarmonicShift = function (synth) {
+        var harm = flock.choose(synth.get("adder.sources")),
+            freqUGen = harm.get("freq"),
+            currentFreq = freqUGen.model.level,
+            end = freqUGen.get("end") * flock.choose(intervals),
+            dur = (Math.random() * 60) + 0.1,
+            amp = harm.get("mul");
+
+        harm.set({
+            "freq.start": currentFreq,
+            "freq.end": end,
+            "freq.duration": dur,
+            "mul": amp * flock.choose(intervals)
         });
 
-        that.periodicHarmonicShift = function () {
-            var harm = flock.choose(that.synth.get("adder.sources")),
-                freqUGen = harm.get("freq"),
-                currentFreq = freqUGen.model.level,
-                end = freqUGen.get("end") * flock.choose(intervals),
-                dur = (Math.random() * 60) + 0.1,
-                amp = harm.get("mul");
-
-            harm.set({
-                "freq.start": currentFreq,
-                "freq.end": end,
-                "freq.duration": dur,
-                "mul": amp * flock.choose(intervals)
-            });
-
-            //var idx = $.inArray(that.synth.get("adder.sources"), harm);
-        };
-
-        that.changeFundamental = function () {
-            var interval = flock.choose(intervals.slice(0, that.intervalCap)),
-                harmonics = that.synth.get("adder.sources"),
-                fundamental = that.synth.get("adder.sources.0.freq.end"),
-                fundAmp = that.synth.get("adder.sources.0.mul"),
-                intervalScale = fundamental * interval;
-
-            $.each(harmonics, function (idx, harmonic) {
-                var freqUGen = harmonic.get("freq"),
-                    currentFreq = freqUGen.model.level,
-                    end = intervalScale * (idx + 1),
-                    dur = (Math.random() * 30) + 5;
-
-                freqUGen.set({
-                    "start": currentFreq,
-                    "end": end,
-                    "duration": dur
-                });
-                //harmonic.set("mul", fundAmp / (idx + 1));
-            });
-
-            if (that.intervalCap <= intervals.length) {
-                that.intervalCap++;
-            }
-        };
-
-        that.emphasizeHarmonic = function () {
-            // TODO:
-            //  - Choose from a range of the lower harmonics, not just the tenth.
-            //  - Use a weighted distribution to emphasize either lower harmonics or harmonics currently in motion.
-            var harmonic = flock.choose(that.synth.get("adder.sources")),
-                tenthAmp = that.synth.get("adder.sources.11.mul"),
-                harmAmp = harmonic.get("mul"),
-                prevHarmAmp;
-
-            if (that.emphasized) {
-                prevHarmAmp = that.emphasized.get("mul");
-                that.synth.set("adder.sources.11.mul", prevHarmAmp);
-                that.emphasized.set("mul", tenthAmp);
-                tenthAmp = prevHarmAmp;
-            }
-
-            harmonic.set("mul", tenthAmp);
-            that.synth.set("adder.sources.11.mul", harmAmp);
-            that.emphasized = harmonic;
-        };
-
-        that.play = function () {
-            // Every 1/10 of a second, change the pitch of one harmonic.
-            that.clock.repeat(0.1, that.periodicHarmonicShift);
-
-            // Every half minute or so, change the fundamental pitch of the whole instrument.
-            that.clock.repeat(31, that.changeFundamental);
-
-            // 45 seconds into the piece, start emphasizing individual harmonics.
-            var scheduled = Date.now();
-            var emphasizeListener;
-            that.clock.once(45, function () {
-                emphasizeListener = that.clock.repeat(0.5, that.emphasizeHarmonic);
-            });
-
-            // After about two minutes, stop emphasizing the harmonics for a while.
-            that.clock.once(120, function () {
-                that.clock.clear(emphasizeListener);
-            });
-
-            // TODO: After about 3-4 minutes, start to "interleave" harmonics at wider spacing to bring out chords
-            // At the same time, the interleaving should slowly involve changes to the fundamental
-            // --presumably by dropping portions of the lower harmonics from one synth and introducing those from another
-            that.createOutputGainNode();
-            that.synth.play();
-            that.fadeTo(1.0, 2);
-        };
-
-        that.createOutputGainNode = function () {
-            var audioStrategy = flock.enviro.shared.audioStrategy;
-
-            if (!that.outputGain) {
-                that.outputGain = audioStrategy.nativeNodeManager.createOutputNode({
-                    node: "Gain"
-                });
-            }
-
-            that.outputGain.gain.value = 0;
-        };
-
-        that.pause = function () {
-            that.clock.clearAll();
-            that.synth.pause();
-        };
-
-        that.fadeTo = function (amp, duration) {
-            duration = duration || 0.0;
-
-            var gain = that.outputGain.gain,
-                audioStrategy = flock.enviro.shared.audioStrategy,
-                now = audioStrategy.context.currentTime,
-                endTime = now + duration;
-
-            // Set the current value now, then ramp to the target.
-            gain.setValueAtTime(gain.value, now); // Why does this need to be done?
-            gain.linearRampToValueAtTime(amp, endTime);
-        };
-
-        that.clock = flock.scheduler.async();
-        return that;
+        //var idx = $.inArray(that.synth.get("adder.sources"), harm);
     };
+
+    colin.additiveDrone.changeFundamental = function (synth, model) {
+        var interval = flock.choose(intervals.slice(0, model.intervalCap)),
+            harmonics = synth.get("adder.sources"),
+            fundamental = synth.get("adder.sources.0.freq.end"),
+            fundAmp = synth.get("adder.sources.0.mul"),
+            intervalScale = fundamental * interval;
+
+        $.each(harmonics, function (idx, harmonic) {
+            var freqUGen = harmonic.get("freq"),
+                currentFreq = freqUGen.model.level,
+                end = intervalScale * (idx + 1),
+                dur = (Math.random() * 30) + 5;
+
+            freqUGen.set({
+                "start": currentFreq,
+                "end": end,
+                "duration": dur
+            });
+            //harmonic.set("mul", fundAmp / (idx + 1));
+        });
+
+        if (model.intervalCap <= intervals.length) {
+            model.intervalCap++;
+        }
+    };
+
+    colin.additiveDrone.emphasizeHarmonics = function (that) {
+        // TODO:
+        //  - Choose from a range of the lower harmonics, not just the tenth.
+        //  - Use a weighted distribution to emphasize either lower harmonics
+        //    or harmonics currently in motion.
+        var harmonic = flock.choose(that.synth.get("adder.sources")),
+            tenthAmp = that.synth.get("adder.sources.11.mul"),
+            harmAmp = harmonic.get("mul"),
+            prevHarmAmp;
+
+        if (that.emphasized) {
+            prevHarmAmp = that.emphasized.get("mul");
+            that.synth.set("adder.sources.11.mul", prevHarmAmp);
+            that.emphasized.set("mul", tenthAmp);
+            tenthAmp = prevHarmAmp;
+        }
+
+        harmonic.set("mul", tenthAmp);
+        that.synth.set("adder.sources.11.mul", harmAmp);
+        that.emphasized = harmonic;
+    };
+
+    colin.additiveDrone.scheduleEmphasis = function (that) {
+        // 45 seconds into the piece, start emphasizing individual harmonics.
+        var emphasizeListener;
+        that.clock.once(45, function () {
+            emphasizeListener = that.clock.repeat(0.5, that.emphasizeHarmonics);
+        });
+
+        // After about two minutes, stop emphasizing the harmonics for a while.
+        that.clock.once(120, function () {
+            that.clock.clear(emphasizeListener);
+        });
+
+        // TODO: After about 3-4 minutes, start to "interleave" harmonics at wider spacing to bring out chords
+        // At the same time, the interleaving should slowly involve changes to the fundamental
+        // --presumably by dropping portions of the lower harmonics from one synth and introducing those from another
+    };
+
+
+    fluid.defaults("colin.additiveDrone.synth", {
+        gradeNames: ["flock.synth", "autoInit"],
+
+        synthDef: [{
+            ugen: "flock.ugen.sum",
+            sources: makeHarmonics(fundamentalMultiplier)
+        },{
+            id: "adder",
+            ugen: "flock.ugen.sum",
+            sources: makeHarmonics(fundamentalMultiplier)
+        }]
+    });
 
 }());

@@ -1,11 +1,13 @@
 var colin = colin || {};
 
 (function () {
+
+    flock.init();
     
     flock.interpolate.isNotNaN = function (val) {
         return !isNaN(val);
     };
-    
+
     flock.interpolate.removeNaNs = function (buffer, interpFn) {
         var i,
             val,
@@ -25,50 +27,50 @@ var colin = colin || {};
             }
         }
     };
-    
+
     flock.interpolate.findAdjacent = function (buffer, idx, direction, testFn) {
         var inc = direction ? 1 : -1,
             boundary = direction ? buffer.length : 0,
             val,
             i;
-        
+
         for (i = idx; i !== boundary; i += inc) {
             val = buffer[i];
             if (testFn(val, i, buffer)) {
                 return i;
             }
         }
-        
+
         return;
     };
-    
-    colin.pointLomaTides = function (options) {        
+
+    colin.pointLomaTides = function (options) {
         var that = {
             options: options || {
                 tidesPath: "san-diego-high-res-water-level.csv"
             }
         };
-        
+
         that.play = function () {
             that.synth.play();
         };
-        
+
         that.pause = function () {
             that.clock.clearAll();
             that.synth.pause();
         };
-        
-        that.init = function () {        
+
+        that.init = function () {
             colin.pointLomaTides.fetchPredictions(that.options.tidesPath, function (data) {
                 that.synth = colin.pointLomaTides.synthFromTidePredictions(data);
                 that.playButtonView = demo.toggleButtonView(that.synth, ".playButton");
             });
         };
-        
+
         that.init();
         return that;
     };
-    
+
     colin.pointLomaTides.fetchPredictions = function (url, success) {
         $.ajax({
             url: url,
@@ -80,27 +82,27 @@ var colin = colin || {};
             }
         });
     };
-    
+
     colin.pointLomaTides.synthFromTidePredictions = function (tideTableStr) {
         var predictions = colin.pointLomaTides.highResTableParser(tideTableStr),
             tideVals = colin.pointLomaTides.allValuesForUnit(predictions, "feet");
-        
+
         flock.scale(tideVals, -1.0, 1.0);
         flock.interpolate.removeNaNs(tideVals, flock.interpolate.linear);
-        
+
         for (var i = 0; i < tideVals.length; i++) {
             if (isNaN(tideVals[i])) {
                 console.log("NaN found at index " + i);
             }
         }
-        
+
         var bufView = flock.view.scope("#buffer-graph", {
             values: tideVals,
             strokeColor: "#888",
             strokeWidth: 1
         });
         bufView.refreshView();
-        
+
         return flock.synth({
             synthDef: {
                 ugen: "flock.ugen.scope",
@@ -132,10 +134,10 @@ var colin = colin || {};
             }
         });
     };
-    
+
     colin.pointLomaTides.tideTableParser = function (tideTableStr) {
         var lines = tideTableStr.split("\r\n");
-        
+
         return fluid.transform(lines, function (line) {
             var tokens = line.split("\t");
             return {
@@ -148,10 +150,10 @@ var colin = colin || {};
             };
         });
     };
-    
+
     colin.pointLomaTides.highResTableParser = function (tideTableStr) {
         var lines = tideTableStr.split("\n");
-        
+
         return fluid.transform(lines, function (line) {
             var tokens = line.split(",");
             return {
@@ -161,7 +163,7 @@ var colin = colin || {};
             }
         });
     };
-    
+
     colin.pointLomaTides.allValuesForUnit = function (predictions, unit) {
         return fluid.transform(predictions, function (prediction, i) {
             var val = prediction[unit];
@@ -171,5 +173,5 @@ var colin = colin || {};
             return Number(val);
         });
     };
-    
+
 }());

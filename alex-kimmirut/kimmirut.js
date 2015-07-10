@@ -3,7 +3,9 @@ var scsiduck = scsiduck || {};
 (function () {
 
     scsiduck.kimmirut = function () {
-        var that = {};
+        var that = {
+            enviro: flock.init()
+        };
 
         /*************************************
          * Original SuperCollider Instrument *

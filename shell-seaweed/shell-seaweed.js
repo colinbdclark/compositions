@@ -3,8 +3,10 @@ var colin = colin || {};
 (function () {
 
     colin.shellSeaweed = function () {
-        var that = {};
-        
+        var that = {
+            enviro: flock.init()
+        };
+
         that.synth = flock.synth({
             synthDef: [
                 {
@@ -24,7 +26,7 @@ var colin = colin || {};
                             mul: 10,
                             add: 40
                         }
-                    },   
+                    },
                     buffer: {
                         id: "grainBuffer",
                         url: "shell-seaweed-soundtrack-raw.wav"
@@ -50,7 +52,7 @@ var colin = colin || {};
                     amp: 0.1,
                     mul: 3.0
                 },
-                // TODO: This instrument has regressed. 
+                // TODO: This instrument has regressed.
                 // Looks like it might have something to do with the bandpass filter.
                 {
                     ugen: "flock.ugen.filter.biquad.bp",
@@ -80,18 +82,18 @@ var colin = colin || {};
                 }
             ]
         });
-        
+
         that.play = function () {
             that.synth.play();
         };
-        
+
         that.pause = function () {
             that.clock.clearAll();
             that.synth.pause();
         };
-        
+
         that.clock = flock.scheduler.async();
         return that;
     };
-    
+
 }());

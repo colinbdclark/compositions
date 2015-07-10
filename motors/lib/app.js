@@ -32,7 +32,7 @@ fluid.defaults("colin.motors.triggeredBufferSynth", {
                 mul: 0.5,
                 add: 1.25
             },
-            list: [0.4, 0.4, 0.4, 0.8, 0.4, 0.4, 0.8, 0.4],
+            values: [0.4, 0.4, 0.4, 0.8, 0.4, 0.4, 0.8, 0.4],
             loop: 1
         }
     }
@@ -164,7 +164,7 @@ fluid.defaults("colin.motors.app", {
                         ugen: "flock.ugen.lfSaw",
                         freq: {
                             ugen: "flock.ugen.sequence",
-                            list: [60, 0, 0, 76, 60, 0, 88, 92, 54, 0],
+                            values: [60, 0, 0, 76, 60, 0, 88, 92, 54, 0],
                             loop: 1,
                             freq: {
                                 ugen: "flock.ugen.lfNoise",
