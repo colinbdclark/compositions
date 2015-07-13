@@ -3,7 +3,7 @@ var colin = colin || {};
 (function () {
 
     flock.init();
-    
+
     flock.interpolate.isNotNaN = function (val) {
         return !isNaN(val);
     };
@@ -120,6 +120,7 @@ var colin = colin || {};
                             interpolation: "linear"
                         }
                     },
+                    mul: 0.6,
                     options: {
                         interpolation: "none"
                     }

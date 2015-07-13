@@ -4,7 +4,9 @@ var colin = colin || {};
 
     colin.shellSeaweed = function () {
         var that = {
-            enviro: flock.init()
+            enviro: flock.init({
+                bufferSize: 8192
+            })
         };
 
         that.synth = flock.synth({
@@ -55,29 +57,35 @@ var colin = colin || {};
                 // TODO: This instrument has regressed.
                 // Looks like it might have something to do with the bandpass filter.
                 {
-                    ugen: "flock.ugen.filter.biquad.bp",
-                    freq: {
-                        ugen: "flock.ugen.amplitude",
-                        source: {
+                    ugen: "flock.ugen.math",
+                    mul: 3.0,
+                    source: {
+                        ugen: "flock.ugen.filter.biquad.bp",
+                        freq: {
+                            ugen: "flock.ugen.amplitude",
+                            source: {
+                                ugen: "flock.ugen.playBuffer",
+                                buffer: "grainBuffer",
+                                speed: 1.0,
+                                loop: 1.0,
+                                start: 0.04
+                            },
+                            add: 120,
+                            mul: {
+                                ugen: "flock.ugen.lfNoise",
+                                rate: "control",
+                                freq: 1/5,
+                                mul: 1000
+                            }
+                        },
+                        q: 20,
+                        source:  {
                             ugen: "flock.ugen.playBuffer",
                             buffer: "grainBuffer",
                             speed: 1.0,
-                            loop: 1.0
-                        },
-                        add: 120,
-                        mul: {
-                            ugen: "flock.ugen.lfNoise",
-                            rate: "control",
-                            freq: 1/5,
-                            mul: 1000
+                            loop: 1.0,
+                            start: 0.04
                         }
-                    },
-                    q: 20,
-                    source:  {
-                        ugen: "flock.ugen.playBuffer",
-                        buffer: "grainBuffer",
-                        speed: 1.0,
-                        loop: 1.0
                     }
                 }
             ]
