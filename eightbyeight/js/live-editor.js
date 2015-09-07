@@ -1,7 +1,7 @@
 (function () {
 
     fluid.defaults("flock.ui.liveEditor", {
-        gradeNames: ["fluid.modelRelayComponent", "autoInit"],
+        gradeNames: "fluid.modelComponent",
 
         model: {},
 
@@ -18,13 +18,11 @@
             },
 
             codeMirror: {
-                type: "flock.ui.codeEditor.cm",
+                type: "flock.ui.codeMirror",
                 container: "#source-view",
                 options: {
-                    cmOptions: {
-                        extraKeys: {
-                            "Ctrl-Alt-Enter": "{liveEditor}.evalSelection"
-                        }
+                    extraKeys: {
+                        "Ctrl-Alt-Enter": "{liveEditor}.evalSelection"
                     }
                 }
             },
@@ -62,10 +60,10 @@
 
     // TODO: This should go.
     flock.ui.liveEditor.updateModel = function (model, setter) {
+        var changeSpec;
         for (var synthName in model) {
-            var modelForSynth = model[synthName],
-                changeSpec = flock.ui.liveEditor.flattenModel(modelForSynth);
-
+            var modelForSynth = model[synthName];
+            changeSpec = flock.ui.liveEditor.flattenModel(modelForSynth);
             model[synthName] = changeSpec;
         }
 

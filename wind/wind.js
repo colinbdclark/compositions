@@ -37,7 +37,7 @@ var colin = colin || {};
         return that;
     };
 
-    fluid.defaults("colin.ugen.video", {
+    flock.ugenDefaults("colin.ugen.video", {
         rate: "control",
         inputs: {
             playbackRate: 1.0,
@@ -83,7 +83,7 @@ var colin = colin || {};
         return that;
     };
 
-    fluid.defaults("colin.ugen.renderTextArray", {
+    flock.ugenDefaults("colin.ugen.renderTextArray", {
         rate: "control",
         inputs: {
             freq: 1/5
@@ -110,7 +110,6 @@ var colin = colin || {};
                 "width": "1px"
             });
         });
-
     };
 
     colin.wind.cantoI = [

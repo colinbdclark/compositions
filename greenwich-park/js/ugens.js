@@ -134,7 +134,7 @@
         return that;
     };
 
-    fluid.defaults("flock.ugen.triggerBuffers", {
+    flock.ugenDefaults("flock.ugen.triggerBuffers", {
         inputs: {
             trigger: 0,
             bufferIndex: 0, // A normalized value between 0 and 1.0

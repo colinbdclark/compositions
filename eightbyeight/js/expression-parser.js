@@ -1,7 +1,7 @@
 (function () {
 
    fluid.defaults("flock.expressionParser", {
-        gradeNames: ["fluid.littleComponent", "autoInit"],
+        gradeNames: "fluid.component",
 
         tokens: {
             expression: "@exp:",
@@ -46,7 +46,7 @@
         // function invocation or definition.
         if (expr.indexOf(exprToken) === 0) {
             var toEval = expr.substring(exprTokenLen);
-            result = eval(toEval);
+            result = eval(toEval); // jshint ignore:line
         } else if (synthContext && synthContext.typeName !== "fluid.emptySubcomponent") {
             // TODO: This should be factored out.
             var prefixIdx = result.indexOf(valuePrefix),

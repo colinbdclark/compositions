@@ -72,7 +72,7 @@ var colin = colin || {};
     };
 
     fluid.defaults("colin.additiveDrone", {
-        gradeNames: ["fluid.viewRelayComponent", "autoInit"],
+        gradeNames: "fluid.viewComponent",
 
         model: {
             intervalCap: 1
@@ -89,7 +89,7 @@ var colin = colin || {};
                 type: "colin.additiveDrone.synth"
             },
 
-            clock: "{environment}.asyncScheduler",
+            clock: "{flock.enviro}.asyncScheduler",
 
             playButton: {
                 type: "flock.ui.enviroPlayButton",
@@ -214,7 +214,7 @@ var colin = colin || {};
 
 
     fluid.defaults("colin.additiveDrone.synth", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: [{
             ugen: "flock.ugen.sum",

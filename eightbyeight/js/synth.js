@@ -1,7 +1,7 @@
 (function () {
 
     fluid.defaults("colin.mPulse.filterSynth", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
         synthDef: {
             id: "master",
             ugen: "flock.ugen.out",
@@ -51,7 +51,7 @@
     });
 
     fluid.defaults("colin.mPulse.noiseSynth", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
         synthDef: {
             id: "master",
             ugen: "flock.ugen.out",
@@ -108,7 +108,7 @@
     });
 
     fluid.defaults("colin.mPulse.controller",{
-        gradeNames: ["flock.midi.controller", "autoInit"],
+        gradeNames: "flock.midi.controller",
 
         components: {
             synthContext: "{band}"
@@ -224,7 +224,7 @@
     });
 
     fluid.defaults("colin.mPulse.band", {
-        gradeNames: ["flock.band", "autoInit"],
+        gradeNames: "flock.band",
 
         components: {
             filterSynth: {

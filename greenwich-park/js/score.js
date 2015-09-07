@@ -2,7 +2,7 @@
     "use strict";
 
     fluid.defaults("colin.greenwichPark.scheduler", {
-        gradeNames: ["flock.scheduler.async", "autoInit"],
+        gradeNames: "flock.scheduler.async",
 
         cutTime: (60 * 5) + 19, // 5'19"
         endTime: (60 * 8) + 3, // 8'03"
@@ -24,6 +24,10 @@
                 end: 0,
                 duration: "{that}.options.fadeDuration"
             }
+        },
+
+        components: {
+            synthContext: "{band}"
         },
 
         // TODO: Need to be to target multiple changes at multiple synths at one time.

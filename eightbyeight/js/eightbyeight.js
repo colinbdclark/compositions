@@ -3,7 +3,7 @@
     flock.init();
 
     fluid.defaults("colin.eightByEight", {
-        gradeNames: ["fluid.modelRelayComponent", "autoInit"],
+        gradeNames: "fluid.modelComponent",
 
         components: {
             editor: {
@@ -33,5 +33,5 @@
             fluid.log(fluid.logLevel.WARN, "brush, ping");
 
         }, 10000);
-    }
+    };
 }());

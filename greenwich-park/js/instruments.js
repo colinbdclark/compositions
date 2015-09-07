@@ -2,7 +2,7 @@
     "use strict";
 
     fluid.defaults("colin.greenwichPark.clock", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: {
             ugen: "flock.ugen.triggerBuffers",
@@ -31,7 +31,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.drumClock", {
-        gradeNames: ["colin.greenwichPark.clock", "autoInit"],
+        gradeNames: "colin.greenwichPark.clock",
 
         synthDef: {
             mul: {
@@ -60,7 +60,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.ukeClock", {
-        gradeNames: ["colin.greenwichPark.clock", "autoInit"],
+        gradeNames: "colin.greenwichPark.clock",
 
         synthDef: {
             options: {
@@ -75,7 +75,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.aeolianHarp", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: {
             ugen: "flock.ugen.triggerBuffers",
@@ -120,7 +120,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.ukuleleAeolianHarp", {
-        gradeNames: ["colin.greenwichPark.aeolianHarp", "autoInit"],
+        gradeNames: "colin.greenwichPark.aeolianHarp",
 
         synthDef: {
             trigger: {
@@ -169,7 +169,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.drumAeolianHarp", {
-        gradeNames: ["colin.greenwichPark.aeolianHarp", "autoInit"],
+        gradeNames: "colin.greenwichPark.aeolianHarp",
 
         synthDef: {
             mul: 0.75,
@@ -186,7 +186,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.inCameraAudio", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: {
             ugen: "flock.ugen.out",
@@ -203,7 +203,7 @@
     });
 
     fluid.defaults("colin.greenwichPark.inCameraAudioOutput", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: {
             ugen: "flock.ugen.out",

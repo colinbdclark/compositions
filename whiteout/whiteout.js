@@ -9,7 +9,7 @@
     });
 
     fluid.defaults("colin.whiteout", {
-        gradeNames: ["fluid.eventedComponent", "autoInit"],
+        gradeNames: "fluid.component",
 
         components: {
             band: {
@@ -41,87 +41,87 @@
     });
 
     fluid.defaults("colin.whiteout.band", {
-        gradeNames: ["flock.band", "autoInit"],
+        gradeNames: "flock.band",
 
         components: {
             mandolin: {
                 type: "colin.whiteout.mandolin.thick",
                 options: {
-                    gradeNames: ["colin.whiteout.panning"]
+                    gradeNames: "colin.whiteout.panning"
                 }
             },
 
             highGuitar: {
                 type: "colin.whiteout.guitarGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.right"]
+                    gradeNames: "colin.whiteout.right"
                 }
             },
 
             lowGuitar: {
                 type: "colin.whiteout.lowGuitarGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.left"]
+                    gradeNames: "colin.whiteout.left"
                 }
             },
 
             highImpulse: {
                 type: "colin.whiteout.impulseGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.right"]
+                    gradeNames: "colin.whiteout.right"
                 }
             },
 
             lowImpulse: {
                 type: "colin.whiteout.lowImpulseGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.left"]
+                    gradeNames: "colin.whiteout.left"
                 }
             }
         }
     });
 
     fluid.defaults("colin.whiteout.band.mandolins", {
-        gradeNames: ["flock.band", "autoInit"],
+        gradeNames: "flock.band",
 
         components: {
             thin: {
                 type: "colin.whiteout.mandolin.thin",
                 options: {
-                    gradeNames: ["colin.whiteout.panning"]
+                    gradeNames: "colin.whiteout.panning"
                 }
             },
             thick: {
                 type: "colin.whiteout.mandolin.thick",
                 options: {
-                    gradeNames: ["colin.whiteout.panning"]
+                    gradeNames: "colin.whiteout.panning"
                 }
             }
         }
     });
 
     fluid.defaults("colin.whiteout.band.bothGuitars", {
-        gradeNames: ["flock.band", "autoInit"],
+        gradeNames: "flock.band",
 
         components: {
             highGuitar: {
                 type: "colin.whiteout.guitarGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.right"]
+                    gradeNames: "colin.whiteout.right"
                 }
             },
 
             lowGuitar: {
                 type: "colin.whiteout.lowGuitarGranulator",
                 options: {
-                    gradeNames: ["colin.whiteout.left"]
+                    gradeNames: "colin.whiteout.left"
                 }
             }
         }
     });
 
     fluid.defaults("colin.whiteout.random", {
-        gradeNames: ["fluid.littleComponent", "autoInit"],
+        gradeNames: "fluid.component",
 
         synthDef: {
             ugen: "flock.ugen.whiteNoise"
@@ -129,7 +129,7 @@
     });
 
     fluid.defaults("colin.whiteout.output", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: {
             ugen: "flock.ugen.out"
@@ -137,7 +137,7 @@
     });
 
     fluid.defaults("colin.whiteout.left", {
-        gradeNames: ["colin.whiteout.output", "autoInit"],
+        gradeNames: "colin.whiteout.output",
 
         synthDef: {
             bus: 0,
@@ -146,7 +146,7 @@
     });
 
     fluid.defaults("colin.whiteout.right", {
-        gradeNames: ["colin.whiteout.output", "autoInit"],
+        gradeNames: "colin.whiteout.output",
 
         synthDef: {
             bus: 1,
@@ -155,7 +155,7 @@
     });
 
     fluid.defaults("colin.whiteout.stereo", {
-        gradeNames: ["colin.whiteout.output", "autoInit"],
+        gradeNames: "colin.whiteout.output",
 
         synthDef: {
             bus: 0,
@@ -164,7 +164,7 @@
     });
 
     fluid.defaults("colin.whiteout.panning", {
-        gradeNames: ["colin.whiteout.stereo", "autoInit"],
+        gradeNames: "colin.whiteout.stereo",
 
         synthDef: {
             sources: {
@@ -183,7 +183,7 @@
     });
 
     fluid.defaults("colin.whiteout.guitarGranulator", {
-        gradeNames: ["colin.whiteout.output", "autoInit"],
+        gradeNames: "colin.whiteout.output",
 
         synthDef: {
             sources: {
@@ -223,7 +223,7 @@
     });
 
     fluid.defaults("colin.whiteout.lowGuitarGranulator", {
-        gradeNames: ["colin.whiteout.guitarGranulator", "autoInit"],
+        gradeNames: "colin.whiteout.guitarGranulator",
 
         synthDef: {
             sources: {
@@ -249,7 +249,7 @@
     });
 
     fluid.defaults("colin.whiteout.impulseGranulator", {
-        gradeNames: ["colin.whiteout.output", "autoInit"],
+        gradeNames: "colin.whiteout.output",
 
         synthDef: {
             sources: {
@@ -272,7 +272,8 @@
                 },
                 source: {
                     ugen: "flock.ugen.impulse",
-                    freq: 123
+                    freq: 123,
+                    mul: 0.6
                 },
                 mul: {
                     ugen: "flock.ugen.triOsc",
@@ -295,7 +296,7 @@
     });
 
     fluid.defaults("colin.whiteout.lowImpulseGranulator", {
-        gradeNames: ["colin.whiteout.impulseGranulator", "autoInit"],
+        gradeNames: "colin.whiteout.impulseGranulator",
 
         synthDef: {
             sources: {
@@ -313,7 +314,7 @@
     });
 
     fluid.defaults("colin.whiteout.mandolin", {
-        gradeNames: ["colin.whiteout.output", "autoInit"],
+        gradeNames: "colin.whiteout.output",
 
         synthDef: {
             sources: {
@@ -385,7 +386,7 @@
     });
 
     fluid.defaults("colin.whiteout.mandolin.thin", {
-        gradeNames: ["colin.whiteout.mandolin", "autoInit"],
+        gradeNames: "colin.whiteout.mandolin",
         synthDef: {
             sources: {
                 pan: {
@@ -436,7 +437,7 @@
     });
 
     fluid.defaults("colin.whiteout.mandolin.thick", {
-        gradeNames: ["colin.whiteout.mandolin.thin", "autoInit"],
+        gradeNames: "colin.whiteout.mandolin.thin",
 
         synthDef: {
             sources: {

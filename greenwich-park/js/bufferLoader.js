@@ -51,7 +51,7 @@
 
 
     fluid.defaults("flock.bufferLoader", {
-        gradeNames: ["fluid.eventedComponent", "autoInit"],
+        gradeNames: "fluid.component",
 
         members: {
             buffers: []
@@ -111,7 +111,7 @@
     flock.bufferLoader.loadBuffers = function (bufferDefs, decodedBuffers, afterBuffersLoaded) {
         // TODO: This is a sign that the flock.parse.bufferForDef is still terribly broken.
         bufferDefs = fluid.makeArray(bufferDefs);
-        
+
         var stupidFakeUGen = {
             setBuffer: function (decoded) {
                 decodedBuffers.push(decoded);

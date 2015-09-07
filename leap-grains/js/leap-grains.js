@@ -5,10 +5,14 @@
     fluid.registerNamespace("flock");
 
     fluid.defaults("flock.leapMotion", {
-        gradeNames: ["fluid.eventedComponent", "fluid.modelComponent", "autoInit"],
+        gradeNames: "fluid.modelComponent",
 
         model: {
             pointables: {}
+        },
+
+        modelListeners: {
+            "*": "{that}.events.onPointablesChanged.fire"
         },
 
         listeners: {
@@ -21,11 +25,6 @@
                     "this": "{that}.controller",
                     method: "on",
                     args: ["animationFrame", "{that}.events.onFrame.fire"]
-                },
-                {
-                    "this": "{that}.applier.modelChanged",
-                    method: "addListener",
-                    args: ["*", "{that}.events.onPointablesChanged.fire"]
                 }
             ],
             onFrame: {
@@ -56,9 +55,10 @@
         var updatedModel = {},
             id,
             i,
-            pointable;
+            pointable,
+            pointableModel;
 
-        // TODO: Replace the onPointableLost and onPoitntableAdded events with finer-grained use of the ChangeApplier.
+        // TODO: Rewrite this entire mess!
         for (id in model.pointables) {
             if (!leapFrame.pointablesMap[id]) {
                 events.onPointableLost.fire(id);
@@ -67,13 +67,15 @@
 
         for (i = 0; i < leapFrame.pointables.length; i++) {
             pointable = leapFrame.pointables[i];
-            pointable = updatedModel[pointable.id] = flock.leapMotion.pointableToModel(leapFrame, pointable);
+            pointableModel = flock.leapMotion.pointableToModel(leapFrame, pointable);
+            updatedModel[pointable.id] = pointableModel;
 
             if (!model.pointables[pointable.id]) {
-                events.onPointableAdded.fire(pointable);
+                events.onPointableAdded.fire(pointableModel);
             }
         }
 
+        applier.requestChange("pointables", null, "DELETE");
         applier.requestChange("pointables", updatedModel);
     };
 
@@ -112,7 +114,7 @@
     fluid.registerNamespace("colin");
 
     fluid.defaults("colin.leapGrains", {
-        gradeNames: ["fluid.viewComponent", "autoInit"],
+        gradeNames: "fluid.viewComponent",
 
         members: {
             activeTips: {},
@@ -127,7 +129,7 @@
                         onPointablesChanged: {
                             funcName: "colin.leapGrains.renderTips",
                             args: [
-                                "{arguments}.0.pointables",
+                                "{that}.model.pointables",
                                 "{leapGrains}.dom.fingerRegion",
                                 "{leapGrains}.activeTips",
                                 "{leapGrains}.options"
@@ -273,7 +275,7 @@
 
 
     fluid.defaults("colin.leapGrains.synth", {
-        gradeNames: ["flock.synth", "autoInit"],
+        gradeNames: "flock.synth",
 
         synthDef: {
             ugen: "flock.ugen.triggerGrains",

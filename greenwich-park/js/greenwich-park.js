@@ -9,7 +9,7 @@
 
     // In the middle of a field in Greenwich Park on a grey weekday morning.
     fluid.defaults("colin.greenwichPark", {
-        gradeNames: ["fluid.eventedComponent", "autoInit"],
+        gradeNames: "fluid.component",
 
         members: {
             bufferUrls: {
