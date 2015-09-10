@@ -10,7 +10,7 @@ var fluid = require("infusion"),
 fluid.registerNamespace("colin.motors");
 
 fluid.defaults("colin.motors.triggeredBufferSynth", {
-    gradeNames: ["flock.synth", "autoInit"],
+    gradeNames: "flock.synth",
 
     synthDef: {
         ugen: "flock.ugen.playBuffer",
@@ -39,7 +39,7 @@ fluid.defaults("colin.motors.triggeredBufferSynth", {
 });
 
 fluid.defaults("colin.motors.kick", {
-    gradeNames: ["colin.motors.triggeredBufferSynth", "autoInit"],
+    gradeNames: "colin.motors.triggeredBufferSynth",
 
     synthDef: {
         ugen: "flock.ugen.filter.biquad.rlp",
@@ -68,7 +68,7 @@ fluid.defaults("colin.motors.kick", {
 });
 
 fluid.defaults("colin.motors.rimshot", {
-    gradeNames: ["colin.motors.triggeredBufferSynth", "autoInit"],
+    gradeNames: "colin.motors.triggeredBufferSynth",
 
     synthDef: {
         id: "rim",
@@ -83,7 +83,7 @@ fluid.defaults("colin.motors.rimshot", {
 });
 
 fluid.defaults("colin.motors.snare", {
-    gradeNames: ["colin.motors.triggeredBufferSynth", "autoInit"],
+    gradeNames: "colin.motors.triggeredBufferSynth",
 
     synthDef: {
         id: "snare",
@@ -109,7 +109,7 @@ fluid.defaults("colin.motors.snare", {
 
 
 fluid.defaults("colin.motors.app", {
-    gradeNames: ["flock.band", "fluid.modelComponent", "autoInit"],
+    gradeNames: ["flock.band", "fluid.modelComponent"],
 
     components: {
         kick: {

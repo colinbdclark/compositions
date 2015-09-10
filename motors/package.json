@@ -5,7 +5,7 @@
     "author": "Colin Clark",
     "dependencies": {
         "infusion": "git://github.com/fluid-project/infusion.git",
-        "flocking": "git://github.com/colinbdclark/Flocking.git"
+        "flocking": "git://github.com/colinbdclark/Flocking.git#infusion-2.x"
     },
     "main": "index.js",
     "engines": {
