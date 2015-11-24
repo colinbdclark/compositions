@@ -102,7 +102,8 @@ fluid.defaults("colin.motors.snare", {
         },
         mul: {
             ugen: "flock.ugen.whiteNoise",
-            mul: 0.5
+            mul: 0.25,
+            add: 0.25
         }
     }
 });

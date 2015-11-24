@@ -110,7 +110,8 @@
                 },
                 add: {
                     ugen: "flock.ugen.whiteNoise",
-                    mul: 0.1
+                    mul: 0.05,
+                    add: 0.05
                 },
                 options: {
                     interpolation: "linear"

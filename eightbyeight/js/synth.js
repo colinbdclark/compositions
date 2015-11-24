@@ -61,6 +61,9 @@
             sources: {
                 id: "noise",
                 ugen: "flock.ugen.whiteNoise",
+                // TODO: This is a bug.
+                // The whiteNoise unit generator doesn't have
+                // a freq input.
                 freq: {
                     ugen: "flock.ugen.lfNoise",
                     freq: 1/10,

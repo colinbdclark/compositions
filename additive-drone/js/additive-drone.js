@@ -8,13 +8,13 @@ var colin = colin || {};
         chans: 2,
         numBuses: 2,
         numInputBuses: 0,
-        bufferSize: 8192 * 2
+        bufferSize: 16384
     });
 
     // A bank of oscillators added together.
     // TODO: Remove all these globals.
     var harmonics = [1, 2, 3, 5, 6, 7, 9, 11, 13, 14, 15, 17, 19, 21, 24, 29, 44],
-        ugenTypes = ["flock.ugen.sin", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
+        ugenTypes = ["flock.ugen.sinOsc", "flock.ugen.lfSaw", "flock.ugen.lfPulse", "flock.ugen.lfNoise"],
         fundamentalMultiplier = 60,
         maxFreq = 11025 * 1.5,
         maxAmp = 0.3,
